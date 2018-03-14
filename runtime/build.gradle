@@ -1,0 +1,7 @@
+
+dependencies {
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
+    compile "io.grpc:grpc-protobuf:${versions.grpc}",
+            "io.grpc:grpc-stub:${versions.grpc}"
+
+}
