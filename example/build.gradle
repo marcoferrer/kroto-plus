@@ -1,0 +1,61 @@
+apply plugin: 'com.google.protobuf'
+
+def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
+
+sourceSets {
+    main.kotlin.srcDirs += generatedOutputDir
+
+    main {
+        java {
+            // Add additional source directory for generated sources
+            srcDir generatedOutputDir
+        }
+    }
+}
+
+dependencies {
+    compile "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    compile project(':runtime')
+    compile project(':runtime-test')
+
+    compile "io.grpc:grpc-protobuf:${versions.grpc}",
+            "io.grpc:grpc-stub:${versions.grpc}"
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${versions.protoc}"}
+
+    generatedFilesBaseDir = "$buildDir/generated-sources"
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${versions.grpc}" }
+    }
+
+    generateProtoTasks {
+        all()*.plugins {
+            grpc { outputSubDir = "java" }
+        }
+    }
+}
+
+def krotoPlus = project(":compiler")
+
+task generateKrotoPlus {
+    dependsOn ':compiler:jar'
+    doLast {
+        javaexec {
+            main = '-jar'
+            args = [
+                    //Path service generator fat jar
+                    "${krotoPlus.buildDir.path}/libs/${krotoPlus.name}-${krotoPlus.version}.jar",
+
+                    //Proto definition source directories or path to jar
+                    "$projectDir/src/main/proto", "$buildDir/extracted-include-protos/main",
+
+                    //Generated sources output directory
+                    "-o", generatedOutputDir
+            ]
+        }
+    }
+}

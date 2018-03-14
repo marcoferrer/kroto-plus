@@ -1,0 +1,39 @@
+apply plugin: 'application'
+
+project.version ='0.1.0'
+group = "com.github.mferrer.krotoplus"
+version = project.version
+description 'Kroto-Plus Compiler'
+mainClassName = 'com.github.mferrer.krotoplus.KrotoPlusCompilerMain'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+        attributes 'Implementation-Title' : 'Kroto-Plus Compiler'
+        attributes 'Implementation-Version': project.version
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
+    jcenter()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-reflect"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
+    compile "com.squareup.wire:wire-schema:2.2.0"
+
+    //Temporary lib source until https://github.com/Kotlin/kotlinx.cli/issues/2 is resolved
+    compile 'com.github.kgilmer:kotlinx-cli:bdb0c81'
+
+    compile ([group: 'com.squareup', name: 'kotlinpoet', version: '0.6.0']) {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+
+    compile "io.grpc:grpc-testing:${versions.grpc}"
+}

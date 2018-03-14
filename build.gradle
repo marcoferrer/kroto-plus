@@ -1,0 +1,47 @@
+buildscript {
+    ext {
+        versions = [
+                "protoc":     '3.3.0',
+                "protobuf":   '3.3.1',
+                "grpc":       '1.4.0',
+                "kotlin":     '1.2.21',
+                "coroutines": '0.19.3',
+        ]
+    }
+
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.4'
+    }
+}
+
+subprojects{
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    apply plugin: 'idea'
+    apply plugin: 'kotlin'
+
+    kotlin {
+        experimental { coroutines 'enable' }
+    }
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    }
+}
