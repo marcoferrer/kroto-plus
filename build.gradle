@@ -29,6 +29,9 @@ subprojects{
     apply plugin: 'idea'
     apply plugin: 'kotlin'
 
+    group = 'com.github.mferrer.krotoplus'
+    version = '0.1.0-SNAPSHOT'
+
     kotlin {
         experimental { coroutines 'enable' }
     }
