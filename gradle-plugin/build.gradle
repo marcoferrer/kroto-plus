@@ -1,0 +1,21 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        krotoPlusPlugin {
+            id = 'com.github.mferrer.kroto-plus'
+            implementationClass = 'com.github.mferrer.krotoplus.KrotoPlusGradlePlugin'
+        }
+    }
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies{
+    compile project(":compiler")
+}
+

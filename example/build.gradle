@@ -1,4 +1,19 @@
+buildscript{
+    repositories {
+        jcenter()
+        mavenCentral()
+        flatDir dirs: "../gradle-plugin/build/libs/"
+        flatDir dirs: "../compiler/build/libs/"
+    }
+
+    dependencies{
+        classpath group: 'com.github.mferrer.krotoplus', name: 'gradle-plugin', version: '0.1.0-SNAPSHOT'
+        classpath group: 'com.github.mferrer.krotoplus', name: 'compiler', version: '0.1.0-SNAPSHOT'
+    }
+}
+
 apply plugin: 'com.google.protobuf'
+apply plugin: 'com.github.mferrer.kroto-plus'
 
 def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
 
@@ -39,23 +54,13 @@ protobuf {
     }
 }
 
-def krotoPlus = project(":compiler")
-
-task generateKrotoPlus {
-    dependsOn ':compiler:jar'
-    doLast {
-        javaexec {
-            main = '-jar'
-            args = [
-                    //Path service generator fat jar
-                    "${krotoPlus.buildDir.path}/libs/${krotoPlus.name}-${krotoPlus.version}.jar",
-
-                    //Proto definition source directories or path to jar
-                    "$projectDir/src/main/proto", "$buildDir/extracted-include-protos/main",
-
-                    //Generated sources output directory
-                    "-o", generatedOutputDir
-            ]
-        }
-    }
+krotoPlus{
+    //Proto definition source directories, or path to jar containing proto definitions
+    sources = [
+        "$projectDir/src/main/proto",
+        "$buildDir/extracted-include-protos/main"
+    ]
+    outputDir = "${protobuf.generatedFilesBaseDir}/main/kotlin"
 }
+
+generateKrotoPlus.dependsOn(':gradle-plugin:jar')
