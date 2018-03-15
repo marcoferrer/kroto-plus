@@ -40,6 +40,19 @@ This module generates script-able mock implementations of proto service definiti
 //TODO add example
 ```
 
+## Gradle Plugin
+Example gradle configuration
+```groovy
+krotoPlus{
+    //Proto definition source directories, or path to jar containing proto definitions
+    sources = [
+        "$projectDir/src/main/proto",
+        "$buildDir/extracted-include-protos/main"
+    ]
+    outputDir = "${protobuf.generatedFilesBaseDir}/main/kotlin"
+}
+```
+
 ## Road Map
 1. Gradle plugin for simplifying cli use.
 2. Support for generating overloads for streaming rpc calls.
