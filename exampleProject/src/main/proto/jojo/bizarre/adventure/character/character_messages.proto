@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package jojo.bizarre.adventure;
+
+import "jojo/bizarre/adventure/stand/stand_messages.proto";
+
+option java_package = "jojo.bizarre.adventure.character";
+option java_outer_classname = "CharacterProto";
+
+message Character {
+    string name = 1;
+    Affiliation affiliation = 2;
+    repeated Character relatives = 3;
+    Stand stand = 4;
+
+    enum Affiliation {
+        GOOD = 0;
+        EVIL = 1;
+        NEUTRAL = 2;
+    }
+}

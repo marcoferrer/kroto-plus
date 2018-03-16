@@ -1,7 +1,11 @@
 package com.github.mferrer.krotoplus.schema
 
+import com.github.mferrer.krotoplus.Manifest
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.asClassName
 import com.squareup.wire.schema.*
+import javax.annotation.Generated
 
 fun ProtoType.toClassName(protoSchema: Schema): ClassName {
 
@@ -9,13 +13,26 @@ fun ProtoType.toClassName(protoSchema: Schema): ClassName {
         protoFile( getType(this@toClassName).location().path() )
     }
 
-    return if (file.javaMultipleFiles)
-        ClassName(file.javaPackage(), this.simpleName())
-    else
-        ClassName(file.javaPackage(), file.javaOuterClassname, this.simpleName())
+    return this.toClassName(file)
 }
 
-val ProtoType.isEmptyMessage get() = this.enclosingTypeOrPackage() =="google.protobuf" && this.simpleName() == "Empty"
+fun ProtoType.toClassName(protoFile: ProtoFile): ClassName {
+
+    return if (protoFile.javaMultipleFiles)
+        ClassName(protoFile.javaPackage(), this.simpleName())
+    else
+        ClassName(protoFile.javaPackage(), protoFile.javaOuterClassname, this.simpleName())
+}
+
+fun ProtoFile.getGeneratedAnnotationSpec() =
+        AnnotationSpec.builder(Generated::class.asClassName())
+                .addMember("value = [%S]", "by ${Manifest.implTitle} (version ${Manifest.implVersion})")
+                .addMember("comments = %S", "Source: ${this.location().path()}")
+                .build()
+
+val ProtoFile.isCommonProtoFile get() = javaPackage().startsWith("com.google.protobuf")
+
+val ProtoType.isEmptyMessage get() = this.enclosingTypeOrPackage().startsWith("google.protobuf") && this.simpleName() == "Empty"
 
 object ProtoOptions{
 

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package jojo.bizarre.adventure;
+
+option java_package = "jojo.bizarre.adventure.stand";
+option java_outer_classname = "StandProto";
+
+message Stand {
+    string name = 1;
+    repeated Attack attacks = 2;
+    int32 power_level = 14;
+    int32 speed = 15;
+}
+
+message Attack {
+    string name = 1;
+    int32 damage = 2;
+    Range range = 3;
+
+    enum Range {
+        LONG = 0;
+        MEDIUM = 1;
+        CLOSE = 2;
+        NONE = 3;
+    }
+}

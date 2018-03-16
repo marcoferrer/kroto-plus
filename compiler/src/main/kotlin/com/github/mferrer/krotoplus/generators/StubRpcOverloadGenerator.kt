@@ -2,6 +2,7 @@ package com.github.mferrer.krotoplus.generators
 
 import com.github.mferrer.krotoplus.generators.FileSpecProducer.Companion.AutoGenerationDisclaimer
 import com.github.mferrer.krotoplus.schema.ServiceWrapper
+import com.github.mferrer.krotoplus.schema.isCommonProtoFile
 import com.github.mferrer.krotoplus.schema.isEmptyMessage
 import com.squareup.kotlinpoet.*
 import com.squareup.wire.schema.Schema
@@ -15,9 +16,8 @@ class StubRpcOverloadGenerator(
     override fun consume() = launch {
         schema.protoFiles()
                 .asSequence()
-                .filter { it.javaPackage() != "com.google.protobuf" }
+                .filterNot { it.isCommonProtoFile }
                 .forEach { protoFile ->
-
                     for (service in protoFile.services())
                         launch(coroutineContext) {
                             buildFileSpec(ServiceWrapper(service, protoFile, schema))

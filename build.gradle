@@ -1,11 +1,11 @@
 buildscript {
     ext {
         versions = [
-                "protoc":     '3.3.0',
-                "protobuf":   '3.3.1',
-                "grpc":       '1.4.0',
+                "protoc":     '3.5.1',
+                "protobuf":   '3.5.1',
+                "grpc":       '1.10.0',
                 "kotlin":     '1.2.21',
-                "coroutines": '0.19.3',
+                "coroutines": '0.22.5',
         ]
     }
 
@@ -16,7 +16,6 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.4'
     }
 }
 

@@ -2,6 +2,7 @@
 package com.github.mferrer.krotoplus
 
 import com.github.mferrer.krotoplus.generators.MockServiceGenerator
+import com.github.mferrer.krotoplus.generators.ProtoTypeBuilderGenerator
 import com.github.mferrer.krotoplus.generators.StubRpcOverloadGenerator
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.wire.schema.SchemaLoader
@@ -15,6 +16,7 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import java.io.File
 import kotlin.system.exitProcess
+import kotlin.system.measureTimeMillis
 
 object Manifest {
     val name        = javaClass.`package`.name.orEmpty()
@@ -46,7 +48,7 @@ class Cli(args: Array<out String>){
 lateinit var cli: Cli
 
 fun main(vararg args: String){
-    runBlocking {
+    val executionTime = measureTimeMillis { runBlocking {
         cli = Cli(args)
 
         val outDir = File(cli.outputPath).also { it.mkdirs() }
@@ -60,16 +62,20 @@ fun main(vararg args: String){
 
         val fileSpecChannel = Channel<FileSpec>()
 
-        launch {
+        val fileWriterJob = launch {
             fileSpecChannel.consumeEach { it.writeTo(outDir) }
         }
 
         val schemaConsumerJobs = listOf(
                 StubRpcOverloadGenerator(schema, fileSpecChannel).consume(),
+                ProtoTypeBuilderGenerator(schema, fileSpecChannel).consume(),
                 MockServiceGenerator(schema,fileSpecChannel).consume()
         )
 
         for(job in schemaConsumerJobs) job.join()
         fileSpecChannel.close()
-    }
+        fileWriterJob.join()
+    }}
+
+    println("Kroto+ Completed in ${executionTime}ms")
 }
