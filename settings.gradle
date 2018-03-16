@@ -1,4 +1,4 @@
-include 'compiler'
-include 'runtime'
-include 'runtime-test'
-include 'gradle-plugin'
+include 'kroto-plus-compiler'
+include 'kroto-plus-runtime'
+include 'kroto-plus-runtime-test'
+include 'kroto-plus-gradle-plugin'

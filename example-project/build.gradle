@@ -13,15 +13,15 @@ buildscript{
     repositories {
         jcenter()
         mavenCentral()
-        flatDir dirs: "../gradle-plugin/build/libs/"
-        flatDir dirs: "../compiler/build/libs/"
+        flatDir dirs: "../kroto-plus-gradle-plugin/build/libs/"
+        flatDir dirs: "../kroto-plus-compiler/build/libs/"
     }
 
     dependencies{
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.4'
-        classpath "com.github.mferrer.krotoplus:gradle-plugin:${versions.krotoplus}"
-        classpath "com.github.mferrer.krotoplus:compiler:${versions.krotoplus}"
+        classpath "com.github.mferrer.krotoplus:kroto-plus-gradle-plugin:${versions.krotoplus}"
+        classpath "com.github.mferrer.krotoplus:kroto-plus-compiler:${versions.krotoplus}"
     }
 }
 
@@ -48,8 +48,8 @@ compileTestKotlin {
 repositories {
     jcenter()
     mavenCentral()
-    flatDir dirs: "../runtime/build/libs/"
-    flatDir dirs: "../runtime-test/build/libs/"
+    flatDir dirs: "../kroto-plus-runtime/build/libs/"
+    flatDir dirs: "../kroto-plus-runtime-test/build/libs/"
 }
 
 
@@ -70,8 +70,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
     compile "com.google.protobuf:protobuf-java:${versions.protobuf}"
-    compile "com.github.mferrer.krotoplus:runtime:${versions.krotoplus}"
-    compile "com.github.mferrer.krotoplus:runtime-test:${versions.krotoplus}"
+    compile "com.github.mferrer.krotoplus:kroto-plus-runtime:${versions.krotoplus}"
+    compile "com.github.mferrer.krotoplus:kroto-plus-runtime-test:${versions.krotoplus}"
 
     compile "io.grpc:grpc-protobuf:${versions.grpc}",
             "io.grpc:grpc-stub:${versions.grpc}"
@@ -81,6 +81,14 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '[4,)'
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit"
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/kotlin/main")
+        testOutputDir = file("$buildDir/classes/kotlin/test")
+    }
 }
 
 protobuf {
@@ -109,13 +117,13 @@ krotoPlus{
     outputDir = "${protobuf.generatedFilesBaseDir}/main/kotlin"
 }
 
-task generateKrotoPlusCLI {
+task generateKrotoPlusCLIExample {
     doLast {
         javaexec {
             main = '-jar'
             args = [
                     //Path service generator fat jar
-                    "/Users/mferrer/IdeaProjects/kroto-plus/compiler/build/libs/compiler-0.1.0-SNAPSHOT.jar",
+                    "${rootProject.projectDir}/kroto-plus-compiler/build/libs/kroto-plus-compiler-${versions.krotoplus}.jar",
 
                     //Proto definition source directories or path to jar
                     "$projectDir/src/main/proto", "$buildDir/extracted-include-protos/main",
