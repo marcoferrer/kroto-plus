@@ -1,13 +1,14 @@
 package com.github.mferrer.krotoplus.generators
 
-import com.github.mferrer.krotoplus.Manifest
 import com.github.mferrer.krotoplus.generators.FileSpecProducer.Companion.AutoGenerationDisclaimer
-import com.github.mferrer.krotoplus.schema.ServiceWrapper
+import com.github.mferrer.krotoplus.schema.*
 import com.squareup.kotlinpoet.*
+import com.squareup.wire.schema.ProtoFile
 import com.squareup.wire.schema.Schema
 import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.launch
-import javax.annotation.Generated
 
 class MockServiceGenerator(
         override val schema: Schema, override val fileSpecChannel: Channel<FileSpec>
@@ -16,10 +17,12 @@ class MockServiceGenerator(
     override fun consume() = launch {
         schema.protoFiles()
                 .asSequence()
-                .filter { it.javaPackage() != "com.google.protobuf" }
+                .filterNot { it.isCommonProtoFile }
                 .forEach { protoFile ->
-
-                    for (service in protoFile.services())
+                    launch(coroutineContext) {
+                        buildResponseQueueOverloads(protoFile)
+                    }
+                    for(service in protoFile.services())
                         launch(coroutineContext) {
                             ServiceWrapper(service, protoFile, schema).buildFileSpec()
                         }
@@ -40,21 +43,21 @@ class MockServiceGenerator(
 
         val companionBuilder = TypeSpec.companionObjectBuilder()
 
-        for (method in methodDefinitions)
-            method.buildFunSpec(classBuilder,companionBuilder)
+        methodDefinitions.asSequence()
+                .filterNot { it.method.requestStreaming() || it.method.responseStreaming() }
+                .forEach { method ->
+                    method.buildFunSpec(classBuilder,companionBuilder)
+                }
 
         companionBuilder.build()
                 .takeIf { it.propertySpecs.isNotEmpty() }
                 ?.let { classBuilder.companionObject(it) }
 
-        fileSpecBuilder.addType(classBuilder
-                .addAnnotation(AnnotationSpec.builder(Generated::class.asClassName())
-                        .addMember("value = [%S]", "by ${Manifest.implTitle} (version ${Manifest.implVersion})")
-                        .addMember("comments = %S", "Source: ${protoFile.location().path()}")
-                        .build())
-                .build())
-
-        fileSpecChannel.send(fileSpecBuilder.build())
+        classBuilder.addAnnotation(protoFile.getGeneratedAnnotationSpec()).build()
+                .takeIf { it.funSpecs.isNotEmpty() }
+                ?.let { typeSpec ->
+                    fileSpecChannel.send(fileSpecBuilder.addType(typeSpec).build())
+                }
     }
 
 
@@ -80,7 +83,69 @@ class MockServiceGenerator(
                         queuePropertyName,
                         responseClassName
                 )
-                .also { classBuilder.addFunction(it.build()) }
+                .also {
+                    classBuilder.addFunction(it.build())
+                }
+    }
+
+    private suspend fun buildResponseQueueOverloads(protoFile: ProtoFile){
+        val filename = "${protoFile.javaOuterClassname}ResponseQueueOverloads"
+        val fileSpecBuilder = FileSpec.builder(protoFile.javaPackage(),filename)
+                .addComment(AutoGenerationDisclaimer)
+                .addAnnotation(AnnotationSpec.builder(JvmName::class.asClassName())
+                        .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
+                        .addMember("%S","-$filename")
+                        .build())
+
+        protoFile.types()
+                .asSequence()
+                .map{ it.type() }
+                .forEach { protoType ->
+
+                    val typeClassName = protoType.toClassName(protoFile)
+
+                    val queueTypeName = ParameterizedTypeName.get(responseQueueClassName, typeClassName)
+
+                    val builderLambdaTypeName = LambdaTypeName.get(
+                            receiver = typeClassName.nestedClass("Builder"),
+                            returnType = UNIT)
+
+                    val methodBodyTemplate = "return %T.newBuilder().apply(block).build().let{ this.%NMessage(it) }"
+
+
+                    /** Add Message w/ Builder Lambda */
+                    FunSpec.builder("addMessage")
+                            .addModifiers(KModifier.INLINE)
+                            .receiver(queueTypeName)
+                            .addParameter("block", builderLambdaTypeName)
+                            .addStatement(methodBodyTemplate,typeClassName,"add")
+                            .returns(BOOLEAN)
+                            .addAnnotation(AnnotationSpec
+                                .builder(JvmName::class.asClassName())
+                                .addMember("%S", "add${protoType.simpleName()}")
+                                .build())
+                            .also {
+                                fileSpecBuilder.addFunction(it.build())
+                            }
+
+                    /** Push Message w/ Builder Lambda */
+                    FunSpec.builder("pushMessage")
+                            .addModifiers(KModifier.INLINE)
+                            .receiver(queueTypeName)
+                            .addParameter("block", builderLambdaTypeName)
+                            .addStatement(methodBodyTemplate,typeClassName,"push")
+                            .returns(UNIT)
+                            .addAnnotation(AnnotationSpec
+                                    .builder(JvmName::class.asClassName())
+                                    .addMember("%S", "push${protoType.simpleName()}")
+                                    .build())
+                            .also {
+                                fileSpecBuilder.addFunction(it.build())
+                            }
+                }
+
+        //TODO Check for empty file before emitting fileSpec
+        fileSpecChannel.send(fileSpecBuilder.build())
     }
 
     companion object {

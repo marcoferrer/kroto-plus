@@ -28,9 +28,18 @@ dependencies {
     //Temporary lib source until https://github.com/Kotlin/kotlinx.cli/issues/2 is resolved
     compile 'com.github.kgilmer:kotlinx-cli:bdb0c81'
 
-    compile ([group: 'com.squareup', name: 'kotlinpoet', version: '0.7.0']) {
-        exclude group: 'org.jetbrains.kotlin'
-    }
+    compile ([group: 'com.squareup', name: 'kotlinpoet', version: '0.7.0'])
+//            {
+//        exclude group: 'org.jetbrains.kotlin'
+//    }
 
     compile "io.grpc:grpc-testing:${versions.grpc}"
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/kotlin/main")
+        testOutputDir = file("$buildDir/classes/kotlin/test")
+    }
 }

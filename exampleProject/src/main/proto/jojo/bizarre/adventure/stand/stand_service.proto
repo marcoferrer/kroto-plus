@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package jojo.bizarre.adventure;
+
+import "jojo/bizarre/adventure/stand/stand_messages.proto";
+import "jojo/bizarre/adventure/character/character_messages.proto";
+import "google/protobuf/empty.proto";
+
+option java_package = "jojo.bizarre.adventure.stand";
+option java_outer_classname = "StandServiceProto";
+
+message GetStandByNameRequest{
+    string name = 1;
+}
+
+message GetStandByCharacterNameRequest{
+    string name = 1;
+}
+
+message GetAllStandsUnaryResponse{
+    repeated Stand stands = 1;
+}
+
+service StandService {
+
+    rpc GetStandByName(GetStandByNameRequest) returns(Stand);
+
+    rpc GetStandByCharacter(Character) returns(Stand);
+
+    rpc GetStandsForCharacters(stream Character) returns(stream Stand);
+
+    rpc GetStandByCharacterName(GetStandByCharacterNameRequest) returns(Stand);
+
+    rpc GetAllStandsStream(google.protobuf.Empty) returns(stream Stand);
+
+    rpc GetAllStandsUnary(google.protobuf.Empty) returns(stream GetAllStandsUnaryResponse);
+}
+

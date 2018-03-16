@@ -5,7 +5,10 @@ import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
 
 
-class ServiceBindingServerRule(val services: List<BindableService>) : GrpcServerRule() {
+class ServiceBindingServerRule(vararg services: BindableService) : GrpcServerRule() {
+
+    private val services: List<BindableService> = services.toList()
+
     override fun before() {
         super.before()
         for(service in services)
