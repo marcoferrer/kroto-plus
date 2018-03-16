@@ -61,9 +61,48 @@ suspend inline fun ExampleServiceStub.myRpcMethod(block: ExampleServiceGrpc.MyRp
 
 ### Mock Service Generator
 
-This module generates script-able mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses for unit testing methods that rely on rpc calls. 
+This module generates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses for unit testing methods that rely on rpc calls. 
  ```kotlin
-//TODO add example
+@Test fun `Test Unary Response Queue`(){
+
+    MockStandService.getStandByNameResponseQueue.apply {
+
+        //Queue up a valid response message
+        addMessage {
+            name = "Star Platinum"
+            powerLevel = 500
+            speed = 550
+            addAttacks(StandProtoBuilders.Attack {
+                name = "ORA ORA ORA"
+                damage = 100
+                range = StandProto.Attack.Range.CLOSE
+            })
+        }
+
+        //Queue up an error
+        addError(Status.INVALID_ARGUMENT)
+    }
+
+    val standStub = StandServiceGrpc.newBlockingStub(grpcServerRule.channel)
+
+    standStub.getStandByName { name = "Star Platinum" }.let{ response ->
+        assertEquals("Star Platinum",response.name)
+        assertEquals(500,response.powerLevel)
+        assertEquals(550,response.speed)
+        response.attacksList.first().let{ attack ->
+            assertEquals("ORA ORA ORA",attack.name)
+            assertEquals(100,attack.damage)
+            assertEquals(StandProto.Attack.Range.CLOSE,attack.range)
+        }
+    }
+
+    try{
+        standStub.getStandByName { name = "The World" }
+        fail("Exception was expected with status code: ${Status.INVALID_ARGUMENT.code}")
+    }catch (e: StatusRuntimeException){
+        assertEquals(Status.INVALID_ARGUMENT.code, e.status.code)
+    }
+}
 ```
 
 ## Gradle Plugin
