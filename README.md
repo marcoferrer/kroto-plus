@@ -56,12 +56,13 @@ suspend inline fun ExampleServiceStub.myRpcMethod(block: ExampleServiceGrpc.MyRp
 ```
 
 #### Current Limitations
-1. Overloads are currently only being generated for unary rpc calls. Support for other rpc method type will be added in the future. 
+1. Overloads are currently only being generated for unary rpc calls. Support for other rpc method types will be added in the future. 
 
 
 ### Mock Service Generator
 
-This module generates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses for unit testing methods that rely on rpc calls. 
+This module generates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses for unit testing methods that rely on rpc calls.
+1. If no responses are added to the response queue then the mock service will return the default instance of the response type. 
  ```kotlin
 @Test fun `Test Unary Response Queue`(){
 
