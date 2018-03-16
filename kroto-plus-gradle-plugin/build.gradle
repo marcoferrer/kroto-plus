@@ -16,6 +16,6 @@ repositories {
 }
 
 dependencies{
-    compile project(":compiler")
+    compile project(":kroto-plus-compiler")
 }
 
