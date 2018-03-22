@@ -114,7 +114,14 @@ krotoPlus{
         "$projectDir/src/main/proto",
         "$buildDir/extracted-include-protos/main"
     ]
-    outputDir = "${protobuf.generatedFilesBaseDir}/main/kotlin"
+    defaultOutputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+
+    generators{
+        stubOverloads{
+            supportCoroutines = true
+        }
+        mockServices
+    }
 }
 
 task generateKrotoPlusCLIExample {
@@ -133,7 +140,7 @@ task generateKrotoPlusCLIExample {
                     "-writers","3",
 
                     //Generated sources output directory
-                    "-defout", generatedOutputDir,
+                    "-default-out", generatedOutputDir,
 
                     //Module
                     "-ProtoTypeBuilder",

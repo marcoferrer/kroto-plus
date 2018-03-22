@@ -32,7 +32,7 @@ val fileWriterCount by appCli
         .flagValueArgument("-writers", "<int>","Number of concurrent file writers (default 3)",3){ it.toInt() }
 
 val defaultOutputPath by appCli
-        .flagValueArgument("-defout", "default/output/path", "Default destination dir for generated sources")
+        .flagValueArgument("-default-out", "default/output/path", "Default destination dir for generated sources")
 
 val defaultOutputDir by lazy { File(defaultOutputPath).apply { mkdirs() } }
 
