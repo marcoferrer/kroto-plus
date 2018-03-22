@@ -7,6 +7,18 @@ import com.squareup.kotlinpoet.asClassName
 import com.squareup.wire.schema.*
 import javax.annotation.Generated
 
+object ProtoOptions{
+
+    object File{
+        val JavaOuterClassname = ProtoMember.get(Options.FILE_OPTIONS, "java_outer_classname")
+        val JavaMultipleFiles = ProtoMember.get(Options.FILE_OPTIONS, "java_multiple_files")
+    }
+
+    object Service{
+        val ServiceIsDeprecated = ProtoMember.get(Options.SERVICE_OPTIONS, "deprecated")
+    }
+}
+
 fun ProtoType.toClassName(protoSchema: Schema): ClassName {
 
     val file = protoSchema.run {
@@ -24,27 +36,8 @@ fun ProtoType.toClassName(protoFile: ProtoFile): ClassName {
         ClassName(protoFile.javaPackage(), protoFile.javaOuterClassname, this.simpleName())
 }
 
-fun ProtoFile.getGeneratedAnnotationSpec() =
-        AnnotationSpec.builder(Generated::class.asClassName())
-                .addMember("value = [%S]", "by ${Manifest.implTitle} (version ${Manifest.implVersion})")
-                .addMember("comments = %S", "Source: ${this.location().path()}")
-                .build()
-
-val ProtoFile.isCommonProtoFile get() = javaPackage().startsWith("com.google.protobuf")
-
-val ProtoType.isEmptyMessage get() = this.enclosingTypeOrPackage().startsWith("google.protobuf") && this.simpleName() == "Empty"
-
-object ProtoOptions{
-
-    object File{
-        val JavaOuterClassname = ProtoMember.get(Options.FILE_OPTIONS, "java_outer_classname")
-        val JavaMultipleFiles = ProtoMember.get(Options.FILE_OPTIONS, "java_multiple_files")
-    }
-
-    object Service{
-        val ServiceIsDeprecated = ProtoMember.get(Options.SERVICE_OPTIONS, "deprecated")
-    }
-}
+val ProtoType.isEmptyMessage
+    get() = this.enclosingTypeOrPackage().startsWith("google.protobuf") && this.simpleName() == "Empty"
 
 val ProtoFile.javaOuterClassname: String
     get() = options().get(ProtoOptions.File.JavaOuterClassname)?.toString() ?: this.name().capitalize()
@@ -54,3 +47,11 @@ val ProtoFile.javaMultipleFiles: Boolean
 
 val Service.isDeprecated: Boolean
     get() = options().get(ProtoOptions.Service.ServiceIsDeprecated)?.toString()?.toBoolean() == true
+
+fun ProtoFile.getGeneratedAnnotationSpec() =
+        AnnotationSpec.builder(Generated::class.asClassName())
+                .addMember("value = [%S]", "by ${Manifest.implTitle} (version ${Manifest.implVersion})")
+                .addMember("comments = %S", "Source: ${this.location().path()}")
+                .build()
+
+val ProtoFile.isCommonProtoFile get() = javaPackage().startsWith("com.google.protobuf")

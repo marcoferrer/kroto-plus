@@ -1,6 +1,7 @@
 package com.github.mferrer.krotoplus.generators
 
 import com.github.mferrer.krotoplus.cli.appendHelpEntry
+import com.github.mferrer.krotoplus.defaultOutputPath
 import com.github.mferrer.krotoplus.generators.GeneratorModule.Companion.AutoGenerationDisclaimer
 import com.github.mferrer.krotoplus.schema.ServiceWrapper
 import com.github.mferrer.krotoplus.schema.isCommonProtoFile
@@ -27,7 +28,9 @@ class StubRpcOverloadGenerator(
     private val outputPath by cli
             .flagValueArgument("-o", "output_path", "Destination directory for generated sources")
 
-    private val outputDir by lazy { File(outputPath).apply { mkdirs() } }
+    private val outputDir by lazy {
+        File(outputPath ?: defaultOutputPath).apply { mkdirs() }
+    }
 
     override fun bindToCli(mainCli: CommandLineInterface) {
         mainCli.apply {
