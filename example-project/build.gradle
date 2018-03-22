@@ -123,13 +123,29 @@ task generateKrotoPlusCLIExample {
             main = '-jar'
             args = [
                     //Path service generator fat jar
-                    "${rootProject.projectDir}/kroto-plus-compiler/build/libs/kroto-plus-compiler-${versions.krotoplus}.jar",
+                    "../kroto-plus-compiler/build/libs/kroto-plus-compiler-${versions.krotoplus}.jar",
 
                     //Proto definition source directories or path to jar
-                    "$projectDir/src/main/proto", "$buildDir/extracted-include-protos/main",
+                    "$projectDir/src/main/proto","$buildDir/extracted-include-protos/main",
+
+                    //Number of concurrent file writers
+                    //More does not equal better and can lead to a decrease in performance
+                    "-writers","3",
 
                     //Generated sources output directory
-                    "-o", generatedOutputDir
+                    "-defout", generatedOutputDir,
+
+                    //Module
+                    "-ProtoTypeBuilder",
+
+                    //Module
+                    "-StubOverloads",
+                    "-o|${generatedOutputDir}|-coroutines",
+
+                    //Module
+                    "-MockServices",
+                    "-o|${generatedOutputDir}/test"
+
             ]
         }
     }

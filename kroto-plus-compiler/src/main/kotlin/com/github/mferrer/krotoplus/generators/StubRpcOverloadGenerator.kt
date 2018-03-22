@@ -1,19 +1,49 @@
 package com.github.mferrer.krotoplus.generators
 
-import com.github.mferrer.krotoplus.generators.FileSpecProducer.Companion.AutoGenerationDisclaimer
+import com.github.mferrer.krotoplus.cli.appendHelpEntry
+import com.github.mferrer.krotoplus.generators.GeneratorModule.Companion.AutoGenerationDisclaimer
 import com.github.mferrer.krotoplus.schema.ServiceWrapper
 import com.github.mferrer.krotoplus.schema.isCommonProtoFile
 import com.github.mferrer.krotoplus.schema.isEmptyMessage
 import com.squareup.kotlinpoet.*
 import com.squareup.wire.schema.Schema
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.cli.*
+import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
+import java.io.File
+import kotlin.system.exitProcess
 
 class StubRpcOverloadGenerator(
-        override val schema: Schema, override val fileSpecChannel: Channel<FileSpec>
-) : SchemaConsumer, FileSpecProducer {
+        override val resultChannel: SendChannel<GeneratorResult>
+) : GeneratorModule {
 
-    override fun consume() = launch {
+    override var isEnabled = false
+
+    private val cli = CommandLineInterface("StubOverloads")
+
+    private val generateCoroutineSupport by cli
+            .flagArgument("-coroutines", "Generate coroutine integrated overloads")
+
+    private val outputPath by cli
+            .flagValueArgument("-o", "output_path", "Destination directory for generated sources")
+
+    private val outputDir by lazy { File(outputPath).apply { mkdirs() } }
+
+    override fun bindToCli(mainCli: CommandLineInterface) {
+        mainCli.apply {
+            flagValueAction("-StubOverloads", "-o|<output_path>|-coroutines", "Pipe delimited generator arguments") {
+                try{
+                    cli.parse(it.split("|"))
+                    isEnabled = true
+                }catch (e:Exception){
+                    exitProcess(1)
+                }
+            }
+            appendHelpEntry(cli)
+        }
+    }
+
+    override fun generate(schema: Schema) = launch {
         schema.protoFiles()
                 .asSequence()
                 .filterNot { it.isCommonProtoFile }
@@ -35,10 +65,13 @@ class StubRpcOverloadGenerator(
                         .addMember("%S","-$filename")
                         .build())
 
+
         for(methodWrappers in serviceWrapper.methodDefinitions)
             buildFunSpecs(methodWrappers, fileSpecBuilder)
 
-        fileSpecChannel.send(fileSpecBuilder.build())
+        fileSpecBuilder.build().takeIf { it.members.isNotEmpty() }?.let {
+            resultChannel.send(GeneratorResult(it, outputDir))
+        }
     }
 
     private fun buildFunSpecs(
@@ -73,7 +106,8 @@ class StubRpcOverloadGenerator(
                 .returns(methodWrapper.responseClassName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
-        buildAsyncStubOverloads(methodWrapper,fileSpecBuilder)
+        if(generateCoroutineSupport)
+            buildAsyncStubOverloads(methodWrapper,fileSpecBuilder)
     }
 
     private fun buildAsyncStubOverloads(
@@ -82,8 +116,7 @@ class StubRpcOverloadGenerator(
     ) {
 
         fileSpecBuilder
-                .addStaticImport("com.github.mferrer.krotoplus.coroutines","suspendingAsyncUnaryCall")
-                .addStaticImport(methodWrapper.serviceWrapper.enclosingServiceClassName,methodWrapper.methodDescriptorName)
+                .addStaticImport("com.github.mferrer.krotoplus.coroutines","suspendingUnaryCallObserver")
 
         val requestValueTemplate = if(methodWrapper.method.requestType().isEmptyMessage)
             "val request = %T.getDefaultInstance()\n" else "val request = %T.newBuilder().apply(block).build()\n"
@@ -96,9 +129,8 @@ class StubRpcOverloadGenerator(
                 .addParameter("request",methodWrapper.requestClassName)
                 .returns(methodWrapper.responseClassName)
                 .addStatement(
-                        "return %N(%N,channel,callOptions, request)",
-                        "\n  suspendingAsyncUnaryCall",
-                        methodWrapper.methodDescriptorName)
+                        "return %W suspendingUnaryCallObserver{ observer -> %N(request,observer) }",
+                        methodWrapper.functionName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
         FunSpec.builder(methodWrapper.functionName)
@@ -111,7 +143,5 @@ class StubRpcOverloadGenerator(
                 .addCode(requestValueCb)
                 .addStatement("return %N(request)", methodWrapper.functionName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
-
     }
-
 }
