@@ -9,7 +9,7 @@ targetCompatibility = 1.8
 jar {
     manifest {
         attributes 'Main-Class': mainClassName
-        attributes 'Implementation-Title' : 'Kroto-Plus Compiler'
+        attributes 'Implementation-Title' : 'Kroto+ Compiler'
         attributes 'Implementation-Version': project.version
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -31,6 +31,7 @@ dependencies {
     compile "com.squareup:kotlinpoet:0.7.0"
 
     compile "io.grpc:grpc-testing:${versions.grpc}"
+
 }
 
 idea {

@@ -1,16 +1,14 @@
 @file:JvmName("KrotoPlusCompilerMain")
 package com.github.mferrer.krotoplus
 
-import com.github.mferrer.krotoplus.generators.MockServiceGenerator
-import com.github.mferrer.krotoplus.generators.ProtoTypeBuilderGenerator
-import com.github.mferrer.krotoplus.generators.StubRpcOverloadGenerator
+import com.github.mferrer.krotoplus.generators.*
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.wire.schema.SchemaLoader
-import kotlinx.cli.CommandLineInterface
-import kotlinx.cli.flagValueArgument
-import kotlinx.cli.parse
-import kotlinx.cli.positionalArgumentsList
+import kotlinx.cli.*
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.actor
+import kotlinx.coroutines.experimental.channels.asReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
@@ -24,57 +22,59 @@ object Manifest {
     val implVersion = javaClass.`package`.implementationVersion.orEmpty()
 }
 
-class Cli(args: Array<out String>){
+val appCli = CommandLineInterface("Kroto-Plus")
 
-    private val cli = CommandLineInterface("Kroto-Plus")
+val protoSources by appCli
+        .positionalArgumentsList("source_dir_1 source_dir_2 ...",
+                "Proto Source Directories / Jars (Space delimited) ", minArgs = 1)
 
-    val protoSources by cli
-            .positionalArgumentsList("source_dir_1 source_dir_2 ...",
-                    "Proto Source Directories / Jars (Space delimited) ", minArgs = 1)
+val fileWriterCount by appCli
+        .flagValueArgument("-writers", "<int>","Number of concurrent file writers (default 3)",3){ it.toInt() }
 
-    val outputPath by cli
-            .flagValueArgument("-o", "output_path", "Destination dir for generated sources")
+val defaultOutputPath by appCli
+        .flagValueArgument("-defout", "default/output/path", "Default destination dir for generated sources")
 
-    init {
-        // Parse arguments or exit
+val defaultOutputDir by lazy { File(defaultOutputPath).apply { mkdirs() } }
+
+fun main(vararg args: String){
+
+    val executionTime = measureTimeMillis { runBlocking {
+
+        val fileSpecActor = actor<GeneratorResult>(capacity = Channel.UNLIMITED) {
+            repeat(fileWriterCount){
+                launch(coroutineContext) {
+                    channel.consumeEach { it.fileSpec.writeTo(it.outputDir) }
+                }
+            }
+        }
+
+        val generators = listOf(
+                ProtoTypeBuilderGenerator(fileSpecActor).apply { bindToCli(appCli) },
+                StubRpcOverloadGenerator(fileSpecActor).apply { bindToCli(appCli) },
+                MockServiceGenerator(fileSpecActor).apply { bindToCli(appCli) }
+        )
+
         try {
-            cli.parse(args)
+            appCli.parse(args)
         } catch (e: Exception) {
             exitProcess(1)
         }
-    }
-}
-
-lateinit var cli: Cli
-
-fun main(vararg args: String){
-    val executionTime = measureTimeMillis { runBlocking {
-        cli = Cli(args)
-
-        val outDir = File(cli.outputPath).also { it.mkdirs() }
 
         val schema = SchemaLoader().run {
-            for (sourcePath in cli.protoSources) {
-                addSource(File(sourcePath))
+            for (sourcePath in protoSources) {
+                val file = File(sourcePath)
+                assert(file.exists())
+                addSource(file)
             }
             load()
         }
 
-        val fileSpecChannel = Channel<FileSpec>()
+        generators
+                .map { it.generate(schema) }
+                .forEach { it.join() }
 
-        val fileWriterJob = launch {
-            fileSpecChannel.consumeEach { it.writeTo(outDir) }
-        }
-
-        val schemaConsumerJobs = listOf(
-                StubRpcOverloadGenerator(schema, fileSpecChannel).consume(),
-                ProtoTypeBuilderGenerator(schema, fileSpecChannel).consume(),
-                MockServiceGenerator(schema,fileSpecChannel).consume()
-        )
-
-        for(job in schemaConsumerJobs) job.join()
-        fileSpecChannel.close()
-        fileWriterJob.join()
+        fileSpecActor.close()
+        (fileSpecActor as Job).join()
     }}
 
     println("Kroto+ Completed in ${executionTime}ms")

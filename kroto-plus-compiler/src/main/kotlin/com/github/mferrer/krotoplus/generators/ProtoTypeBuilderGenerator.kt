@@ -1,18 +1,34 @@
 package com.github.mferrer.krotoplus.generators
 
-import com.github.mferrer.krotoplus.generators.FileSpecProducer.Companion.AutoGenerationDisclaimer
-import com.github.mferrer.krotoplus.schema.*
+import com.github.mferrer.krotoplus.defaultOutputDir
+import com.github.mferrer.krotoplus.generators.GeneratorModule.Companion.AutoGenerationDisclaimer
+import com.github.mferrer.krotoplus.schema.getGeneratedAnnotationSpec
+import com.github.mferrer.krotoplus.schema.isCommonProtoFile
+import com.github.mferrer.krotoplus.schema.javaOuterClassname
+import com.github.mferrer.krotoplus.schema.toClassName
 import com.squareup.kotlinpoet.*
 import com.squareup.wire.schema.ProtoFile
 import com.squareup.wire.schema.Schema
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.cli.CommandLineInterface
+import kotlinx.cli.flagAction
+import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
 
 class ProtoTypeBuilderGenerator(
-        override val schema: Schema, override val fileSpecChannel: Channel<FileSpec>
-) : SchemaConsumer, FileSpecProducer {
+        override val resultChannel: SendChannel<GeneratorResult>
+) : GeneratorModule {
 
-    override fun consume() = launch {
+    override var isEnabled: Boolean = false
+
+    override fun bindToCli(mainCli: CommandLineInterface) {
+        mainCli.apply {
+            flagAction("-ProtoTypeBuilder", "Generate builder lambdas for proto message types") {
+                isEnabled = true
+            }
+        }
+    }
+
+    override fun generate(schema: Schema) = launch {
         schema.protoFiles()
                 .asSequence()
                 .filterNot { it.isCommonProtoFile }
@@ -58,7 +74,7 @@ class ProtoTypeBuilderGenerator(
                 ?.let { typeSpec ->
 
                     val fileSpec = fileSpecBuilder.addType(typeSpec).build()
-                    fileSpecChannel.send(fileSpec)
+                    resultChannel.send(GeneratorResult(fileSpec, defaultOutputDir))
                 }
     }
 

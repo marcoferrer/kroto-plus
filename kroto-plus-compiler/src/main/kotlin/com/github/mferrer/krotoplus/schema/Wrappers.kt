@@ -30,11 +30,5 @@ data class ServiceWrapper(val service: Service, val protoFile: ProtoFile, val pr
 
         val responseClassName = method.responseType().toClassName(serviceWrapper.protoSchema)
 
-        val methodDescriptorName = "METHOD" + method.name().replace(wordStartCamelCaseRegex,"_$1").toUpperCase()
-
-    }
-
-    companion object {
-        val wordStartCamelCaseRegex = "([A-Z])(?=[a-z])".toRegex()
     }
 }
