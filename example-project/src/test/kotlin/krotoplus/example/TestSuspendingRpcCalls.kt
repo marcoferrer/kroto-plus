@@ -224,18 +224,3 @@ class TestStandService : StandServiceGrpc.StandServiceImplBase() {
         } ?: responseObserver.onError(Status.NOT_FOUND.asException())
     }
 }
-
-fun StandServiceGrpc.StandServiceStub.getAllStandsStream(): InboundStreamChannel<StandProto.Stand> =
-        InboundStreamChannel<StandProto.Stand>().also { observer ->
-            getAllStandsStream(Empty.getDefaultInstance(),observer)
-        }
-
-fun StandServiceGrpc.StandServiceStub.getStandsForCharacters(): RpcBidiChannel<CharacterProto.Character,StandProto.Stand> =
-        this.bidiCallChannel { responseObserver ->
-            getStandsForCharacters(responseObserver)
-        }
-
-suspend fun StandServiceGrpc.StandServiceStub.getStandByCharacter(request: CharacterProto.Character): StandProto.Stand =
-        this.suspendingUnaryCallObserver { observer ->
-            getStandByCharacter(request,observer)
-        }

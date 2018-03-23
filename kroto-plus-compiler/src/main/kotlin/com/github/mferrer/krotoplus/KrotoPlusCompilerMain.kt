@@ -70,6 +70,7 @@ fun main(vararg args: String){
         }
 
         generators
+                .filter { it.isEnabled }
                 .map { it.generate(schema) }
                 .forEach { it.join() }
 

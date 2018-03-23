@@ -8,12 +8,12 @@ open class KrotoPlusGeneratorsConfig @Inject constructor(objectFactory: ObjectFa
 
     val stubOverloadsConfig = objectFactory.newInstance(StubOverloadGeneratorConfig::class.java)
     val mockServicesConfig = objectFactory.newInstance(MockServicesGeneratorConfig::class.java)
-    val protoTypeBuilderConfig = objectFactory.newInstance(ProtoTypeBuildersGeneratorConfig::class.java)
+    val protoTypeBuildersConfig = objectFactory.newInstance(ProtoTypeBuildersGeneratorConfig::class.java)
 
     open val generatorModules = mutableSetOf<GeneratorModuleConfig>()
 
     val protoTypeBuilders: ProtoTypeBuildersGeneratorConfig
-        get() = protoTypeBuilderConfig.also {
+        get() = protoTypeBuildersConfig.also {
             generatorModules.add(it)
         }
 

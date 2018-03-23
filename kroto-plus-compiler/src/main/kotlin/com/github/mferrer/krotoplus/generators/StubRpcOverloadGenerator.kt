@@ -22,7 +22,7 @@ class StubRpcOverloadGenerator(
 
     private val cli = CommandLineInterface("StubOverloads")
 
-    private val generateCoroutineSupport by cli
+    private val supportCoroutines by cli
             .flagArgument("-coroutines", "Generate coroutine integrated overloads")
 
     private val outputPath by cli
@@ -81,23 +81,38 @@ class StubRpcOverloadGenerator(
             methodWrapper: ServiceWrapper.MethodWrapper,
             fileSpecBuilder: FileSpec.Builder
     ){
-        if(methodWrapper.method.requestStreaming() || methodWrapper.method.responseStreaming())
-            return //TODO Add support for streaming rpc calls
+        when{
+            //Unary
+            methodWrapper.isUnary ->
+                buildUnaryOverloads(methodWrapper,fileSpecBuilder)
 
+            //Server Streaming //TODO Add support for Blocking Server Streaming
+            supportCoroutines && methodWrapper.isServerStream ->
+                buildServerStreamingOverloads(methodWrapper,fileSpecBuilder)
+
+            //Bidi && Client Streaming
+            supportCoroutines && (methodWrapper.isBidi || methodWrapper.isClientStream)->
+                buildBidiStreamingOverloads(methodWrapper,fileSpecBuilder)
+        }
+    }
+
+    private fun buildUnaryOverloads(
+            methodWrapper: ServiceWrapper.MethodWrapper,
+            fileSpecBuilder: FileSpec.Builder
+    ) {
         val funSpecBuilder = FunSpec.builder(methodWrapper.functionName)
-                .addModifiers(KModifier.INLINE)
-                .addParameter("block",LambdaTypeName.get(
-                        receiver = methodWrapper.requestClassName.nestedClass("Builder"),
-                        returnType = UNIT))
 
-        val requestValueTemplate = if(methodWrapper.method.requestType().isEmptyMessage)
-            "val request = %T.getDefaultInstance()\n" else "val request = %T.newBuilder().apply(block).build()\n"
-
-        val requestValueCb = CodeBlock.of(requestValueTemplate, methodWrapper.requestClassName)
+        if(!methodWrapper.method.requestType().isEmptyMessage) {
+            funSpecBuilder
+                    .addModifiers(KModifier.INLINE)
+                    .addParameter("block", LambdaTypeName.get(
+                            receiver = methodWrapper.requestClassName.nestedClass("Builder"),
+                            returnType = UNIT))
+        }
 
         funSpecBuilder
                 .receiver(methodWrapper.serviceWrapper.futureStubClassName)
-                .addCode(requestValueCb)
+                .addCode(methodWrapper.requestValueCodeBlock())
                 .addStatement("return %N(request)", methodWrapper.functionName)
                 .returns(ParameterizedTypeName.get(
                         ClassName("com.google.common.util.concurrent","ListenableFuture"),
@@ -109,11 +124,11 @@ class StubRpcOverloadGenerator(
                 .returns(methodWrapper.responseClassName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
-        if(generateCoroutineSupport)
-            buildAsyncStubOverloads(methodWrapper,fileSpecBuilder)
+        if(supportCoroutines)
+            buildSuspendingUnaryOverloads(methodWrapper,fileSpecBuilder)
     }
 
-    private fun buildAsyncStubOverloads(
+    private fun buildSuspendingUnaryOverloads(
             methodWrapper: ServiceWrapper.MethodWrapper,
             fileSpecBuilder: FileSpec.Builder
     ) {
@@ -121,30 +136,105 @@ class StubRpcOverloadGenerator(
         fileSpecBuilder
                 .addStaticImport("com.github.mferrer.krotoplus.coroutines","suspendingUnaryCallObserver")
 
-        val requestValueTemplate = if(methodWrapper.method.requestType().isEmptyMessage)
-            "val request = %T.getDefaultInstance()\n" else "val request = %T.newBuilder().apply(block).build()\n"
-
-        val requestValueCb = CodeBlock.of(requestValueTemplate,methodWrapper.requestClassName)
-
         FunSpec.builder(methodWrapper.functionName)
                 .addModifiers(KModifier.SUSPEND)
                 .receiver(methodWrapper.serviceWrapper.asyncStubClassName)
-                .addParameter("request",methodWrapper.requestClassName)
+                .apply {
+                    if(!methodWrapper.method.requestType().isEmptyMessage) {
+                        addParameter("request", methodWrapper.requestClassName)
+                    }else{
+                        addCode(methodWrapper.requestValueCodeBlock())
+                    }
+                }
                 .returns(methodWrapper.responseClassName)
                 .addStatement(
                         "return %W suspendingUnaryCallObserver{ observer -> %N(request,observer) }",
                         methodWrapper.functionName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
+        if(!methodWrapper.method.requestType().isEmptyMessage) {
+            FunSpec.builder(methodWrapper.functionName)
+                    .addModifiers(KModifier.SUSPEND)
+                    .receiver(methodWrapper.serviceWrapper.asyncStubClassName)
+                    .apply {
+                        if (!methodWrapper.method.requestType().isEmptyMessage) {
+                            addModifiers(KModifier.INLINE)
+                            addParameter("block", LambdaTypeName.get(
+                                    receiver = methodWrapper.requestClassName.nestedClass("Builder"),
+                                    returnType = UNIT))
+                        }
+                    }
+                    .returns(methodWrapper.responseClassName)
+                    .addCode(methodWrapper.requestValueCodeBlock())
+                    .addStatement("return %N(request)", methodWrapper.functionName)
+                    .also { fileSpecBuilder.addFunction(it.build()) }
+        }
+    }
+
+    private fun buildServerStreamingOverloads(
+            methodWrapper: ServiceWrapper.MethodWrapper,
+            fileSpecBuilder: FileSpec.Builder
+    ){
+
+        val inboundChannelClassName = ClassName("com.github.mferrer.krotoplus.coroutines","InboundStreamChannel")
+
+        val returnType = ParameterizedTypeName.get(inboundChannelClassName,methodWrapper.responseClassName)
+
         FunSpec.builder(methodWrapper.functionName)
-                .addModifiers(KModifier.SUSPEND,KModifier.INLINE)
                 .receiver(methodWrapper.serviceWrapper.asyncStubClassName)
-                .addParameter("block",LambdaTypeName.get(
-                        receiver = methodWrapper.requestClassName.nestedClass("Builder"),
-                        returnType = UNIT))
-                .returns(methodWrapper.responseClassName)
-                .addCode(requestValueCb)
-                .addStatement("return %N(request)", methodWrapper.functionName)
+                .apply {
+                    if(!methodWrapper.method.requestType().isEmptyMessage) {
+                        addParameter("request", methodWrapper.requestClassName)
+                    }else{
+                        addCode(methodWrapper.requestValueCodeBlock())
+                    }
+                }
+                .returns(returnType)
+                .addStatement(
+                        "return %T().also { observer -> %N(request,observer) }",
+                        returnType,
+                        methodWrapper.functionName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
     }
+
+
+    private fun buildBidiStreamingOverloads(
+            methodWrapper: ServiceWrapper.MethodWrapper,
+            fileSpecBuilder: FileSpec.Builder
+    ){
+
+        fileSpecBuilder
+                .addStaticImport("com.github.mferrer.krotoplus.coroutines","bidiCallChannel")
+
+        FunSpec.builder(methodWrapper.functionName)
+                .receiver(methodWrapper.serviceWrapper.asyncStubClassName)
+                .returns(ParameterizedTypeName.get(
+                        ClassName("com.github.mferrer.krotoplus.coroutines","RpcBidiChannel"),
+                        methodWrapper.requestClassName,
+                        methodWrapper.responseClassName
+                ))
+                .addStatement("return %W bidiCallChannel{ responseObserver -> %N(responseObserver) }",
+                        methodWrapper.functionName)
+                .also { fileSpecBuilder.addFunction(it.build()) }
+    }
+
+    private fun ServiceWrapper.MethodWrapper.requestValueCodeBlock(): CodeBlock{
+        val requestValueTemplate = if(method.requestType().isEmptyMessage)
+            "val request = %T.getDefaultInstance()\n" else "val request = %T.newBuilder().apply(block).build()\n"
+
+        return CodeBlock.of(requestValueTemplate, requestClassName)
+    }
 }
+
+private val ServiceWrapper.MethodWrapper.isUnary
+    get() = !method.requestStreaming() && !method.responseStreaming()
+
+private val ServiceWrapper.MethodWrapper.isBidi
+    get() = method.requestStreaming() && method.responseStreaming()
+
+private val ServiceWrapper.MethodWrapper.isServerStream
+    get() = !method.requestStreaming() && method.responseStreaming()
+
+private val ServiceWrapper.MethodWrapper.isClientStream
+    get() = method.requestStreaming() && !method.responseStreaming()
+

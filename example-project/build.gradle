@@ -114,13 +114,19 @@ krotoPlus{
         "$projectDir/src/main/proto",
         "$buildDir/extracted-include-protos/main"
     ]
+
     defaultOutputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+
+    fileWriterCount = 4
 
     generators{
         stubOverloads{
             supportCoroutines = true
         }
+
         mockServices
+
+        protoTypeBuilders
     }
 }
 

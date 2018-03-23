@@ -13,6 +13,10 @@ message GetStandByNameRequest{
     string name = 1;
 }
 
+message GetStandsByNameRequest{
+    repeated string name = 1;
+}
+
 message GetStandByCharacterNameRequest{
     string name = 1;
 }
@@ -29,10 +33,14 @@ service StandService {
 
     rpc GetStandsForCharacters(stream Character) returns(stream Stand);
 
+    rpc GetStandCollectionForCharacters(stream Character) returns(StandCollection);
+
     rpc GetStandByCharacterName(GetStandByCharacterNameRequest) returns(Stand);
 
     rpc GetAllStandsStream(google.protobuf.Empty) returns(stream Stand);
 
-    rpc GetAllStandsUnary(google.protobuf.Empty) returns(stream GetAllStandsUnaryResponse);
+    rpc GetAllStandsUnary(google.protobuf.Empty) returns(GetAllStandsUnaryResponse);
+
+    rpc GetAllStandsByNameUnary(GetStandByNameRequest) returns(GetAllStandsUnaryResponse);
 }
 
