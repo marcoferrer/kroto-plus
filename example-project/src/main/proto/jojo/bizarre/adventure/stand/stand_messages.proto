@@ -12,6 +12,10 @@ message Stand {
     int32 speed = 15;
 }
 
+message StandCollection {
+    repeated Stand stands = 1;
+}
+
 message Attack {
     string name = 1;
     int32 damage = 2;

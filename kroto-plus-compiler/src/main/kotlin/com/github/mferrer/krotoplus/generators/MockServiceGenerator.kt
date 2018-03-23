@@ -74,6 +74,7 @@ class MockServiceGenerator(
 
         val companionBuilder = TypeSpec.companionObjectBuilder()
 
+        //TODO Add Support for mocking streaming calls
         methodDefinitions.asSequence()
                 .filterNot { it.method.requestStreaming() || it.method.responseStreaming() }
                 .forEach { method ->
@@ -176,7 +177,6 @@ class MockServiceGenerator(
                             }
                 }
 
-        //TODO Check for empty file before emitting fileSpec
         val result = GeneratorResult(fileSpecBuilder.build(), outputDir)
         resultChannel.send(result)
     }
