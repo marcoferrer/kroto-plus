@@ -19,3 +19,7 @@ message Character {
         NEUTRAL = 2;
     }
 }
+
+message CharacterCollection{
+    repeated Character character = 1;
+}

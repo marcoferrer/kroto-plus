@@ -13,6 +13,9 @@ buildscript{
     repositories {
         jcenter()
         mavenCentral()
+//        maven {
+//            url  "https://dl.bintray.com/marcoferrer/kroto-plus"
+//        }
         flatDir dirs: "../kroto-plus-gradle-plugin/build/libs/"
         flatDir dirs: "../kroto-plus-compiler/build/libs/"
     }
@@ -48,7 +51,7 @@ compileTestKotlin {
 repositories {
     jcenter()
     mavenCentral()
-    flatDir dirs: "../kroto-plus-runtime/build/libs/"
+    flatDir dirs: "../kroto-plus-coroutines/build/libs/"
     flatDir dirs: "../kroto-plus-runtime-test/build/libs/"
 }
 
@@ -70,7 +73,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
     compile "com.google.protobuf:protobuf-java:${versions.protobuf}"
-    compile "com.github.mferrer.krotoplus:kroto-plus-runtime:${versions.krotoplus}"
+    compile "com.github.mferrer.krotoplus:kroto-plus-coroutines:${versions.krotoplus}"
     compile "com.github.mferrer.krotoplus:kroto-plus-runtime-test:${versions.krotoplus}"
 
     compile "io.grpc:grpc-protobuf:${versions.grpc}",

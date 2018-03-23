@@ -4,6 +4,7 @@ package jojo.bizarre.adventure;
 
 import "jojo/bizarre/adventure/stand/stand_messages.proto";
 import "jojo/bizarre/adventure/character/character_messages.proto";
+import "google/protobuf/empty.proto";
 
 option java_package = "jojo.bizarre.adventure.character";
 option java_outer_classname = "CharacterServiceProto";
@@ -22,5 +23,9 @@ service CharacterService {
     rpc GetCharacterByName(GetCharacterByNameRequest) returns(Character);
 
     rpc GetRelativesByCharacter(Character) returns(GetRelativesByCharacterResponse);
+
+    rpc GetAllCharactersUnary(google.protobuf.Empty) returns(CharacterCollection);
+
+    rpc GetAllCharactersStream(google.protobuf.Empty) returns(stream Character);
 }
 
