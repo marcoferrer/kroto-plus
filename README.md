@@ -45,12 +45,12 @@ inline fun ExampleServiceBlockingStub.myRpcMethod(block: ExampleServiceGrpc.MyRp
 #### Coroutine Support
 In addition to request message arguments as builder lambda rpc overloads, this module can also generate suspending overloads for rpc calls. 
 1. This is accomplished by defining extension functions for async service stubs and combining a response observer with a coroutine builder.
-2. This option requires the Kroto+ runtime to be included as a dependency. The runtime currently only consists of one file which provides the bridging support for response observer to coroutine.   
+2. This option requires the artifact ```kroto-plus-coroutines``` as a dependency. This artifact is small and on consists of the bridging support for response observer to coroutine.   
 ```kotlin
-//Async Stub
+//Generated Async Unary Rpc Overload
 
-suspend fun ExampleServiceStub.myRpcMethod(request: ExampleServiceGrpc.MyRpcMethodRequest): ExampleServiceGrpc.MyRpcMethodResponse = 
-  suspendingAsyncUnaryCall(METHOD_MY_RPC_METHOD,channel,callOptions, request)
+suspend fun ExampleServiceStub.myRpcMethod(request: ExampleServiceGrpc.MyRpcMethodRequest): ExampleServiceGrpc.MyRpcMethodResponse =
+    suspendingUnaryCallObserver{ observer -> myRpcMethod(request,observer) }
 
 suspend inline fun ExampleServiceStub.myRpcMethod(block: ExampleServiceGrpc.MyRpcMethodRequest.Builder.() -> Unit): ExampleServiceGrpc.MyRpcMethodResponse {
     val request = ExampleServiceGrpc.MyRpcMethodRequest.newBuilder().apply(block).build()
@@ -65,6 +65,7 @@ suspend inline fun ExampleServiceStub.myRpcMethod(block: ExampleServiceGrpc.MyRp
 ### Mock Service Generator
 
 This generator creates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses for unit testing methods that rely on rpc calls.
+[Full example for mocking services in unit tests](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestMockServiceResponseQueue.kt)
 1. If no responses are added to the response queue then the mock service will return the default instance of the response type. 
  ```kotlin
 @Test fun `Test Unary Response Queue`(){

@@ -6,6 +6,7 @@ buildscript {
                 "grpc":       '1.10.0',
                 "kotlin":     '1.2.21',
                 "coroutines": '0.22.5',
+                "bintray":    '1.7.3'
         ]
     }
 
@@ -16,10 +17,12 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${versions.bintray}"
     }
 }
 
-subprojects{
+subprojects{ subproject ->
+
     repositories {
         jcenter()
         mavenCentral()
@@ -27,6 +30,29 @@ subprojects{
 
     apply plugin: 'idea'
     apply plugin: 'kotlin'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+
+    def pomConfig = {
+        licenses {
+            license {
+                name "The Apache Software License, Version 2.0"
+                url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution "repo"
+            }
+        }
+        developers {
+            developer {
+                id "mferrer"
+                name "Marco Ferrer"
+                email "marrferr.cdx@gmail.com"
+            }
+        }
+
+        scm {
+            url "https://github.com/marcoferrer/kroto-plus"
+        }
+    }
 
     group = 'com.github.mferrer.krotoplus'
     version = '0.1.0-SNAPSHOT'
@@ -45,5 +71,62 @@ subprojects{
 
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    javadoc.failOnError = false
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    bintray{
+        user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+        key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+
+        publications = ['mavenPublication']
+
+        pkg {
+            repo = 'kroto-plus'
+            name = subproject.name
+            userOrg = 'marcoferrer'
+            issueTrackerUrl = 'https://github.com/marcoferrer/kroto-plus/issues'
+            licenses = ['Apache-2.0']
+            vcsUrl = 'https://github.com/marcoferrer/kroto-plus.git'
+            githubRepo = 'marcoferrer/kroto-plus'
+            githubReleaseNotesFile = 'README.md' //Optional Github readme file
+
+            version {
+                name = subproject.version
+                desc = subproject.version
+                released  = new Date()
+            }
+        }
+    }
+
+    publishing {
+        publications {
+            mavenPublication(MavenPublication) {
+                from components.java
+                artifact sourcesJar {
+                    classifier "sources"
+                }
+                artifact javadocJar {
+                    classifier "javadoc"
+                }
+                groupId subproject.group
+                artifactId subproject.name
+                version subproject.version
+            }
+        }
     }
 }

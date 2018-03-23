@@ -95,7 +95,7 @@ class TestMockServiceResponseQueue {
             assertEquals("some_metadata_value",e.trailers.get(metadataTestKey))
         }
 
-
+        //Test default instance fall back when the response queue is empty
         assertEquals(StandProto.Stand.getDefaultInstance(),standStub.getStandByName { name = "Anything" })
     }
 
