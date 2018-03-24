@@ -1,7 +1,7 @@
 apply plugin: 'application'
 
 description 'Kroto+ Compiler'
-mainClassName = 'com.github.mferrer.krotoplus.KrotoPlusCompilerMain'
+mainClassName = 'com.github.marcoferrer.krotoplus.KrotoPlusCompilerMain'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

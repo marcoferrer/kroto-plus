@@ -1,6 +1,6 @@
 package krotoplus.example
 
-import com.github.mferrer.krotoplus.test.ServiceBindingServerRule
+import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
 import io.grpc.ManagedChannel
 import jojo.bizarre.adventure.character.CharacterProto
 import jojo.bizarre.adventure.character.CharacterProtoBuilders

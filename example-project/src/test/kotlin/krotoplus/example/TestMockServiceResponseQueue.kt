@@ -1,6 +1,6 @@
 package krotoplus.example
 
-import com.github.mferrer.krotoplus.test.ServiceBindingServerRule
+import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
 import io.grpc.Metadata
 import io.grpc.Status
 import io.grpc.StatusRuntimeException

@@ -44,7 +44,7 @@ subprojects{ subproject ->
         }
         developers {
             developer {
-                id "mferrer"
+                id "marcoferrer"
                 name "Marco Ferrer"
                 email "marrferr.cdx@gmail.com"
             }
@@ -54,7 +54,7 @@ subprojects{ subproject ->
         }
     }
 
-    group = 'com.github.mferrer.krotoplus'
+    group = 'com.github.marcoferrer.krotoplus'
     version = '0.1.0'
 
     kotlin {
@@ -71,6 +71,10 @@ subprojects{ subproject ->
 
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+        testCompile group: 'junit', name: 'junit', version: '[4,)'
+        testCompile "org.jetbrains.kotlin:kotlin-test"
+        testCompile "org.jetbrains.kotlin:kotlin-test-junit"
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {

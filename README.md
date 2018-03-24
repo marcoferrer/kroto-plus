@@ -4,7 +4,14 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Download](https://api.bintray.com/packages/marcoferrer/kroto-plus/kroto-plus-compiler/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/kroto-plus-compiler/_latestVersion)
 
-Kroto+ is a code generation tool aimed at enhancing the use of gRPC and Protobuf, using Kotlin extensions and Coroutines.   
+Kroto+ is a code generation tool aimed at enhancing the use of gRPC and Protobuf, using Kotlin extensions, Coroutines and more
+
+* **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
+* **[Stub Rpc Method Overloads](https://github.com/marcoferrer/kroto-plus#stub-rpc-method-overloads)**
+* **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
+* **[Mock Service Generator](https://github.com/marcoferrer/kroto-plus#mock-service-generator)**
+* **[Message Builder Lambda Generator](https://github.com/marcoferrer/kroto-plus#message-builder-lambda-generator)**
+* **[User Defined External Generators](https://github.com/marcoferrer/kroto-plus#user-defined-external-generators)**
 
 ## Code Generators
 
@@ -29,9 +36,24 @@ val response = serviceStub.myRpcMethod{
                          name = "some name"
                     }
 ```
+For rpc methods with a request type of ```com.google.protobuf.Empty``` then a no args overload in supplied.
+```kotlin
+//Original 
+val response = serviceStub.myRpcMethod(Empty.getDefaultInstance())
+                                   
+//Kroto+ Overloaded
+val response = serviceStub.myRpcMethod()
+```
+
 
 For unary rpc methods, the stub overload generator will create the following extensions
 ```kotlin
+//If request type is Empty
+inline fun ExampleServiceStub.myRpcMethod(): ExampleServiceGrpc.MyRpcMethodResponse =
+    myRpcMethod(Empty.getDefaultInstace())
+
+//Otherwise
+
 //Future Stub
 inline fun ExampleServiceFutureStub.myRpcMethod(block: ExampleServiceGrpc.MyRpcMethodRequest.Builder.() -> Unit): ListenableFuture<ExampleServiceGrpc.MyRpcMethodResponse> {
     val request = ExampleServiceGrpc.MyRpcMethodRequest.newBuilder().apply(block).build()
@@ -44,13 +66,14 @@ inline fun ExampleServiceBlockingStub.myRpcMethod(block: ExampleServiceGrpc.MyRp
     return myRpcMethod(request)
 }
 
-```
+``` 
 
 ### Coroutine Support
 In addition to request message arguments as builder lambda rpc overloads, this module can also generate suspending overloads for rpc calls.
 This allows blocking style rpc calls without the use of the blocking stub, preventing any negative impact on coroutine performance. 
 * This is accomplished by defining extension functions for async service stubs and combining a response observer with a coroutine builder.
 * This option requires the artifact ```kroto-plus-coroutines``` as a dependency. This artifact is small and only consists of the bridging support for response observer to coroutine.
+* If your code relies on thread local objects, such as those stored in ```io.grpc.Context``` then extra care needs to be taken to ensure these objects will be reattached via a ```ContinuationInterceptor```. The ```kroto-plus-coroutines``` artifact will provide support for this in the next release.   
 ```kotlin
 //Async Stub
 suspend fun ExampleServiceStub.myRpcMethod(request: ExampleServiceGrpc.MyRpcMethodRequest): ExampleServiceGrpc.MyRpcMethodResponse =
@@ -115,6 +138,7 @@ Bidirectional Rpc Channel Example
     //Calling close(throwable) behaves the same as onError(throwable)
     rpcChannel.close()
     
+    //Assert that we consumed the expected number of responses from the stream
     assertNull(rpcChannel.receiveOrNull(),"Response quantity was greater than expected")
 }
 
@@ -122,9 +146,10 @@ Bidirectional Rpc Channel Example
    
 ### Mock Service Generator
 
-This generator creates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses for unit testing methods that rely on rpc calls.
+This generator creates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses, aiding in unit testing methods that rely on rpc calls.
 [Full example for mocking services in unit tests](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestMockServiceResponseQueue.kt). The code generated relies on the ``` kroto-plus-test ``` artifact as a dependency. It is a small library that provides utility methods used by the mock services. 
-* If no responses are added to the response queue then the mock service will return the default instance of the response type. 
+* If no responses are added to the response queue then the mock service will return the default instance of the response type.
+* Currently only unary methods are being mocked, with support for other method types currently on the way 
  ```kotlin
 @Test fun `Test Unary Response Queue`(){
      
@@ -176,6 +201,9 @@ val attack = StandProtoBuilders.Attack {
             }
 ```
 
+### User Defined External Generators
+This feature is currently in development. Api documentation and sample project are in the works. 
+
 ## Getting Started With Gradle
 
 ```groovy
@@ -188,7 +216,7 @@ buildscript{
     }
     
     dependencies{
-        classpath "com.github.mferrer.krotoplus:kroto-plus-gradle-plugin:${krotoplusVersion}"
+        classpath "com.github.marcoferrer.krotoplus:kroto-plus-gradle-plugin:${krotoplusVersion}"
     }
 }    
        
