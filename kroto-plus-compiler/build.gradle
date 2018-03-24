@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-description 'Kroto-Plus Compiler'
+description 'Kroto+ Compiler'
 mainClassName = 'com.github.mferrer.krotoplus.KrotoPlusCompilerMain'
 
 sourceCompatibility = 1.8
@@ -15,23 +15,16 @@ jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
-repositories {
-    maven { url 'https://jitpack.io' }
-    jcenter()
-}
-
 dependencies {
+
+    //Currently served from Kroto+ bintray
+    compile "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.1.0"
+
     compile "org.jetbrains.kotlin:kotlin-reflect"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
+
     compile "com.squareup.wire:wire-schema:2.2.0"
-
-    //Temporary lib source until https://github.com/Kotlin/kotlinx.cli/issues/2 is resolved
-    compile 'com.github.kgilmer:kotlinx-cli:bdb0c81'
-
     compile "com.squareup:kotlinpoet:0.7.0"
-
-    compile "io.grpc:grpc-testing:${versions.grpc}"
-
 }
 
 idea {

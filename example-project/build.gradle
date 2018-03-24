@@ -6,23 +6,21 @@ buildscript{
                 "grpc":       '1.10.0',
                 "kotlin":     '1.2.21',
                 "coroutines": '0.22.5',
-                "krotoplus": '0.1.0-SNAPSHOT'
+                "krotoplus":  '0.1.0'
         ]
     }
 
     repositories {
         jcenter()
         mavenCentral()
-//        maven {
-//            url  "https://dl.bintray.com/marcoferrer/kroto-plus"
-//        }
+        maven { url "https://dl.bintray.com/marcoferrer/kroto-plus" }
         flatDir dirs: "../kroto-plus-gradle-plugin/build/libs/"
         flatDir dirs: "../kroto-plus-compiler/build/libs/"
     }
 
     dependencies{
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.4'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
         classpath "com.github.mferrer.krotoplus:kroto-plus-gradle-plugin:${versions.krotoplus}"
         classpath "com.github.mferrer.krotoplus:kroto-plus-compiler:${versions.krotoplus}"
     }
@@ -51,17 +49,18 @@ compileTestKotlin {
 repositories {
     jcenter()
     mavenCentral()
+    maven { url "https://dl.bintray.com/marcoferrer/kroto-plus/" }
     flatDir dirs: "../kroto-plus-coroutines/build/libs/"
-    flatDir dirs: "../kroto-plus-runtime-test/build/libs/"
+    flatDir dirs: "../kroto-plus-test/build/libs/"
 }
-
 
 def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
 
 sourceSets {
-    main.kotlin.srcDirs += generatedOutputDir
-
     main {
+        kotlin{
+            srcDirs += generatedOutputDir
+        }
         java {
             // Add additional source directory for generated sources
             srcDir generatedOutputDir
@@ -74,7 +73,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
     compile "com.google.protobuf:protobuf-java:${versions.protobuf}"
     compile "com.github.mferrer.krotoplus:kroto-plus-coroutines:${versions.krotoplus}"
-    compile "com.github.mferrer.krotoplus:kroto-plus-runtime-test:${versions.krotoplus}"
+    compile "com.github.mferrer.krotoplus:kroto-plus-test:${versions.krotoplus}"
 
     compile "io.grpc:grpc-protobuf:${versions.grpc}",
             "io.grpc:grpc-stub:${versions.grpc}"
@@ -112,28 +111,59 @@ protobuf {
 }
 
 krotoPlus{
-    //Proto definition source directories, or path to jar containing proto definitions
+    //Proto definition source directories, or path to a jar containing proto definitions
     sources = [
         "$projectDir/src/main/proto",
         "$buildDir/extracted-include-protos/main"
     ]
 
+    //The default file output directory for all generators
     defaultOutputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
 
+    //Number of concurrent file writers (Default 3)
+    //More does not equal better here. Too many writers can lead to a decrease in performance
+    //and adjustments should be based on the overall quantity of proto files being processed.
     fileWriterCount = 4
 
+    //Block used for enabling individual code generators and configuring their settings
     generators{
+        
         stubOverloads{
+
+            //[Optional] Output directory specific to the files created by this generator
+            outputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+
+            //[Optional (Default: false)] Generate coroutine extensions for service stub rpc methods
             supportCoroutines = true
         }
 
-        mockServices
+        mockServices{
 
+            //[Optional] Output directory specific to the files created by this generator
+            //Normally this should point to a test sources directory
+            outputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+        }
+
+        //Enabling a generator with no configurable or sufficient default options
         protoTypeBuilders
+
+        /*
+            Enabling a custom external code generator
+            This feature is incubating and will be fully enabled in the near future
+            and include proper documentation
+
+            external('com.some.package.MyCustomGenerator'){
+                args = ['-My','cli','args']
+            }
+        */
     }
 }
 
-task generateKrotoPlusCLIExample {
+//The task responsible for running the Kroto plus compiler is called "generateKrotoPlus"
+classes.dependsOn generateKrotoPlus
+
+//Basic example of using the Kroto plus compiler cli directly
+task generateKrotoPlusCliExample {
     doLast {
         javaexec {
             main = '-jar'

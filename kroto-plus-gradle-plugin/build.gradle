@@ -11,10 +11,6 @@ gradlePlugin {
     }
 }
 
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-
 dependencies{
     compile project(":kroto-plus-compiler")
 }

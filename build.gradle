@@ -26,6 +26,7 @@ subprojects{ subproject ->
     repositories {
         jcenter()
         mavenCentral()
+        maven { url "https://dl.bintray.com/marcoferrer/kroto-plus/" }
     }
 
     apply plugin: 'idea'
@@ -48,14 +49,13 @@ subprojects{ subproject ->
                 email "marrferr.cdx@gmail.com"
             }
         }
-
         scm {
             url "https://github.com/marcoferrer/kroto-plus"
         }
     }
 
     group = 'com.github.mferrer.krotoplus'
-    version = '0.1.0-SNAPSHOT'
+    version = '0.1.0'
 
     kotlin {
         experimental { coroutines 'enable' }
@@ -103,8 +103,6 @@ subprojects{ subproject ->
             licenses = ['Apache-2.0']
             vcsUrl = 'https://github.com/marcoferrer/kroto-plus.git'
             githubRepo = 'marcoferrer/kroto-plus'
-            githubReleaseNotesFile = 'README.md' //Optional Github readme file
-
             version {
                 name = subproject.version
                 desc = subproject.version
@@ -126,6 +124,13 @@ subprojects{ subproject ->
                 groupId subproject.group
                 artifactId subproject.name
                 version subproject.version
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode('name', subproject.name)
+                    root.appendNode('description', subproject.description)
+                    root.appendNode('url', 'https://github.com/marcoferrer/kroto-plus.git')
+                    root.children().last() + pomConfig
+                }
             }
         }
     }
