@@ -1,10 +1,10 @@
 package krotoplus.example
 
-import com.github.mferrer.krotoplus.coroutines.InboundStreamChannel
-import com.github.mferrer.krotoplus.coroutines.RpcBidiChannel
-import com.github.mferrer.krotoplus.coroutines.bidiCallChannel
-import com.github.mferrer.krotoplus.coroutines.suspendingUnaryCallObserver
-import com.github.mferrer.krotoplus.test.ServiceBindingServerRule
+import com.github.marcoferrer.krotoplus.coroutines.InboundStreamChannel
+import com.github.marcoferrer.krotoplus.coroutines.RpcBidiChannel
+import com.github.marcoferrer.krotoplus.coroutines.bidiCallChannel
+import com.github.marcoferrer.krotoplus.coroutines.suspendingUnaryCallObserver
+import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
 import com.google.protobuf.Empty
 import io.grpc.ManagedChannel
 import io.grpc.Status

@@ -21,18 +21,18 @@ buildscript{
     dependencies{
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.4'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
-        classpath "com.github.mferrer.krotoplus:kroto-plus-gradle-plugin:${versions.krotoplus}"
-        classpath "com.github.mferrer.krotoplus:kroto-plus-compiler:${versions.krotoplus}"
+        classpath "com.github.marcoferrer.krotoplus:kroto-plus-gradle-plugin:${versions.krotoplus}"
+        classpath "com.github.marcoferrer.krotoplus:kroto-plus-compiler:${versions.krotoplus}"
     }
 }
 
 apply plugin: 'com.google.protobuf'
-apply plugin: 'com.github.mferrer.kroto-plus'
+apply plugin: 'com.github.marcoferrer.kroto-plus'
 apply plugin: 'idea'
 apply plugin: 'kotlin'
 
-group = 'com.github.mferrer.krotoplus'
-version = '0.1.0-SNAPSHOT'
+group = 'com.github.marcoferrer.krotoplus'
+version = versions.krotoplus
 
 kotlin {
     experimental { coroutines 'enable' }
@@ -72,8 +72,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
     compile "com.google.protobuf:protobuf-java:${versions.protobuf}"
-    compile "com.github.mferrer.krotoplus:kroto-plus-coroutines:${versions.krotoplus}"
-    compile "com.github.mferrer.krotoplus:kroto-plus-test:${versions.krotoplus}"
+    compile "com.github.marcoferrer.krotoplus:kroto-plus-coroutines:${versions.krotoplus}"
+    compile "com.github.marcoferrer.krotoplus:kroto-plus-test:${versions.krotoplus}"
 
     compile "io.grpc:grpc-protobuf:${versions.grpc}",
             "io.grpc:grpc-stub:${versions.grpc}"

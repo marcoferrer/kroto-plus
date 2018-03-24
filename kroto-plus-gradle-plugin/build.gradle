@@ -5,8 +5,8 @@ plugins {
 gradlePlugin {
     plugins {
         krotoPlusPlugin {
-            id = 'com.github.mferrer.kroto-plus'
-            implementationClass = 'com.github.mferrer.krotoplus.KrotoPlusGradlePlugin'
+            id = 'com.github.marcoferrer.kroto-plus'
+            implementationClass = 'com.github.marcoferrer.krotoplus.KrotoPlusGradlePlugin'
         }
     }
 }
