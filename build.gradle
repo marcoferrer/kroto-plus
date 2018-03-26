@@ -55,7 +55,7 @@ subprojects{ subproject ->
     }
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.1.0'
+    version = '0.1.1'
 
     kotlin {
         experimental { coroutines 'enable' }
@@ -98,7 +98,7 @@ subprojects{ subproject ->
         key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
 
         publications = ['mavenPublication']
-
+        
         pkg {
             repo = 'kroto-plus'
             name = subproject.name
