@@ -287,6 +287,8 @@ krotoPlus{
 * Document API for defining custom code generators 
 * Increase test coverage. 
 * Implement UP-TO-DATE checks in the gradle plugin
+* Add Android compatibility to project
+* Update gradle plugin to support Java 1.7 runtime
 
 
 This project was made possible by the great work being done by the devs and contributors at [Square](https://github.com/square) and 
