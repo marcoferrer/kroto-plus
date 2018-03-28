@@ -61,10 +61,6 @@ sourceSets {
         kotlin{
             srcDirs += generatedOutputDir
         }
-        java {
-            // Add additional source directory for generated sources
-            srcDir generatedOutputDir
-        }
     }
 }
 

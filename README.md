@@ -1,10 +1,8 @@
 # Kroto+
-## Niceties for bringing together Kotlin, Protobuf, Coroutines, and gRPC  
+## Code generator for bringing together Kotlin, Protobuf, Coroutines, and gRPC  
 [![Build Status](https://travis-ci.org/marcoferrer/kroto-plus.svg?branch=master)](https://travis-ci.org/marcoferrer/kroto-plus)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Download](https://api.bintray.com/packages/marcoferrer/kroto-plus/kroto-plus-compiler/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/kroto-plus-compiler/_latestVersion)
-
-Kroto+ is a code generation tool aimed at enhancing the use of gRPC and Protobuf, using Kotlin extensions, Coroutines and more
 
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
 * **[Stub Rpc Method Overloads](https://github.com/marcoferrer/kroto-plus#stub-rpc-method-overloads)**
@@ -36,7 +34,7 @@ val response = serviceStub.myRpcMethod{
                          name = "some name"
                     }
 ```
-For rpc methods with a request type of ```com.google.protobuf.Empty``` then a no args overload in supplied.
+For rpc methods with a request type of ```com.google.protobuf.Empty``` then a no args overload is supplied.
 ```kotlin
 //Original 
 val response = serviceStub.myRpcMethod(Empty.getDefaultInstance())
@@ -220,6 +218,20 @@ buildscript{
     }
 }    
        
+def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
+
+sourceSets {
+    main {
+        kotlin{
+            srcDirs += generatedOutputDir
+        }
+    }
+}
+
+clean.doFirst{
+    delete generatedOutputDir
+}
+       
 krotoPlus{
     //Proto definition source directories, or path to a jar containing proto definitions
     sources = [
@@ -228,7 +240,7 @@ krotoPlus{
     ]
     
     //The default file output directory for all generators
-    defaultOutputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+    defaultOutputDir = file(generatedOutputDir)
     
     //Number of concurrent file writers (Default 3)
     //More does not equal better here. Too many writers can lead to a decrease in performance
@@ -241,7 +253,7 @@ krotoPlus{
         stubOverloads{
     
             //[Optional] Output directory specific to the files created by this generator
-            outputDir = file("${protobuf.generatedFilesBaseDir}/test/kotlin")
+            outputDir = file(generatedOutputDir)
             
             //[Optional (Default: false)] Generate coroutine extensions for service stub rpc methods
             supportCoroutines = true
@@ -251,7 +263,7 @@ krotoPlus{
             
             //[Optional] Output directory specific to the files created by this generator
             //Normally this should point to a test sources directory
-            outputDir = file("${protobuf.generatedFilesBaseDir}/test/kotlin")
+            outputDir = file(generatedOutputDir)
         }
         
         //Enabling a generator with no configurable or sufficient default options
