@@ -147,7 +147,7 @@ Bidirectional Rpc Channel Example
 This generator creates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses, aiding in unit testing methods that rely on rpc calls.
 [Full example for mocking services in unit tests](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestMockServiceResponseQueue.kt). The code generated relies on the ``` kroto-plus-test ``` artifact as a dependency. It is a small library that provides utility methods used by the mock services. 
 * If no responses are added to the response queue then the mock service will return the default instance of the response type.
-* Currently only unary methods are being mocked, with support for other method types currently on the way 
+* Currently only unary methods are being mocked, with support for other method types on the way 
  ```kotlin
 @Test fun `Test Unary Response Queue`(){
      
