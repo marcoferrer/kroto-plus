@@ -6,7 +6,7 @@ buildscript{
                 "grpc":       '1.10.0',
                 "kotlin":     '1.2.21',
                 "coroutines": '0.22.5',
-                "krotoplus":  '0.1.0'
+                "krotoplus":  '0.2.0'
         ]
     }
 
