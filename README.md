@@ -217,7 +217,9 @@ buildscript{
         classpath "com.github.marcoferrer.krotoplus:kroto-plus-gradle-plugin:${krotoplusVersion}"
     }
 }    
-       
+
+apply plugin: 'com.github.marcoferrer.kroto-plus'
+
 def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
 
 sourceSets {
