@@ -17,7 +17,7 @@ suspend inline fun <T : AbstractStub<T>, reified R> T.suspendingUnaryCallObserve
 
 inline fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
         crossinline block: T.(StreamObserver<RespT>)->StreamObserver<ReqT>
-): RpcBidiChannel<ReqT,RespT> {
+): ClientBidiCallChannel<ReqT, RespT> {
 
     val responseObserverChannel = InboundStreamChannel<RespT>()
     val requestObserver = block(responseObserverChannel)
@@ -32,5 +32,5 @@ inline fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
         requestObserver.onCompleted()
     }
 
-    return RpcBidiChannel(requestObserverChannel, responseObserverChannel)
+    return ClientBidiCallChannel(requestObserverChannel, responseObserverChannel)
 }

@@ -74,7 +74,7 @@ class StubRpcOverloadGenerator(
             buildFunSpecs(methodWrappers, fileSpecBuilder)
 
         fileSpecBuilder.build().takeIf { it.members.isNotEmpty() }?.let {
-            resultChannel.send(GeneratorResult(it, outputDir))
+            resultChannel.offer(GeneratorResult(it, outputDir))
         }
     }
 

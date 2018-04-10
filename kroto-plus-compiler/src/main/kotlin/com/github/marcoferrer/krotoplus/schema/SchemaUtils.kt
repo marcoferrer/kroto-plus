@@ -29,13 +29,11 @@ fun ProtoType.toClassName(protoSchema: Schema): ClassName {
     return this.toClassName(file)
 }
 
-fun ProtoType.toClassName(protoFile: ProtoFile): ClassName {
-
-    return if (protoFile.javaMultipleFiles)
-        ClassName(protoFile.outputPackage(), this.simpleName())
-    else
-        ClassName(protoFile.outputPackage(), protoFile.javaOuterClassname, this.simpleName())
-}
+fun ProtoType.toClassName(protoFile: ProtoFile): ClassName =
+        if (protoFile.javaMultipleFiles)
+            ClassName(protoFile.outputPackage(), this.simpleName())
+        else
+            ClassName(protoFile.outputPackage(), protoFile.javaOuterClassname, this.simpleName())
 
 val ProtoType.isEmptyMessage
     get() = this.enclosingTypeOrPackage().startsWith("google.protobuf") && this.simpleName() == "Empty"
@@ -58,4 +56,4 @@ fun ProtoFile.getGeneratedAnnotationSpec() =
 
 val ProtoFile.isCommonProtoFile get() = outputPackage().startsWith("com.google.protobuf")
 
-fun ProtoFile.outputPackage(): String = javaPackage() ?: packageName()
+fun ProtoFile.outputPackage(): String = javaPackage() ?: packageName() ?: ""

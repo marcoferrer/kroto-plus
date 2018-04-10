@@ -61,7 +61,7 @@ class MockServiceGenerator(
                 }
     }
 
-    private suspend fun ServiceWrapper.buildFileSpec(){
+    private fun ServiceWrapper.buildFileSpec(){
 
         val mockClassNameString = "Mock$name"
 
@@ -89,8 +89,9 @@ class MockServiceGenerator(
         classBuilder.addAnnotation(protoFile.getGeneratedAnnotationSpec()).build()
                 .takeIf { it.funSpecs.isNotEmpty() }
                 ?.let { typeSpec ->
-                    val result = GeneratorResult(fileSpecBuilder.addType(typeSpec).build(), outputDir)
-                    resultChannel.send(result)
+                    val fileSpec = fileSpecBuilder.addType(typeSpec).build()
+                    val result = GeneratorResult(fileSpec, outputDir)
+                    resultChannel.offer(result)
                 }
     }
 
@@ -122,7 +123,7 @@ class MockServiceGenerator(
                 }
     }
 
-    private suspend fun buildResponseQueueOverloads(protoFile: ProtoFile){
+    private fun buildResponseQueueOverloads(protoFile: ProtoFile){
         val filename = "${protoFile.javaOuterClassname}ResponseQueueOverloads"
         val fileSpecBuilder = FileSpec.builder(protoFile.outputPackage(),filename)
                 .addComment(AutoGenerationDisclaimer)
@@ -183,7 +184,7 @@ class MockServiceGenerator(
                 .takeIf { it.members.any { it is FunSpec } }
                 ?.let { fileSpec ->
                     val result = GeneratorResult(fileSpec, outputDir)
-                    resultChannel.send(result)
+                    resultChannel.offer(result)
                 }
     }
 
