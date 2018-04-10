@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 class InboundStreamChannel<T>(
         capacity: Int = Channel.UNLIMITED,
-        val channel: Channel<T> = Channel(capacity)
+        private val channel: Channel<T> = Channel(capacity)
 ) : StreamObserver<T>, ReceiveChannel<T> by channel {
 
     override fun onNext(value: T) {
