@@ -1,11 +1,14 @@
 plugins {
     id 'java-gradle-plugin'
+    id 'com.gradle.plugin-publish' version '0.9.7'
 }
+
+def pluginId = 'com.github.marcoferrer.kroto-plus'
 
 gradlePlugin {
     plugins {
         krotoPlusPlugin {
-            id = 'com.github.marcoferrer.kroto-plus'
+            id = pluginId
             implementationClass = 'com.github.marcoferrer.krotoplus.KrotoPlusGradlePlugin'
         }
     }
@@ -13,4 +16,18 @@ gradlePlugin {
 
 dependencies{
     compile project(":kroto-plus-compiler")
+}
+
+pluginBundle {
+    website = 'https://github.com/marcoferrer/kroto-plus'
+    vcsUrl = 'https://github.com/marcoferrer/kroto-plus.git'
+
+    plugins {
+        krotoPlusPlugin {
+            id = pluginId
+            displayName = 'Kroto+ Compiler Plugin'
+            description = 'Code generator for bringing together Kotlin, Protobuf, Coroutines, and gRPC'
+            tags = [ 'coroutines', 'kotlin', 'grpc', 'protobuf','protocol-buffers', 'code-generation' ]
+        }
+    }
 }
