@@ -33,7 +33,8 @@ publishing {
             pom.withXml {
                 // Dependencies are embedded into the jar.
                 // Remove dependencies from pom output.
-                asNode().remove(root.dependencies)
+                def root = asNode()
+                root.remove(root.dependencies)
             }
         }
     }
