@@ -4,7 +4,7 @@ buildscript {
                 "protoc":     '3.5.1',
                 "protobuf":   '3.5.1',
                 "grpc":       '1.10.0',
-                "kotlin":     '1.2.21',
+                "kotlin":     '1.2.40',
                 "coroutines": '0.22.5',
                 "bintray":    '1.7.3',
                 'artifactory':'4.7.1'
@@ -63,7 +63,7 @@ subprojects{ subproject ->
     }
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.1.1-SNAPSHOT'
+    version = '0.1.2'
 
     kotlin {
         experimental { coroutines 'enable' }

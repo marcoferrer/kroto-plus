@@ -18,6 +18,8 @@ dependencies{
     compile project(":kroto-plus-compiler")
 }
 
+description = "Kroto+ Gradle Plugin"
+
 pluginBundle {
     website = 'https://github.com/marcoferrer/kroto-plus'
     vcsUrl = 'https://github.com/marcoferrer/kroto-plus.git'

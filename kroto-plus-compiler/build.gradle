@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-description 'Kroto+ Compiler'
+description 'Kroto+ Compiler CLI'
 mainClassName = 'com.github.marcoferrer.krotoplus.KrotoPlusCompilerMain'
 
 sourceCompatibility = 1.8
@@ -25,6 +25,18 @@ dependencies {
 
     compile "com.squareup.wire:wire-schema:2.2.0"
     compile "com.squareup:kotlinpoet:0.7.0"
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            pom.withXml {
+                // Dependencies are embedded into the jar.
+                // Remove dependencies from pom output.
+                asNode().remove(root.dependencies)
+            }
+        }
+    }
 }
 
 idea {
