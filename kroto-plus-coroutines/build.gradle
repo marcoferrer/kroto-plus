@@ -1,3 +1,4 @@
+description = "Kroto+ Coroutine Support"
 
 dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"

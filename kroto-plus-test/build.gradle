@@ -1,3 +1,5 @@
+description = "Kroto+ Test Support"
+
 dependencies {
     compile "io.grpc:grpc-testing:${versions.grpc}"
 }

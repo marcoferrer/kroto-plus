@@ -197,6 +197,10 @@ val attack = StandProtoBuilders.Attack {
                 damage = 100
                 range = StandProto.Attack.Range.CLOSE
             }
+
+//Copy extensions are also generated
+val newAttack = attack.copy { damage = 200 }            
+            
 ```
 
 ### User Defined External Generators
