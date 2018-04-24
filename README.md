@@ -217,11 +217,10 @@ plugins{
 ##### Using buildscript block (Legacy)
 ```groovy
 buildscript{
-    ext.krotoplusVersion = '0.1.0'
+    ext.krotoplusVersion = '0.1.2'
     
     repositories {
         jcenter()
-        maven { url "https://dl.bintray.com/marcoferrer/kroto-plus" }
     }
     
     dependencies{
