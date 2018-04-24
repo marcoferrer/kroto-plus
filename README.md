@@ -208,6 +208,13 @@ This feature is currently in development. Api documentation and sample project a
 
 ## Getting Started With Gradle
 
+##### Using Plugin DSL
+```groovy
+plugins{
+    id 'com.github.marcoferrer.kroto-plus' version '0.1.2'
+}
+```
+##### Using buildscript block (Legacy)
 ```groovy
 buildscript{
     ext.krotoplusVersion = '0.1.0'
@@ -220,10 +227,12 @@ buildscript{
     dependencies{
         classpath "com.github.marcoferrer.krotoplus:kroto-plus-gradle-plugin:${krotoplusVersion}"
     }
-}    
+}
 
 apply plugin: 'com.github.marcoferrer.kroto-plus'
+```
 
+```groovy
 def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
 
 sourceSets {
@@ -289,7 +298,6 @@ krotoPlus{
 ```
 
 ## Road Map
-* Publish artifacts to Maven Central
 * Document API for defining custom code generators 
 * Increase test coverage. 
 * Implement UP-TO-DATE checks in the gradle plugin

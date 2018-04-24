@@ -2,6 +2,7 @@
 _2018-04-23_
 
 * New: Updated Kotlin runtime to ```1.2.40```
+* New: Publish artifacts to jcenter
 
 #### Compiler
 * Fix: Generated pom no longer includes dependencies that have been embedded 
