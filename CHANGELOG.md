@@ -6,6 +6,9 @@ _2018-07-08_
 #### Compiler
 * Fix: Changed visibility of cli arguments to internal    
 
+#### Coroutines
+* New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 
+
 #### Gradle Plugin 
 * Fix: Added missing dsl configuration builder for ```ProtoTypeBuildersGeneratorConfig```
 * New: Gradle Kotlin DSL support added for generator configuration 
