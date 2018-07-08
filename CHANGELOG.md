@@ -2,6 +2,7 @@
 _2018-07-08_
 
 * New: Updated Kotlin runtime to ```1.2.51```
+* New: Updated Coroutine version to ```0.23.4```
 
 #### Compiler
 * Fix: Changed visibility of cli arguments to internal    
