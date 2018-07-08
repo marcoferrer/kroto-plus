@@ -18,13 +18,13 @@ jar {
 dependencies {
 
     //Currently served from Kroto+ bintray
-    compile "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.1.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.1.0"
 
-    compile "org.jetbrains.kotlin:kotlin-reflect"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
 
-    compile "com.squareup.wire:wire-schema:2.2.0"
-    compile "com.squareup:kotlinpoet:0.7.0"
+    implementation "com.squareup.wire:wire-schema:2.2.0"
+    implementation "com.squareup:kotlinpoet:0.7.0"
 }
 
 publishing {
