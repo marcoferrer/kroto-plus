@@ -151,6 +151,8 @@ krotoPlus{
     }
 }
 
+generateKrotoPlus.dependsOn 'extractIncludeProto'
+
 //The task responsible for running the Kroto plus compiler is called "generateKrotoPlus"
 compileKotlin.dependsOn generateKrotoPlus
 
