@@ -63,7 +63,7 @@ subprojects{ subproject ->
     }
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.1.2'
+    version = '0.1.3-SNAPSHOT'
 
     kotlin {
         experimental { coroutines 'enable' }

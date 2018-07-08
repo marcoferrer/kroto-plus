@@ -1,3 +1,8 @@
+## Version 0.1.3
+_2018-07-08_
+
+* New: Updated Kotlin runtime to ```1.2.51```
+
 ## Version 0.1.2
 _2018-04-23_
 
