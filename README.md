@@ -82,6 +82,25 @@ suspend inline fun ExampleServiceStub.myRpcMethod(block: ExampleServiceGrpc.MyRp
     return myRpcMethod(request)
 }
 ```
+* If using rpc interceptors or other code that relies on ```io.grpc.Context``` then you need to be sure to add a ```GrpcContextContinuationInterceptor``` to your ```CoroutineContext``` when launching a coroutine.
+Child coroutines will inherit this ```ContinuationInterceptor``` if ```coroutineContext``` is passed down from the parent coroutine.   
+```kotlin
+Context.current().withValue(MY_KEY, myValue).attach()
+
+val myGrpcContext = Context.current()
+
+val job = launch( myGrpcContext.asContinuationInterceptor() ) {
+    
+    launch{
+        assertNotEquals(myGrpcContext, Context.current())
+    }
+    
+    launch(coroutineContext) {
+        assertEquals(myGrpcContext, Context.current())
+    }
+    
+}
+```
 
 There are also overloads generated for bridging Client, Server, and Bidirectional streaming methods with coroutine ```Channels``` 
 The included example project contains full samples. [TestRpcCoroutineSupport](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestRpcCoroutineSupport.kt)
