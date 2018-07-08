@@ -26,19 +26,19 @@ object Manifest {
     val implVersion = javaClass.`package`.implementationVersion.orEmpty()
 }
 
-val appCli = CommandLineInterface("Kroto-Plus")
+internal val appCli = CommandLineInterface("Kroto-Plus")
 
-val protoSources by appCli
+internal val protoSources by appCli
         .positionalArgumentsList("source_dir_1 source_dir_2 ...",
                 "Proto Source Directories / Jars (Space delimited) ", minArgs = 1)
 
-val fileWriterCount by appCli
+internal val fileWriterCount by appCli
         .flagValueArgument("-writers", "<int>","Number of concurrent file writers (default 3)",3){ it.toInt() }
 
-val defaultOutputPath by appCli
+internal val defaultOutputPath by appCli
         .flagValueArgument("-default-out", "default/output/path", "Default destination dir for generated sources")
 
-val defaultOutputDir by lazy { File(defaultOutputPath).apply { mkdirs() } }
+internal val defaultOutputDir by lazy { File(defaultOutputPath).apply { mkdirs() } }
 
 fun main(vararg args: String){
 
