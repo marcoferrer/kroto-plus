@@ -20,6 +20,9 @@ open class KrotoPlusPluginExtension @Inject constructor(objectFactory: ObjectFac
         action.execute(generatorsConfig)
     }
 
+    open fun generators(block: KrotoPlusGeneratorsConfig.() -> Unit) =
+            generators(Action(block))
+
     override fun toCliArgs(): List<String> {
         assert(defaultOutputDir != null){ "Default output directory is not set." }
         assert(sources.isNotEmpty()){ "Sources is empty." }

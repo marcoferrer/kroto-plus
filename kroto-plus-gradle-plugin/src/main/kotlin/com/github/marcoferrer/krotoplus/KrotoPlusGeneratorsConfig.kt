@@ -7,9 +7,9 @@ import javax.inject.Inject
 
 open class KrotoPlusGeneratorsConfig @Inject constructor(objectFactory: ObjectFactory){
 
-    val stubOverloadsConfig = objectFactory.newInstance(StubOverloadGeneratorConfig::class.java)
-    val mockServicesConfig = objectFactory.newInstance(MockServicesGeneratorConfig::class.java)
-    val protoTypeBuildersConfig = objectFactory.newInstance(ProtoTypeBuildersGeneratorConfig::class.java)
+    private val stubOverloadsConfig = objectFactory.newInstance(StubOverloadGeneratorConfig::class.java)
+    private val mockServicesConfig = objectFactory.newInstance(MockServicesGeneratorConfig::class.java)
+    private val protoTypeBuildersConfig = objectFactory.newInstance(ProtoTypeBuildersGeneratorConfig::class.java)
 
     open val generatorModules = mutableSetOf<GeneratorModuleConfig>()
 
@@ -23,20 +23,34 @@ open class KrotoPlusGeneratorsConfig @Inject constructor(objectFactory: ObjectFa
             generatorModules.add(it)
         }
 
-    fun stubOverloads(action: Action<in StubOverloadGeneratorConfig>){
-        action.execute(stubOverloadsConfig)
-        generatorModules.add(stubOverloadsConfig)
-    }
-
     val mockServices: MockServicesGeneratorConfig
         get() = mockServicesConfig.also {
             generatorModules.add(it)
         }
 
+    fun protoTypeBuilders(action: Action<in ProtoTypeBuildersGeneratorConfig>){
+        action.execute(protoTypeBuilders)
+        generatorModules.add(protoTypeBuilders)
+    }
+
+    fun protoTypeBuilders(block: ProtoTypeBuildersGeneratorConfig.() -> Unit) =
+            protoTypeBuilders(Action(block))
+
+    fun stubOverloads(action: Action<in StubOverloadGeneratorConfig>){
+        action.execute(stubOverloadsConfig)
+        generatorModules.add(stubOverloadsConfig)
+    }
+
+    fun stubOverloads(block: StubOverloadGeneratorConfig.() -> Unit) =
+            stubOverloads(Action(block))
+
     fun mockServices(action: Action<in MockServicesGeneratorConfig>){
         action.execute(mockServicesConfig)
         generatorModules.add(mockServicesConfig)
     }
+
+    fun mockServices(block: MockServicesGeneratorConfig.() -> Unit) =
+            mockServices(Action(block))
 
     @JvmOverloads
     fun external(canonicalClassName: String, action: Action<in ExternalGeneratorConfig>? = null){
