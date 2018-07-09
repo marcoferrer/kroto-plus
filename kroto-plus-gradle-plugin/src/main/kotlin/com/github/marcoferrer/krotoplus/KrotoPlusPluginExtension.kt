@@ -5,7 +5,7 @@ import org.gradle.api.model.ObjectFactory
 import java.io.File
 import javax.inject.Inject
 
-open class KrotoPlusPluginExtension @Inject constructor(objectFactory: ObjectFactory) : GeneratorModuleConfig{
+open class KrotoPlusPluginExtension @Inject constructor(objectFactory: ObjectFactory){
 
     //TODO add debug flag
 
@@ -23,7 +23,7 @@ open class KrotoPlusPluginExtension @Inject constructor(objectFactory: ObjectFac
     open fun generators(block: KrotoPlusGeneratorsConfig.() -> Unit) =
             generators(Action(block))
 
-    override fun toCliArgs(): List<String> {
+    fun toCliArgs(): List<String> {
         assert(defaultOutputDir != null){ "Default output directory is not set." }
         assert(sources.isNotEmpty()){ "Sources is empty." }
 
@@ -35,7 +35,7 @@ open class KrotoPlusPluginExtension @Inject constructor(objectFactory: ObjectFac
             add(fileWriterCount.toString())
 
             generatorsConfig.generatorModules
-                    .flatMapTo(this){ it.toCliArgs() }
+                    .flatMapTo(this){ it.toCliArgs(defaultOutputDir!!.path) }
         }
     }
 }
