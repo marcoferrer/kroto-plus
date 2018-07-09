@@ -11,6 +11,7 @@ import kotlinx.cli.CommandLineInterface
 import kotlinx.cli.flagAction
 import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
+import kotlin.coroutines.experimental.coroutineContext
 
 class ProtoTypeBuilderGenerator(
         override val resultChannel: SendChannel<GeneratorResult>
