@@ -5,16 +5,21 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
-internal lateinit var krotoPlusExt: KrotoPlusPluginExtension
 
 class KrotoPlusGradlePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
 
-        krotoPlusExt = project.extensions
-                .create("krotoPlus", KrotoPlusPluginExtension::class.java, project.objects)
+        project.extensions.create(
+                "krotoPlus",
+                KrotoPlusPluginExtension::class.java,
+                project.objects
+        )
 
-        project.tasks.create("generateKrotoPlus", GenerateKrotoTask::class.java)
+        project.tasks.create(
+                "generateKrotoPlus",
+                GenerateKrotoTask::class.java
+        )
     }
 }
 
@@ -22,6 +27,8 @@ open class GenerateKrotoTask : DefaultTask() {
 
     @TaskAction
     open fun generate() {
+
+        val krotoPlusExt = this.project.extensions.getByName("krotoPlus") as KrotoPlusPluginExtension
 
         val cliArgs = mutableListOf(
                 //Path to CLI jar

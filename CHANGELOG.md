@@ -12,6 +12,7 @@ _2018-07-08_
 
 #### Gradle Plugin 
 * Fix: Added missing dsl configuration builder for ```ProtoTypeBuildersGeneratorConfig```
+* Fix: Configuration is no longer overridden when used in a multi project build   
 * New: Gradle Kotlin DSL support added for generator configuration 
 
 ## Version 0.1.2
