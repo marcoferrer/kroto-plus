@@ -13,6 +13,7 @@ import kotlinx.cli.*
 import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
 import java.io.File
+import kotlin.coroutines.experimental.coroutineContext
 import kotlin.system.exitProcess
 
 class StubRpcOverloadGenerator(
