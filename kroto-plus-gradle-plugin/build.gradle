@@ -15,7 +15,7 @@ gradlePlugin {
 }
 
 dependencies{
-    compile project(":kroto-plus-compiler")
+    implementation project(":kroto-plus-compiler")
 }
 
 description = "Kroto+ Gradle Plugin"
