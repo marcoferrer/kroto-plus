@@ -1,0 +1,45 @@
+apply plugin: 'application'
+
+description 'Kroto+ Proto-c Plugin'
+mainClassName = 'com.github.marcoferrer.krotoplus.KrotoPlusProtoCMain'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+        attributes 'Implementation-Title' : 'Kroto+ Proto-c Plugin'
+        attributes 'Implementation-Version': project.version
+    }
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+dependencies{
+    implementation "io.grpc:grpc-protobuf:${versions.grpc}"
+//    implementation 'com.google.api.grpc:proto-google-common-protos:1.0.0'
+    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    implementation "com.squareup:kotlinpoet:0.7.0"
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            pom.withXml {
+                // Dependencies are embedded into the jar.
+                // Remove dependencies from pom output.
+                def root = asNode()
+                root.remove(root.dependencies)
+            }
+        }
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/kotlin/main")
+        testOutputDir = file("$buildDir/classes/kotlin/test")
+    }
+}
+

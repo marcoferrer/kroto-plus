@@ -4,6 +4,7 @@ pluginManagement{
     }
 }
 
+include 'kroto-plus-proto-c'
 include 'kroto-plus-compiler'
 include 'kroto-plus-coroutines'
 include 'kroto-plus-gradle-plugin'
