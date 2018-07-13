@@ -6,11 +6,11 @@ _2018-07-12_
 
 #### Protoc Plugin
 * New: Converted Kroto+ to protoc plugin and implemented default generators  
-* New: New generator added for creating extendable messages and inserting companion objects into java message classes.     
+* New: Generator added for creating extendable messages and inserting companion objects into java message classes.     
 
 #### Compiler
 * Fix: Changed visibility of cli arguments to internal
-* Fix: Removed usage of deprecated t```RpcBidiChannel``` in ```StubRpcOverloadGenerator```    
+* Fix: Removed usage of deprecated ```RpcBidiChannel``` in ```StubRpcOverloadGenerator```    
 
 #### Coroutines
 * New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 

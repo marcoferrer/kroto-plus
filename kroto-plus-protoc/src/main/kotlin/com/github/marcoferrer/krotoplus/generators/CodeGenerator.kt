@@ -4,19 +4,6 @@ import com.github.marcoferrer.krotoplus.schema.Schema
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.FileSpec
 
-fun FileSpec.toResponseFileProto(): PluginProtos.CodeGeneratorResponse.File =
-        PluginProtos.CodeGeneratorResponse.File.newBuilder()
-                .apply {
-                    val basePath = packageName.replace(".","/")
-                    val fileName = "${this@toResponseFileProto.name}.kt"
-
-                    name = if(basePath.isNotEmpty())
-                        "$basePath/$fileName" else fileName
-
-                    content = this@toResponseFileProto.toString()
-                }
-                .build()
-
 interface Generator : (PluginProtos.CodeGeneratorResponse.Builder) -> Unit {
 
     val key: String
@@ -32,6 +19,22 @@ interface Generator : (PluginProtos.CodeGeneratorResponse.Builder) -> Unit {
     fun hasFlag(flag: String): Boolean = "$key|$flag" in context.args.flags
 
     fun getOption(option: String): String? = context.args.options["$key|$option"]
+
+    fun FileSpec.toResponseFileProto() =
+            PluginProtos.CodeGeneratorResponse.File.newBuilder()
+                    .apply {
+                        val basePath = packageName.replace(".","/")
+                        val fileName = "${this@toResponseFileProto.name}.kt"
+
+                        val subDirOverride = getOption("outputSubDir")
+                                ?.let { "../$it/" }.orEmpty()
+
+                        name = subDirOverride + if(basePath.isNotEmpty())
+                            "$basePath/$fileName" else fileName
+
+                        content = this@toResponseFileProto.toString()
+                    }
+                    .build()
 
     data class Context(val request: PluginProtos.CodeGeneratorRequest){
 

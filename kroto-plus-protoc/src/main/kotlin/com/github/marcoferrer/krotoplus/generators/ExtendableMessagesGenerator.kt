@@ -15,6 +15,7 @@ class ExtendableMessagesGenerator(override val context: Generator.Context) : Gen
         context.schema.types.values
                 .asSequence()
                 .filter { it is ProtoMessage && !it.cannonicalProtoName.startsWith("google")}
+                .map { it as ProtoMessage }
                 .forEach { protoMessage ->
 
                     val canonicalKrotoMessageType = "com.github.marcoferrer.krotoplus.KrotoMessage"
@@ -46,7 +47,10 @@ class ExtendableMessagesGenerator(override val context: Generator.Context) : Gen
                           return ${protoMessage.name}.$companionFieldName;
                         }
 
-                        public static final class $companionClassName implements
+                        public static final class $companionClassName
+                            ${protoMessage.companionExtends}
+                            implements
+                            ${protoMessage.companionImplements}
                             $canonicalKrotoMessageType.Companion<${protoMessage.name},${protoMessage.name}.Builder> {
 
                           private $companionClassName(){}
@@ -66,4 +70,15 @@ class ExtendableMessagesGenerator(override val context: Generator.Context) : Gen
                                     """.trimIndent())
                                     .build())
                 }
+
+    private val ProtoMessage.companionImplements get() =
+        getOption("companion_implements")
+                ?.let{ it.replace("{message_type}",name) + "," }
+                .orEmpty()
+
+    private val ProtoMessage.companionExtends get() =
+        getOption("companion_extends")
+                ?.let{ "extends " + it.replace("{message_type}",name) }
+                .orEmpty()
+
 }
