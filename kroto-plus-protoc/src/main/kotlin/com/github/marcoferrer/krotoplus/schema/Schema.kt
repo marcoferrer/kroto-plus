@@ -1,26 +1,43 @@
 package com.github.marcoferrer.krotoplus.schema
 
 import com.google.protobuf.DescriptorProtos
+import com.google.protobuf.GeneratedMessageV3
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.ClassName
 
 class Schema(generatorRequest: PluginProtos.CodeGeneratorRequest){
 
-    val types: Map<String, ProtoType> = mutableMapOf<String, ProtoType>().also { map ->
+    val types: Map<String, ProtoType> =
+            generatorRequest
+                    .getAllProtoTypes()
+                    .associateBy { ".${it.cannonicalProtoName}" }
 
-        for(fileDescriptor in generatorRequest.protoFileList){
 
-            for(messageDescriptor in fileDescriptor.messageTypeList) {
-                ProtoMessage(messageDescriptor, fileDescriptor)
-                        .associateTo(map)
-            }
+    val typesByDescriptor: Map<GeneratedMessageV3, ProtoType> =
+            types.entries
+                    .associate { (_, value) ->
+                        value.descriptorProto to value
+                    }
 
-            for(enumDescriptor in fileDescriptor.enumTypeList) {
-                ProtoEnum(enumDescriptor, fileDescriptor)
-                        .associateTo(map)
-            }
-        }
-    }
+//    val types: Map<String, ProtoType> = mutableMapOf<String, ProtoType>().also { map ->
+//
+//        for(fileDescriptor in generatorRequest.protoFileList){
+//
+//            for(messageDescriptor in fileDescriptor.messageTypeList) {
+//                ProtoMessage(messageDescriptor, fileDescriptor)
+//                        .registerByName(map)
+//            }
+//
+//            for(enumDescriptor in fileDescriptor.enumTypeList) {
+//                ProtoEnum(enumDescriptor, fileDescriptor)
+//                        .registerByName(map)
+//            }
+//        }
+//    }
+//
+//    val typesByDescriptor: Map<GeneratedMessageV3, ProtoType> = types.entries.associate { (_, value) ->
+//        value.descriptorProto to value
+//    }
 
 
     val services = generatorRequest.protoFileList.flatMap { fileDescriptorProto ->
@@ -61,12 +78,12 @@ data class Service(
 
         val service: Service get() = this@Service
 
-        val requestType = service.schema.types[".${method.inputType}"]
+        val requestType = service.schema.types[method.inputType]
                 ?: throw IllegalStateException("${method.inputType} was not found in schema type map.")
 
         val requestClassName = requestType.className
 
-        val responseType = service.schema.types[".${method.outputType}"]
+        val responseType = service.schema.types[method.outputType]
                 ?: throw IllegalStateException("${method.inputType} was not found in schema type map.")
 
         val responseClassName = responseType.className
@@ -82,8 +99,3 @@ data class Service(
     }
 }
 
-val DescriptorProtos.MethodDescriptorProto.isEmptyInput
-    get() = this.inputType == ".google.protobuf.Empty"
-
-val DescriptorProtos.MethodDescriptorProto.isNotEmptyInput
-    get() = !isEmptyInput

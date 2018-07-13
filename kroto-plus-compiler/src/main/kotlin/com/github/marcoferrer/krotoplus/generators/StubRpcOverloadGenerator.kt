@@ -211,7 +211,7 @@ class StubRpcOverloadGenerator(
         FunSpec.builder(methodWrapper.functionName)
                 .receiver(methodWrapper.serviceWrapper.asyncStubClassName)
                 .returns(ParameterizedTypeName.get(
-                        ClassName("com.github.marcoferrer.krotoplus.coroutines","RpcBidiChannel"),
+                        ClassName("com.github.marcoferrer.krotoplus.coroutines","ClientBidiCallChannel"),
                         methodWrapper.requestClassName,
                         methodWrapper.responseClassName
                 ))

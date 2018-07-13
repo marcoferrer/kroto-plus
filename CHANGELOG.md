@@ -1,11 +1,16 @@
 ## Version 0.1.3
-_2018-07-08_
+_2018-07-12_
 
 * New: Updated Kotlin runtime to ```1.2.51```
 * New: Updated Coroutine version to ```0.23.4```
 
+#### Protoc Plugin
+* New: Converted Kroto+ to protoc plugin and implemented default generators  
+* New: New generator added for creating extendable messages and inserting companion objects into java message classes.     
+
 #### Compiler
-* Fix: Changed visibility of cli arguments to internal    
+* Fix: Changed visibility of cli arguments to internal
+* Fix: Removed usage of deprecated t```RpcBidiChannel``` in ```StubRpcOverloadGenerator```    
 
 #### Coroutines
 * New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 

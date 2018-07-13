@@ -60,6 +60,7 @@ repositories {
     jcenter()
     flatDir dirs: "../kroto-plus-coroutines/build/libs/"
     flatDir dirs: "../kroto-plus-test/build/libs/"
+    flatDir dirs: "../kroto-plus-protoc/build/libs/"
 }
 
 def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
@@ -105,66 +106,75 @@ protobuf {
     //noinspection GroovyAssignabilityCheck
     plugins {
         grpc { artifact = "io.grpc:protoc-gen-grpc-java:${versions.grpc}" }
+        kroto { artifact = "com.github.marcoferrer.krotoplus:kroto-plus-protoc:0.1.3-SNAPSHOT:jvm8@jar" }
     }
 
     generateProtoTasks {
         all()*.plugins {
             grpc { outputSubDir = "java" }
-        }
-    }
-}
-
-krotoPlus{
-    //Proto definition source directories, or path to a jar containing proto definitions
-    sources = [
-        "$projectDir/src/main/proto",
-        "$buildDir/extracted-include-protos/main"
-    ]
-
-    //The default file output directory for all generators
-    defaultOutputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
-
-    //Number of concurrent file writers (Default 3)
-    //More does not equal better here. Too many writers can lead to a decrease in performance
-    //and adjustments should be based on the overall quantity of proto files being processed.
-    fileWriterCount = 4
-
-    //Block used for enabling individual code generators and configuring their settings
-    generators{
-        
-        stubOverloads{
-
-            //[Optional] Output directory specific to the files created by this generator
-            outputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
-
-            //[Optional (Default: false)] Generate coroutine extensions for service stub rpc methods
-            supportCoroutines = true
-        }
-
-        mockServices{
-
-            //[Optional] Output directory specific to the files created by this generator
-            //Normally this should point to a test sources directory
-            outputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
-        }
-
-        //Enabling a generator with no configurable or sufficient default options
-        protoTypeBuilders
-
-        /*
-            Enabling a custom external code generator
-            This feature is incubating and will be fully enabled in the near future
-            and include proper documentation
-
-            external('com.some.package.MyCustomGenerator'){
-                args = ['-My','cli','args']
+            kroto {
+                outputSubDir = "java"
+                option 'grpc-stub-exts|support_coroutines=true'
+                option 'builder-lambdas'
+                option 'mock-services'
+                option 'extendable-messages|companion_field_name=Kroto'
+                option 'extendable-messages|companion_class_name=Kroto'
             }
-        */
+        }
     }
 }
 
-//The task responsible for running the Kroto plus compiler is called "generateKrotoPlus"
-compileKotlin.dependsOn "generateProto", "generateKrotoPlus"
+//krotoPlus{
+//    //Proto definition source directories, or path to a jar containing proto definitions
+//    sources = [
+//        "$projectDir/src/main/proto",
+//        "$buildDir/extracted-include-protos/main"
+//    ]
+//
+//    //The default file output directory for all generators
+//    defaultOutputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+//
+//    //Number of concurrent file writers (Default 3)
+//    //More does not equal better here. Too many writers can lead to a decrease in performance
+//    //and adjustments should be based on the overall quantity of proto files being processed.
+//    fileWriterCount = 4
+//
+//    //Block used for enabling individual code generators and configuring their settings
+//    generators{
+//
+//        stubOverloads{
+//
+//            //[Optional] Output directory specific to the files created by this generator
+//            outputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+//
+//            //[Optional (Default: false)] Generate coroutine extensions for service stub rpc methods
+//            supportCoroutines = true
+//        }
+//
+//        mockServices{
+//
+//            //[Optional] Output directory specific to the files created by this generator
+//            //Normally this should point to a test sources directory
+//            outputDir = file("${protobuf.generatedFilesBaseDir}/main/kotlin")
+//        }
+//
+//        //Enabling a generator with no configurable or sufficient default options
+//        protoTypeBuilders
+//
+//        /*
+//            Enabling a custom external code generator
+//            This feature is incubating and will be fully enabled in the near future
+//            and include proper documentation
+//
+//            external('com.some.package.MyCustomGenerator'){
+//                args = ['-My','cli','args']
+//            }
+//        */
+//    }
+//}
+//
+////The task responsible for running the Kroto plus compiler is called "generateKrotoPlus"
+//compileKotlin.dependsOn "generateProto", "generateKrotoPlus"
 
 //Basic example of using the Kroto plus compiler cli directly
 task generateKrotoPlusCliExample {

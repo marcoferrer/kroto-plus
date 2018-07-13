@@ -154,7 +154,7 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
         FunSpec.builder(method.functionName)
                 .receiver(method.service.asyncStubClassName)
                 .returns(ParameterizedTypeName.get(
-                        ClassName("com.github.marcoferrer.krotoplus.coroutines","RpcBidiChannel"),
+                        ClassName("com.github.marcoferrer.krotoplus.coroutines","ClientBidiCallChannel"),
                         method.requestClassName,
                         method.responseClassName
                 ))

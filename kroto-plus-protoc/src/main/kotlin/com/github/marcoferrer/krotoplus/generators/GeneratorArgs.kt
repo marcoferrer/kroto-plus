@@ -18,7 +18,7 @@ class GeneratorArgs(
                     val options = keyValuesPairs
                             .asSequence()
                             .map { it.split("=") }
-                            .associateBy({ it[0] }, { it[1] })
+                            .associate { it[0] to it[1] }
 
                     GeneratorArgs(options, flags)
                 }

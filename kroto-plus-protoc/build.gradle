@@ -1,0 +1,45 @@
+/**
+ * We're are using the spring boot gradle plugin
+ * to create truly executable jar, compatible
+ * with the protobuf gradle plugin
+ *
+ * https://github.com/google/protobuf-gradle-plugin/issues/168
+ * https://github.com/salesforce/reactive-grpc/issues/21
+ *
+ */
+apply plugin: "org.springframework.boot"
+
+description 'Kroto+ Proto-c Plugin'
+
+def mainClassName = 'com.github.marcoferrer.krotoplus.KrotoPlusProtoCMain'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies{
+    implementation "io.grpc:grpc-protobuf:${versions.grpc}"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
+    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    implementation ("com.squareup:kotlinpoet:0.7.0") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+}
+
+bootJar {
+    launchScript()
+    classifier = 'jvm8'
+    manifest {
+        attributes 'Start-Class': mainClassName
+        attributes 'Implementation-Title' : 'Kroto+ Proto-c Plugin'
+        attributes 'Implementation-Version': project.version
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/kotlin/main")
+        testOutputDir = file("$buildDir/classes/kotlin/test")
+    }
+}
+

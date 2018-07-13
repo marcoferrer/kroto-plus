@@ -4,10 +4,11 @@ buildscript {
                 "protoc":     '3.5.1',
                 "protobuf":   '3.5.1',
                 "grpc":       '1.10.0',
-                "kotlin":     '1.2.40',
+                "kotlin":     '1.2.51',
                 "coroutines": '0.23.4',
                 "bintray":    '1.7.3',
-                'artifactory':'4.7.1'
+                'artifactory':'4.7.1',
+                "springBoot": '2.0.3.RELEASE'
         ]
         bintrayUser = project.hasProperty('bintrayUser') ?
                 project.property('bintrayUser') : System.getenv('BINTRAY_USER')
@@ -25,6 +26,9 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${versions.bintray}"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${versions.artifactory}"
+
+        //Required for building an executable jar that is compatible with gradle protobuf plugin
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${versions.springBoot}"
     }
 }
 

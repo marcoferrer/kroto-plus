@@ -24,7 +24,9 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
 
     implementation "com.squareup.wire:wire-schema:2.2.0"
-    implementation "com.squareup:kotlinpoet:0.7.0"
+    implementation ("com.squareup:kotlinpoet:0.7.0"){
+        exclude group: 'org.jetbrains.kotlin'
+    }
 }
 
 publishing {
