@@ -116,43 +116,5 @@ enum InsertionPoint {
     OUTER_CLASS_SCOPE = 7;
 }
 
-//option (options) = {
-//        mock_services {
-//            filter { include_path: "jojo/*" }
-//            implement_as_object: true
-//            generate_service_list: true
-//            service_list_package: "jojo.bizarre.adventure"
-//        }
-//        mock_services {
-//            filter { include_path: "test/message/*" }
-//            implement_as_object: true
-//            generate_service_list: true
-//            service_list_package: "test.message"
-//        }
-//        proto_builders {
-//            filter { exclude_path: "google/*" }
-//        }
-//        grpc_stub_exts {
-//            filter { include_path: "test/message/*" }
-//            support_coroutines: true
-//        }
-//        grpc_stub_exts {
-//            filter { include_path: "jojo/*" }
-//        }
-//        insertions {
-//            filter { include_path: "jojo/*" }
-//            entry {
-//                point: MESSAGE_IMPLEMENTS
-//                content: "com.test.MyInterface<{{message_type}}>"
-//                content: "com.test.MyInterface2<{{message_type}}.Builder>"
-//            }
-//            entry {
-//                point: BUILDER_IMPLEMENTS
-//                content: "com.test.BuilderInterFace<{{message_type}}>"
-//            }
-//        }
-//    };
-
-
 
 
