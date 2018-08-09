@@ -4,6 +4,19 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Download](https://api.bintray.com/packages/marcoferrer/kroto-plus/kroto-plus-compiler/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/kroto-plus-compiler/_latestVersion)
 
+**Lots of changes, improvements and features coming in *v0.1.3* ❗❗❗**
+
+To name a few:
+
+* Code compiler has been refactored into a protoc plugin.
+* **Introduction of user defined scripts** Custom generators using kotlin scripts (```kts```)
+* More advanced configuration options available
+* Improvements to the ```MockService``` api
+* New options, bug fixes, and improvements to generated ```ProtoBuilders```
+* Experimental ```ExtendableMessages``` generator for adding extendable interfaces into java messages.   
+
+**More info and documentation to come.**
+
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
 * **[Stub Rpc Method Overloads](https://github.com/marcoferrer/kroto-plus#stub-rpc-method-overloads)**
 * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
