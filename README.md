@@ -13,9 +13,18 @@ To name a few:
 * More advanced configuration options available, supporting both [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text) formats. These are backed by [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/kroto-plus-protoc/src/main/proto/krotoplus/compiler/config.proto) (Still requires proper documenting)
 * Improvements to the ```MockService``` api
 * New options, bug fixes, and improvements to generated ```ProtoBuilders```
-* Experimental ```ExtendableMessages``` generator for adding extendable interfaces into java messages.   
+* Experimental ```ExtendableMessages``` generator for adding extendable interfaces into java messages.  
 
-**More info and documentation to come in the next few days.**
+You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build file.
+
+```
+  repositories {
+      maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+  }
+```
+**Proper documentation to come shortly**. Until then you can reference the [Example Project](https://github.com/marcoferrer/kroto-plus/tree/master/example-project) or feel free to open an issue with any questions or suggestions.
+
+
 
 ## Version 0.1.2
 
