@@ -16,6 +16,12 @@ class ServiceBindingServerRule(
         for(service in services)
             serviceRegistry?.addService(service)
     }
+
+}
+
+interface MockServiceHelper {
+
+    fun clearQueues()
 }
 
 fun <T> handleUnaryCall(responseObserver: StreamObserver<T>, queue: ResponseQueue<T>, fallback: T){

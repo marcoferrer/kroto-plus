@@ -1,0 +1,47 @@
+mock_services {
+    filter { include_path: "jojo/*" }
+    implement_as_object: true
+    generate_service_list: true
+    service_list_package: "jojo.bizarre.adventure"
+    service_list_name: "MockJojoServices"
+}
+mock_services {
+    filter { include_path: "test/message/*" }
+    implement_as_object: true
+    generate_service_list: true
+    service_list_package: "test.message"
+}
+proto_builders {
+    filter { exclude_path: "google/*" }
+    unwrap_builders: true
+}
+grpc_stub_exts {
+    support_coroutines: true
+}
+extendable_messages {
+    filter { include_path: "jojo/bizarre/adventure/stand/*" }
+}
+generator_scripts {
+    template_script_path: "helloThere.kts"
+    template_script_bundle: "templates/build/libs/templates.jar"
+}
+insertions {
+    filter {
+        include_path: "jojo/bizarre/adventure/character/*"
+    }
+    entry { point: MESSAGE_IMPLEMENTS
+        template_script_path: "extendableMessages.kts"
+        template_script_bundle: "templates/build/libs/templates.jar"
+    }
+    entry { point: BUILDER_IMPLEMENTS
+        template_script_path: "extendableMessages.kts"
+        template_script_bundle: "templates/build/libs/templates.jar"
+    }
+    entry { point: CLASS_SCOPE
+        template_script_path: "extendableMessages.kts"
+        template_script_bundle: "templates/build/libs/templates.jar"
+    }
+    entry { point: OUTER_CLASS_SCOPE
+        template_script_path: "templates/src/main/kotlin/sampleInsertionScript.kts"
+    }
+}

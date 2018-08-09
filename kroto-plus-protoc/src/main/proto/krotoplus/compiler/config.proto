@@ -1,0 +1,158 @@
+syntax = 'proto3';
+
+package krotoplus.compiler;
+
+option java_package = "com.github.marcoferrer.krotoplus.config";
+option java_multiple_files = true;
+
+import "google/protobuf/descriptor.proto";
+
+message CompilerConfig {
+
+    bool suppress_deprecation_warnings = 1;
+
+    repeated GrpcStubExtsGenOptions grpc_stub_exts = 20;
+
+    repeated MockServicesGenOptions mock_services = 21;
+
+    repeated ProtoBuildersGenOptions proto_builders = 22;
+
+    repeated ExtenableMessagesGenOptions extendable_messages = 23;
+
+    repeated InsertionsGenOptions insertions = 24;
+
+    repeated GeneratorScriptsGenOptions generator_scripts = 25;
+
+}
+
+message FileFilter {
+
+    repeated string include_path = 1;
+
+    repeated string exclude_path = 2;
+
+}
+
+message GrpcStubExtsGenOptions{
+
+    FileFilter filter = 1;
+
+    bool support_coroutines = 2;
+
+}
+
+message MockServicesGenOptions {
+
+    FileFilter filter = 1;
+
+    bool implement_as_object = 2;
+
+    bool generate_service_list = 3;
+
+    string service_list_package = 4;
+
+    string service_list_name = 5;
+
+}
+
+message ProtoBuildersGenOptions {
+
+    FileFilter filter = 1;
+
+    bool unwrap_builders = 2;
+}
+
+message GeneratorScriptsGenOptions {
+
+    FileFilter filter = 1;
+
+    repeated string template_script_path = 2;
+
+    string template_script_bundle = 3;
+
+}
+
+message ExtenableMessagesGenOptions{
+
+    FileFilter filter = 1;
+
+    string companion_field_name = 2;
+
+    string companion_class_name = 3;
+
+    string companion_extends = 4;
+
+    string companion_implements = 5;
+
+}
+
+message InsertionsGenOptions {
+
+    message Entry {
+
+        InsertionPoint point = 2;
+
+        repeated string content = 3;
+
+        repeated string template_script_path = 4;
+
+        string template_script_bundle = 5;
+
+    }
+
+    FileFilter filter = 1;
+
+    repeated Entry entry = 2;
+}
+
+enum InsertionPoint {
+    UNKNOWN = 0;
+    INTERFACE_EXTENDS = 1;
+    MESSAGE_IMPLEMENTS = 2;
+    BUILDER_IMPLEMENTS = 3;
+    BUILDER_SCOPE = 4;
+    CLASS_SCOPE = 5;
+    ENUM_SCOPE = 6;
+    OUTER_CLASS_SCOPE = 7;
+}
+
+//option (options) = {
+//        mock_services {
+//            filter { include_path: "jojo/*" }
+//            implement_as_object: true
+//            generate_service_list: true
+//            service_list_package: "jojo.bizarre.adventure"
+//        }
+//        mock_services {
+//            filter { include_path: "test/message/*" }
+//            implement_as_object: true
+//            generate_service_list: true
+//            service_list_package: "test.message"
+//        }
+//        proto_builders {
+//            filter { exclude_path: "google/*" }
+//        }
+//        grpc_stub_exts {
+//            filter { include_path: "test/message/*" }
+//            support_coroutines: true
+//        }
+//        grpc_stub_exts {
+//            filter { include_path: "jojo/*" }
+//        }
+//        insertions {
+//            filter { include_path: "jojo/*" }
+//            entry {
+//                point: MESSAGE_IMPLEMENTS
+//                content: "com.test.MyInterface<{{message_type}}>"
+//                content: "com.test.MyInterface2<{{message_type}}.Builder>"
+//            }
+//            entry {
+//                point: BUILDER_IMPLEMENTS
+//                content: "com.test.BuilderInterFace<{{message_type}}>"
+//            }
+//        }
+//    };
+
+
+
+

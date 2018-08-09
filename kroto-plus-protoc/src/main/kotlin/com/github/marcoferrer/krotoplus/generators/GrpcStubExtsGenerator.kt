@@ -1,29 +1,36 @@
 package com.github.marcoferrer.krotoplus.generators
 
+import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
-import com.github.marcoferrer.krotoplus.schema.Service
-import com.github.marcoferrer.krotoplus.schema.isEmptyInput
-import com.github.marcoferrer.krotoplus.schema.isNotEmptyInput
-import com.github.marcoferrer.krotoplus.schema.javaPackage
+import com.github.marcoferrer.krotoplus.proto.ProtoMethod
+import com.github.marcoferrer.krotoplus.proto.ProtoService
+import com.github.marcoferrer.krotoplus.utils.getRegexFilter
+import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
 
 
-class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator {
+object GrpcStubExtsGenerator : Generator {
 
-    override val key = "grpc-stub-exts"
+    override val isEnabled: Boolean
+        get() = context.config.grpcStubExtsCount > 0
 
-    private val supportCoroutines = "support_coroutines".let {
-        hasFlag(it) || getOption(it).orEmpty().toBoolean()
+    override fun invoke(): PluginProtos.CodeGeneratorResponse {
+        val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
+
+        for (service in context.schema.protoServices) {
+            for (options in context.config.grpcStubExtsList) {
+
+                if(options.filter.matches(service.protoFile.name)){
+                    buildFileSpec(service, options)?.let { responseBuilder.addFile(it) }
+                }
+            }
+        }
+
+        return responseBuilder.build()
     }
 
-    override fun invoke(responseBuilder: PluginProtos.CodeGeneratorResponse.Builder) {
-
-        for (service in context.schema.services)
-            buildFileSpec(service)?.let { responseBuilder.addFile(it) }
-    }
-
-    private fun buildFileSpec(service: Service): PluginProtos.CodeGeneratorResponse.File? {
+    private fun buildFileSpec(service: ProtoService, options: GrpcStubExtsGenOptions): PluginProtos.CodeGeneratorResponse.File? {
         val filename = "${service.name}RpcOverloads"
         val fileSpecBuilder = FileSpec
                 .builder(service.protoFile.javaPackage, filename)
@@ -34,34 +41,42 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
                         .build())
 
         for(method in service.methodDefinitions)
-            buildFunSpecs(method, fileSpecBuilder)
+            buildFunSpecs(method, options, fileSpecBuilder)
 
         return fileSpecBuilder.build()
                 .takeIf { it.members.isNotEmpty() }
                 ?.toResponseFileProto()
     }
 
-    private fun buildFunSpecs(method: Service.Method, fileSpecBuilder: FileSpec.Builder){
+    private fun buildFunSpecs(
+            method: ProtoMethod,
+            options:GrpcStubExtsGenOptions,
+            fileSpecBuilder: FileSpec.Builder
+    ){
         when{
             //Unary
             method.isUnary ->
-                buildUnaryOverloads(method,fileSpecBuilder)
+                buildUnaryOverloads(method,options,fileSpecBuilder)
 
             //Server Streaming //TODO Add support for Blocking Server Streaming
-            supportCoroutines && method.isServerStream ->
+            options.supportCoroutines && method.isServerStream ->
                 buildServerStreamingOverloads(method,fileSpecBuilder)
 
             //Bidi && Client Streaming
-            supportCoroutines && (method.isBidi || method.isClientStream)->
+            options.supportCoroutines && (method.isBidi || method.isClientStream)->
                 buildBidiStreamingOverloads(method,fileSpecBuilder)
         }
     }
 
-    private fun buildUnaryOverloads(method: Service.Method, fileSpecBuilder: FileSpec.Builder) {
+    private fun buildUnaryOverloads(
+            method: ProtoMethod,
+            options:GrpcStubExtsGenOptions,
+            fileSpecBuilder: FileSpec.Builder
+    ) {
 
         val funSpecBuilder = FunSpec.builder(method.functionName)
 
-        if(method.method.isNotEmptyInput) {
+        if(method.isNotEmptyInput) {
             funSpecBuilder
                     .addModifiers(KModifier.INLINE)
                     .addParameter("block", LambdaTypeName.get(
@@ -70,7 +85,7 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
         }
 
         funSpecBuilder
-                .receiver(method.service.futureStubClassName)
+                .receiver(method.protoService.futureStubClassName)
                 .addCode(method.requestValueCodeBlock())
                 .addStatement("return %N(request)", method.functionName)
                 .returns(ParameterizedTypeName.get(
@@ -79,23 +94,23 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
         funSpecBuilder
-                .receiver(method.service.blockingStubClassName)
+                .receiver(method.protoService.blockingStubClassName)
                 .returns(method.responseClassName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
-        if(supportCoroutines)
+        if(options.supportCoroutines)
             buildSuspendingUnaryOverloads(method,fileSpecBuilder)
     }
 
-    private fun buildSuspendingUnaryOverloads(method: Service.Method, fileSpecBuilder: FileSpec.Builder) {
+    private fun buildSuspendingUnaryOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder) {
 
         fileSpecBuilder.addStaticImport("com.github.marcoferrer.krotoplus.coroutines", "suspendingUnaryCallObserver")
 
         FunSpec.builder(method.functionName)
                 .addModifiers(KModifier.SUSPEND)
-                .receiver(method.service.asyncStubClassName)
+                .receiver(method.protoService.asyncStubClassName)
                 .apply {
-                    if(method.method.isNotEmptyInput)
+                    if(method.isNotEmptyInput)
                         addParameter("request", method.requestClassName) else
                         addCode(method.requestValueCodeBlock())
                 }
@@ -105,12 +120,12 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
                         method.functionName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
-        if(method.method.isNotEmptyInput) {
+        if(method.isNotEmptyInput) {
             FunSpec.builder(method.functionName)
                     .addModifiers(KModifier.SUSPEND)
-                    .receiver(method.service.asyncStubClassName)
+                    .receiver(method.protoService.asyncStubClassName)
                     .apply {
-                        if(method.method.isNotEmptyInput) {
+                        if(method.isNotEmptyInput) {
                             addModifiers(KModifier.INLINE)
                             addParameter("block", LambdaTypeName.get(
                                     receiver = method.requestClassName.nestedClass("Builder"),
@@ -124,7 +139,7 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
         }
     }
 
-    private fun buildServerStreamingOverloads(method: Service.Method, fileSpecBuilder: FileSpec.Builder){
+    private fun buildServerStreamingOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder){
 
         val inboundChannelClassName =
                 ClassName("com.github.marcoferrer.krotoplus.coroutines","InboundStreamChannel")
@@ -132,9 +147,9 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
         val returnType = ParameterizedTypeName.get(inboundChannelClassName,method.responseClassName)
 
         FunSpec.builder(method.functionName)
-                .receiver(method.service.asyncStubClassName)
+                .receiver(method.protoService.asyncStubClassName)
                 .apply {
-                    if(method.method.isNotEmptyInput)
+                    if(method.isNotEmptyInput)
                         addParameter("request", method.requestClassName) else
                         addCode(method.requestValueCodeBlock())
                 }
@@ -147,12 +162,12 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
     }
 
 
-    private fun buildBidiStreamingOverloads(method: Service.Method, fileSpecBuilder: FileSpec.Builder){
+    private fun buildBidiStreamingOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder){
 
         fileSpecBuilder.addStaticImport("com.github.marcoferrer.krotoplus.coroutines","bidiCallChannel")
 
         FunSpec.builder(method.functionName)
-                .receiver(method.service.asyncStubClassName)
+                .receiver(method.protoService.asyncStubClassName)
                 .returns(ParameterizedTypeName.get(
                         ClassName("com.github.marcoferrer.krotoplus.coroutines","ClientBidiCallChannel"),
                         method.requestClassName,
@@ -163,8 +178,8 @@ class GrpcStubExtsGenerator(override val context: Generator.Context) : Generator
                 .also { fileSpecBuilder.addFunction(it.build()) }
     }
 
-    private fun Service.Method.requestValueCodeBlock(): CodeBlock{
-        val requestValueTemplate = if(method.isEmptyInput)
+    private fun ProtoMethod.requestValueCodeBlock(): CodeBlock{
+        val requestValueTemplate = if(isEmptyInput)
             "val request = %T.getDefaultInstance()\n" else
             "val request = %T.newBuilder().apply(block).build()\n"
 

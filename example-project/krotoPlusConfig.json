@@ -1,0 +1,61 @@
+{
+    "mockServices": [
+        {
+            "filter": { "includePath": [ "jojo/*" ] },
+            "implementAsObject": true,
+            "generateServiceList": true,
+            "serviceListPackage": "jojo.bizarre.adventure",
+            "serviceListName": "MockJojoServices"
+        },
+        {
+            "filter": { "includePath": [ "test/message/*" ] },
+            "implementAsObject": true,
+            "generateServiceList": true,
+            "serviceListPackage": "test.message"
+        }
+    ],
+    "protoBuilders": [
+        {
+            "filter": { "excludePath": ["google/*"] },
+            "unwrapBuilders": true
+        }
+    ],
+    "grpcStubExts": [
+        { "supportCoroutines": true }
+    ],
+    "extendableMessages": [
+        { "filter": { "includePath": [ "jojo/bizarre/adventure/stand/*" ] } }
+    ],
+    "generatorScripts": [
+        {
+            "templateScriptPath": ["helloThere.kts"],
+            "templateScriptBundle": "templates/build/libs/templates.jar"
+        }
+    ],
+    "insertions": [
+        {
+            "filter": { "includePath": [ "jojo/bizarre/adventure/character/*" ] },
+            "entry": [
+                {
+                    "point": "MESSAGE_IMPLEMENTS",
+                    "templateScriptPath": ["extendableMessages.kts"],
+                    "templateScriptBundle": "templates/build/libs/templates.jar"
+                },
+                {
+                    "point": "BUILDER_IMPLEMENTS",
+                    "templateScriptPath": ["extendableMessages.kts"],
+                    "templateScriptBundle": "templates/build/libs/templates.jar"
+                },
+                {
+                    "point": "CLASS_SCOPE",
+                    "templateScriptPath": ["extendableMessages.kts"],
+                    "templateScriptBundle": "templates/build/libs/templates.jar"
+                },
+                {
+                    "point": "OUTER_CLASS_SCOPE",
+                    "templateScriptPath": ["templates/src/main/kotlin/sampleInsertionScript.kts"]
+                }
+            ]
+        }
+    ]
+}

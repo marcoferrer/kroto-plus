@@ -1,7 +1,5 @@
-plugins {
-    id 'java-gradle-plugin'
-    id 'com.gradle.plugin-publish' version '0.9.7'
-}
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'com.gradle.plugin-publish'
 
 def pluginId = 'com.github.marcoferrer.kroto-plus'
 

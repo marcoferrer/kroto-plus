@@ -2,4 +2,6 @@ description = "Kroto+ Test Support"
 
 dependencies {
     implementation "io.grpc:grpc-testing:${versions.grpc}"
+    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    implementation project(":kroto-plus-message")
 }

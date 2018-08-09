@@ -1,5 +1,7 @@
 package krotoplus.example
 
+import com.github.marcoferrer.krotoplus.message.KpMessage
+import com.google.protobuf.DynamicMessage
 import jojo.bizarre.adventure.character.CharacterProto
 import jojo.bizarre.adventure.character.CharacterProtoBuilders
 import jojo.bizarre.adventure.stand.StandProto
@@ -51,6 +53,12 @@ val stands: Map<String, StandProto.Stand> =
 
 val characters: Map<String, CharacterProto.Character> =
         listOf(
+                Character{
+
+                }
+                CharacterProto.Character.build {
+
+                }
             CharacterProtoBuilders.Character {
                 name = "Jotaro Kujo"
                 affiliation = CharacterProto.Character.Affiliation.GOOD
@@ -62,3 +70,13 @@ val characters: Map<String, CharacterProto.Character> =
                 stand = stands["The World"]
             }
         ).associateBy { it.name }
+
+
+public inline fun <T> T.apply(block: T.() -> Unit): T {
+    block()
+
+    jojo.bizarre.adventure.character.Character
+
+
+    return this
+}

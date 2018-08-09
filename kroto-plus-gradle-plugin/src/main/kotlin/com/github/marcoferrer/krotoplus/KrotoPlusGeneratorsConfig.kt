@@ -1,6 +1,5 @@
 package com.github.marcoferrer.krotoplus
 
-import kotlin.String
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import javax.inject.Inject
@@ -52,12 +51,4 @@ open class KrotoPlusGeneratorsConfig @Inject constructor(objectFactory: ObjectFa
     fun mockServices(block: MockServicesGeneratorConfig.() -> Unit) =
             mockServices(Action(block))
 
-    @JvmOverloads
-    fun external(canonicalClassName: String, action: Action<in ExternalGeneratorConfig>? = null){
-        ExternalGeneratorConfig(canonicalClassName).also {
-            action?.execute(it)
-            generatorModules.remove(it)
-            generatorModules.add(it)
-        }
-    }
 }

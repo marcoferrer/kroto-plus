@@ -6,7 +6,10 @@ _2018-07-12_
 
 #### Protoc Plugin
 * New: Converted Kroto+ to protoc plugin and implemented default generators  
-* New: Generator added for creating extendable messages and inserting companion objects into java message classes.     
+* New: Generator added for creating extendable messages and inserting companion objects into java message classes.
+* New: Builder generator now supports creating builders for nested message types     
+* New: Builder generator now creates extensions for nested message field builders. 
+* Fix: Builder generator now explicitly sets the result type as non null. 
 
 #### Compiler
 * Fix: Changed visibility of cli arguments to internal
@@ -14,6 +17,12 @@ _2018-07-12_
 
 #### Coroutines
 * New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 
+
+#### Test
+//new options
+//builders added to mock service file
+* New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 
+
 
 #### Gradle Plugin 
 * Fix: Added missing dsl configuration builder for ```ProtoTypeBuildersGeneratorConfig```

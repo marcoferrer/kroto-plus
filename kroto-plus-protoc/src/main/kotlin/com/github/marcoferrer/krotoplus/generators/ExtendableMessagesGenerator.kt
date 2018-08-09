@@ -1,84 +1,95 @@
 package com.github.marcoferrer.krotoplus.generators
 
-import com.github.marcoferrer.krotoplus.schema.ProtoMessage
+import com.github.marcoferrer.krotoplus.proto.ProtoMessage
+import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 
-class ExtendableMessagesGenerator(override val context: Generator.Context) : Generator {
+object ExtendableMessagesGenerator : Generator {
 
-    override val key = "extendable-messages"
+    override val isEnabled: Boolean
+        get() = context.config.extendableMessagesCount > 0
 
-    private val companionFieldName = getOption("companion_field_name") ?: "Companion"
+    override fun invoke(): PluginProtos.CodeGeneratorResponse {
 
-    private val companionClassName = getOption("companion_class_name") ?: "Companion"
-
-    override fun invoke(responseBuilder: PluginProtos.CodeGeneratorResponse.Builder) =
-        context.schema.types.values
-                .asSequence()
-                .filter { it is ProtoMessage && !it.cannonicalProtoName.startsWith("google")}
-                .map { it as ProtoMessage }
+        val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
+        context.schema.protoTypes.values.asSequence()
+                .map { it as? ProtoMessage }
+                .filterNotNull().filterNot { it.isMapEntry }
                 .forEach { protoMessage ->
 
-                    val canonicalKrotoMessageType = "com.github.marcoferrer.krotoplus.KrotoMessage"
+                    for (options in context.config.extendableMessagesList) {
 
-                    responseBuilder.addFile(
-                            PluginProtos.CodeGeneratorResponse.File.newBuilder()
-                                    .setName(protoMessage.outputFilePath)
-                                    .setInsertionPoint("message_implements:${protoMessage.cannonicalProtoName}")
-                                    .setContent("$canonicalKrotoMessageType,")
-                                    .build())
+                        if(!options.filter.matches(protoMessage.protoFile.name) || protoMessage.isMapEntry)
+                            continue
 
-                    responseBuilder.addFile(
-                            PluginProtos.CodeGeneratorResponse.File.newBuilder()
-                                    .setName(protoMessage.outputFilePath)
-                                    .setInsertionPoint("builder_implements:${protoMessage.cannonicalProtoName}")
-                                    .setContent("$canonicalKrotoMessageType.Builder<${protoMessage.name}>,")
-                                    .build())
+                        val kpPackage = "com.github.marcoferrer.krotoplus.message"
+                        val companionExtends = options.companionExtends?.takeIf { it.isNotEmpty() }
+                                ?.let { "extends ${it.replace("{{message_type}}", protoMessage.canonicalJavaName)}\n" }
+                                .orEmpty()
 
-                    responseBuilder.addFile(
-                            PluginProtos.CodeGeneratorResponse.File.newBuilder()
-                                    .setName(protoMessage.outputFilePath)
-                                    .setInsertionPoint("class_scope:${protoMessage.cannonicalProtoName}")
-                                    .setContent("""
-                        public static final $companionClassName $companionFieldName = new $companionClassName();
+                        val companionImplements = options.companionImplements?.takeIf { it.isNotEmpty() }
+                                ?.let { it.replace("{{message_type}}", protoMessage.canonicalJavaName) + "," }
+                                .orEmpty()
 
-                        @javax.annotation.Nonnull
-                        @Override
-                        public ${protoMessage.name}.$companionClassName getCompanion() {
-                          return ${protoMessage.name}.$companionFieldName;
-                        }
+                        val companionFieldName = options.companionFieldName
+                                ?.takeIf { it.isNotEmpty() } ?: "KpCompanion"
 
-                        public static final class $companionClassName
-                            ${protoMessage.companionExtends}
-                            implements
-                            ${protoMessage.companionImplements}
-                            $canonicalKrotoMessageType.Companion<${protoMessage.name},${protoMessage.name}.Builder> {
+                        val companionClassName = options.companionClassName
+                                ?.takeIf { it.isNotEmpty() } ?: "Companion"
 
-                          private $companionClassName(){}
+                        responseBuilder.addFile(
+                                PluginProtos.CodeGeneratorResponse.File.newBuilder()
+                                        .setName(protoMessage.outputFilePath)
+                                        .setInsertionPoint("message_implements:${protoMessage.canonicalProtoName}")
+                                        .setContent("$kpPackage.KpMessage<${protoMessage.canonicalJavaName},${protoMessage.canonicalJavaName}.Builder>,")
+                                        .build())
 
-                          @javax.annotation.Nonnull
-                          @Override
-                          public ${protoMessage.name} getDefaultInstance() {
-                            return ${protoMessage.name}.getDefaultInstance();
-                          }
+                        responseBuilder.addFile(
+                                PluginProtos.CodeGeneratorResponse.File.newBuilder()
+                                        .setName(protoMessage.outputFilePath)
+                                        .setInsertionPoint("builder_implements:${protoMessage.canonicalProtoName}")
+                                        .setContent("$kpPackage.KpBuilder<${protoMessage.canonicalJavaName}>,")
+                                        .build())
 
-                          @javax.annotation.Nonnull
-                          @Override
-                          public ${protoMessage.name}.Builder newBuilder() {
-                            return ${protoMessage.name}.newBuilder();
-                          }
-                        }
-                                    """.trimIndent())
-                                    .build())
+                        responseBuilder.addFile(
+                                PluginProtos.CodeGeneratorResponse.File.newBuilder()
+                                        .setName(protoMessage.outputFilePath)
+                                        .setInsertionPoint("class_scope:${protoMessage.canonicalProtoName}")
+                                        .setContent(
+                                                """
+                            @javax.annotation.Nonnull
+                            public static final $companionClassName $companionFieldName =
+                                    $kpPackage.KpCompanion.Registry
+                                            .initializeCompanion(${protoMessage.canonicalJavaName}.class, new $companionClassName());
+
+                            @javax.annotation.Nonnull
+                            @Override
+                            public ${protoMessage.canonicalJavaName}.$companionClassName getCompanion() {
+                              return ${protoMessage.canonicalJavaName}.$companionFieldName;
+                            }
+
+                            public static final class $companionClassName
+                                $companionExtends implements
+                                $companionImplements $kpPackage.KpCompanion<${protoMessage.canonicalJavaName},${protoMessage.canonicalJavaName}.Builder> {
+
+                              private $companionClassName(){}
+
+                              @javax.annotation.Nonnull
+                              @Override
+                              public ${protoMessage.canonicalJavaName} getDefaultInstance() {
+                                return ${protoMessage.canonicalJavaName}.getDefaultInstance();
+                              }
+
+                              @javax.annotation.Nonnull
+                              @Override
+                              public ${protoMessage.canonicalJavaName}.Builder newBuilder() {
+                                return ${protoMessage.canonicalJavaName}.newBuilder();
+                              }
+                            }
+                        """.trimIndent()).build())
+                    }
                 }
 
-    private val ProtoMessage.companionImplements get() =
-        getOption("companion_implements")
-                ?.let{ it.replace("{message_type}",name) + "," }
-                .orEmpty()
-
-    private val ProtoMessage.companionExtends get() =
-        getOption("companion_extends")
-                ?.let{ "extends " + it.replace("{message_type}",name) }
-                .orEmpty()
-
+        return responseBuilder.build()
+    }
 }

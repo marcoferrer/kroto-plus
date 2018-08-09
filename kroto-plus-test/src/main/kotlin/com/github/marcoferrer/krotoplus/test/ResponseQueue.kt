@@ -1,5 +1,8 @@
 package com.github.marcoferrer.krotoplus.test
 
+import com.github.marcoferrer.krotoplus.message.KpBuilder
+import com.github.marcoferrer.krotoplus.message.KpCompanion
+import com.github.marcoferrer.krotoplus.message.KpMessage
 import io.grpc.Metadata
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -25,4 +28,20 @@ class ResponseQueue<E> : Deque<QueueEntry<E>> by ArrayDeque() {
     @JvmOverloads
     fun pushError(statusError: Status, metadata: Metadata? = null) =
             push(QueueError(statusError, metadata))
+}
+
+inline fun <reified M, B> ResponseQueue<M>.addMessage(block: B.() -> Unit): Boolean
+        where M : KpMessage<M, B>, B : KpBuilder<M> {
+
+    val builder = KpCompanion.Registry[M::class.java].newBuilder()
+
+    return addMessage(builder.apply(block).build())
+}
+
+inline fun <reified M, B> ResponseQueue<M>.pushMessage(block: B.() -> Unit)
+        where M : KpMessage<M, B>, B : KpBuilder<M> {
+
+    val builder = KpCompanion.Registry[M::class.java].newBuilder()
+
+    pushMessage(builder.apply(block).build())
 }

@@ -1,0 +1,49 @@
+syntax = 'proto3';
+
+package krotoplus;
+
+option java_package = "com.github.marcoferrer.krotoplus.generators";
+
+import "google/protobuf/descriptor.proto";
+
+message GeneratorOptions{
+    oneof generator{
+        ExtendableMessageOptions extendable_message = 1;
+        InsertionOptions insert = 2;
+    }
+}
+
+message ExtendableMessageOptions{
+    bool enabled = 1;
+}
+
+message InsertionOptions{
+    string interface_extends = 1;
+    string message_implements = 2;
+    string builder_implements = 3;
+    string builder_scope = 4;
+    string class_scope = 5;
+}
+
+extend google.protobuf.MessageOptions {
+    repeated GeneratorOptions options = 959595;
+}
+
+//message Testing{
+//    option (krotoplus.generator).options = {
+//        interface_extends: "krotoplus.Testing"
+//        extendable_message{
+//            enabled: true
+//        }
+//    };
+////    option (krotoplus.ge) = {
+////        generator{
+////
+////        }
+////        interface_extends: "krotoplus.Testing"
+////        extendable_message{
+////            enabled: true
+////        }
+////    };
+////    option (krotoplus.generator).extendable_message.enabled = true;
+//}

@@ -1,5 +1,8 @@
 package krotoplus.example
 
+import com.github.marcoferrer.krotoplus.message.*
+import com.github.marcoferrer.krotoplus.test.QueueMessage
+import com.github.marcoferrer.krotoplus.test.ResponseQueue
 import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
 import io.grpc.Metadata
 import io.grpc.Status
@@ -13,6 +16,14 @@ import kotlin.test.fail
 
 class TestMockServiceResponseQueue {
 
+    inline fun <reified M,B> ResponseQueue<M>.addMessage2(block:B.()->Unit): Boolean
+        where M : KpMessage<M, B>, B : KpBuilder<M> {
+
+        val builder = KpCompanion.Registry[M::class.java].newBuilder()
+
+        return builder.apply(block).build().let{ add(QueueMessage(it)) }
+    }
+
     @[Rule JvmField]
     var grpcServerRule = ServiceBindingServerRule(MockStandService(),MockCharacterService())
             .directExecutor()!!
@@ -24,7 +35,7 @@ class TestMockServiceResponseQueue {
         MockStandService.getStandByNameResponseQueue.apply {
 
             //Queue up a valid response message
-            addMessage {
+            addMessage2 {
                 name = "Star Platinum"
                 powerLevel = 500
                 speed = 550
@@ -35,11 +46,12 @@ class TestMockServiceResponseQueue {
                 })
             }
 
+
             //Queue up an error
             addError(Status.INVALID_ARGUMENT)
 
             //Queue up a valid response message
-            addMessage {
+            addMessage2 {
                 name = "The World"
                 powerLevel = 490
                 speed = 550

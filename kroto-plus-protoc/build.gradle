@@ -1,13 +1,15 @@
 /**
  * We're are using the spring boot gradle plugin
- * to create truly executable jar, compatible
+ * to create a truly executable jar, compatible
  * with the protobuf gradle plugin
  *
  * https://github.com/google/protobuf-gradle-plugin/issues/168
  * https://github.com/salesforce/reactive-grpc/issues/21
  *
  */
-apply plugin: "org.springframework.boot"
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.google.protobuf'
+//apply plugin: 'java-library'
 
 description 'Kroto+ Proto-c Plugin'
 
@@ -17,21 +19,82 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies{
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
     implementation "io.grpc:grpc-protobuf:${versions.grpc}"
-    implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
-    implementation ("com.squareup:kotlinpoet:0.7.0") {
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
+    compile ("com.squareup:kotlinpoet:0.7.0") {
         exclude group: 'org.jetbrains.kotlin'
     }
+
+    // For supporting code generation through kts scripts
+    compile "org.jetbrains.kotlin:kotlin-script-util"
+    compile "org.jetbrains.kotlin:kotlin-script-runtime"
+    implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+
+//    api "org.jetbrains.kotlin:kotlin-daemon-client"
+//    api "org.jetbrains.kotlin:kotlin-compiler-runner"
+//    api "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+//    implementation("org.jetbrains.kotlin:kotlin-compiler")
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${versions.protoc}" }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java{ outputSubDir = 'generated' }
+            }
+        }
+    }
+    generatedFilesBaseDir = "$projectDir/src/"
+}
+
+clean {
+    //noinspection GroovyAssignabilityCheck
+    delete "${protobuf.generatedFilesBaseDir}/generated"
 }
 
 bootJar {
     launchScript()
     classifier = 'jvm8'
+    requiresUnpack '**/kotlin-*.jar'
+    requiresUnpack '**/kroto-*.jar'
+    requiresUnpack '**/protobuf-*.jar'
+
+
+    // Explicitly add our clean jar to the libs directory so that
+    // it can be made available to the kotlin script compiler classpath
+    dependsOn jar
+    from(jar) { into '/BOOT-INF/lib' }
+
     manifest {
         attributes 'Start-Class': mainClassName
         attributes 'Implementation-Title' : 'Kroto+ Proto-c Plugin'
         attributes 'Implementation-Version': project.version
+    }
+}
+task copyJar(type: Copy) {
+    from jar // here it automatically reads jar file produced from jar task
+    into 'destination-folder'
+}
+
+build.dependsOn copyJar
+
+jar.enabled = true
+
+artifacts {
+    archives bootJar
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            artifact bootJar {
+                classifier "jvm8"
+            }
+        }
     }
 }
 

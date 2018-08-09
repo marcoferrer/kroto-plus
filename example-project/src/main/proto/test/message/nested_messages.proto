@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package validate.test;
+
+option java_package = "test.message";
+option java_outer_classname = "NestedMessages";
+
+message L1Message1{
+
+    string field = 1;
+
+    message L2Nested1{
+        string field =1;
+        L1Message1 message_field =2;
+    }
+
+    message L2Nested2{
+        string field = 1;
+        L2Nested1 message_field =2;
+    }
+}
+
+message L1Message2{
+
+    string field = 1;
+
+    message L2Nested1{
+        string field = 1;
+        L3Nested1 message_field =2;
+        message L3Nested1{
+            string field = 1;
+            L1Message1 message_field =2;
+        }
+    }
+
+    message L2Nested2{
+        string field = 1;
+
+        message L3Nested1{
+            string field = 1;
+        }
+
+        message L3Nested2{
+            string field = 1;
+
+            message L4Nested1{
+                string field = 1;
+
+                message L5Nested1{
+                    string field = 1;
+                }
+            }
+        }
+    }
+}

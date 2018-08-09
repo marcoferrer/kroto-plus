@@ -1,27 +1,41 @@
 package com.github.marcoferrer.krotoplus.generators
 
+import com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
-import com.github.marcoferrer.krotoplus.schema.*
+import com.github.marcoferrer.krotoplus.proto.ProtoFile
+import com.github.marcoferrer.krotoplus.proto.ProtoMessage
+import com.github.marcoferrer.krotoplus.proto.getGeneratedAnnotationSpec
+import com.github.marcoferrer.krotoplus.utils.*
 import com.google.protobuf.DescriptorProtos
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
+import org.jetbrains.kotlin.utils.sure
 
-class ProtoBuildersGenerator(override val context: Generator.Context) : Generator {
+object ProtoBuildersGenerator : Generator {
 
-    override val key = "builder-lambdas"
+    override val isEnabled: Boolean
+        get() = context.config.protoBuildersCount > 0
 
-    override fun invoke(responseBuilder: PluginProtos.CodeGeneratorResponse.Builder) {
-
-        context.request.protoFileList.asSequence()
-                .filter { !it.name.startsWith("google") }
-                .forEach { fileDescriptorProto ->
-                    buildFileSpec(fileDescriptorProto)?.let {
-                        responseBuilder.addFile(it.toResponseFileProto())
+    override fun invoke(): PluginProtos.CodeGeneratorResponse {
+        val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
+        context.schema.protoFiles.asSequence()
+                .filter { it.protoMessages.isNotEmpty() }
+                .forEach { protoFile ->
+                    for (options in context.config.protoBuildersList) {
+                        if ( options.filter.matches(protoFile.name) )
+                            buildFileSpec(protoFile,options,responseBuilder)
                     }
                 }
+        return responseBuilder.build()
     }
 
-    private fun buildFileSpec(protoFile: DescriptorProtos.FileDescriptorProto): FileSpec? {
+    private fun buildFileSpec(
+            protoFile: ProtoFile,
+            options: ProtoBuildersGenOptions,
+            responseBuilder: PluginProtos.CodeGeneratorResponse.Builder
+    ){
+
         val filename = "${protoFile.javaOuterClassname}Builders"
         val fileSpecBuilder = FileSpec.builder(protoFile.javaPackage,filename)
                 .addComment(AutoGenerationDisclaimer)
@@ -30,64 +44,103 @@ class ProtoBuildersGenerator(override val context: Generator.Context) : Generato
                         .addMember("%S","-$filename")
                         .build())
 
-        val typeSpecBuilder = TypeSpec.objectBuilder(filename)
+        val typeSpec = TypeSpec.objectBuilder(filename)
                 .addAnnotation(protoFile.getGeneratedAnnotationSpec())
+                .buildFunSpecsForTypes(fileSpecBuilder,protoFile.protoMessages)
+                .build()
 
-        val messageTypesToBuild = protoFile.messageTypeList
-                .map { messageDescriptor ->
-                    context.schema.typesByDescriptor[messageDescriptor] as? ProtoMessage
-                            ?: throw IllegalStateException("${messageDescriptor.name} was not found in schema type map.")
-                }
+        if(options.unwrapBuilders){
+            fileSpecBuilder.addFunctions(typeSpec.funSpecs)
+            fileSpecBuilder.addTypes(typeSpec.typeSpecs)
+        }else{
+            fileSpecBuilder.addType(typeSpec)
+        }
 
-        buildFunSpecsForTypes(fileSpecBuilder,typeSpecBuilder,messageTypesToBuild)
-
-        fileSpecBuilder.addType(typeSpecBuilder.build())
-
-        return fileSpecBuilder.build().takeIf { it.members.isNotEmpty() }
+        fileSpecBuilder.build().takeIf { it.members.isNotEmpty() }?.let {
+            responseBuilder.addFile(it.toResponseFileProto())
+        }
     }
 
-    private fun buildFunSpecsForTypes(
+    private fun TypeSpec.Builder.buildFunSpecsForTypes(
             fileSpecBuilder: FileSpec.Builder,
-            enclosingTypeSpec: TypeSpec.Builder,
             messageTypeList: List<ProtoMessage>
-    ){
+    ): TypeSpec.Builder {
 
-        for(protoType in messageTypeList){
+        for(protoType in messageTypeList) if (!protoType.isMapEntry){
 
-            val typeClassName = protoType.className
-            val builderTypeName = LambdaTypeName.get(
-                    receiver = typeClassName.nestedClass("Builder"),
-                    returnType = UNIT)
+            val builderLambdaTypeName = LambdaTypeName.get(
+                        receiver = protoType.builderClassName,
+                        returnType = UNIT )
 
             FunSpec.builder(protoType.name)
                     .addModifiers(KModifier.INLINE)
-                    .addParameter("block", builderTypeName)
-                    .addStatement("return %T.newBuilder().apply(block).build()", typeClassName)
+                    .addParameter("block", builderLambdaTypeName)
+                    .returns(protoType.className)
+                    .addStatement("return %T.newBuilder().apply(block).build()", protoType.className)
                     .also {
-                        enclosingTypeSpec.addFunction(it.build())
+                        //Add generator option check "suppress_deprecated_warnings"
+//                        if(protoType.descriptorProto.options.deprecated){
+//                            it.addAnnotation()
+                        this.addFunction(it.build())
                     }
 
             FunSpec.builder("copy")
-                    .receiver(typeClassName)
+                    .receiver(protoType.className)
                     .addModifiers(KModifier.INLINE)
-                    .addParameter("block",builderTypeName)
+                    .addParameter("block",builderLambdaTypeName)
+                    .returns(protoType.className)
                     .addStatement("return this.toBuilder().apply(block).build()")
                     .also {
                         fileSpecBuilder.addFunction(it.build())
                     }
 
+            fileSpecBuilder.addFunctions(buildNestedBuildersForMessage(protoType))
+
             if(protoType.nestedMessageTypes.isNotEmpty()){
-
-                val nestedTypeSpecBuilder = TypeSpec.objectBuilder(protoType.name)
-
-                buildFunSpecsForTypes(
-                        fileSpecBuilder,
-                        nestedTypeSpecBuilder,
-                        protoType.nestedMessageTypes
-                )
-
-                enclosingTypeSpec.addType(nestedTypeSpecBuilder.build())
+                addType(TypeSpec.objectBuilder(protoType.name)
+                        .buildFunSpecsForTypes(fileSpecBuilder, protoType.nestedMessageTypes)
+                        .build())
             }
         }
+        return this
     }
+
+    private fun buildNestedBuildersForMessage(protoType: ProtoMessage): List<FunSpec> =
+        protoType.descriptorProto.fieldList.asSequence()
+                .filter { it.type == DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE }
+                .map {
+                    it to (context.schema.protoTypes[it.typeName] as ProtoMessage).sure {
+                        "${it.typeName} was not found in schema type map."
+                    }
+                }
+                .filterNot { it.second.isMapEntry }
+                .map { (fieldDescriptorProto, protoMessageForField) ->
+
+                    val fieldNameCamelCase = camelCaseFieldName(fieldDescriptorProto.name)
+                    val statementTemplate = "return this.%N(%T.newBuilder().apply(block).build())"
+
+                    val funSpecBuilder = if(fieldDescriptorProto.label == LABEL_REPEATED)
+                        FunSpec.builder("add$fieldNameCamelCase")
+                                .addStatement(statementTemplate, "add$fieldNameCamelCase", protoMessageForField.className)
+                    else FunSpec.builder(fieldNameCamelCase.decapitalize())
+                                .addStatement(statementTemplate, "set$fieldNameCamelCase", protoMessageForField.className)
+
+                    funSpecBuilder
+                            .receiver(protoType.builderClassName)
+                            .addModifiers(KModifier.INLINE)
+                            .addParameter("block", LambdaTypeName.get(
+                                    receiver = protoMessageForField.builderClassName,
+                                    returnType = UNIT ))
+                            .returns(protoType.builderClassName)
+                            .build()
+                }.toList()
 }
+
+private val camelCaseFieldName = { it: String ->
+    // We cant use CaseFormat.UPPER_CAMEL since
+    // protoc is lenient with malformed field names
+    if(it.contains("_"))
+        it.split("_").joinToString(separator = "") { it.capitalize() } else
+        it.capitalize()
+
+}.memoize()
