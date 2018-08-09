@@ -4,7 +4,7 @@ buildscript {
                 "protoc":     '3.6.0',
                 "protobuf":   '3.6.0',
                 "grpc":       '1.10.0',
-                "kotlin":     '1.2.51',
+                "kotlin":     '1.2.60',
                 "coroutines": '0.24.0',
                 "bintray":    '1.7.3',
                 'artifactory':'4.7.1',

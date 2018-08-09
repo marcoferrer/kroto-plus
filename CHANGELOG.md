@@ -1,8 +1,8 @@
 ## Version 0.1.3
-_2018-07-12_
+_2018-08-09_
 
-* New: Updated Kotlin runtime to ```1.2.51```
-* New: Updated Coroutine version to ```0.23.4```
+* New: Updated Kotlin runtime to ```1.2.60```
+* New: Updated Coroutine version to ```0.24.0```
 
 #### Protoc Plugin
 * New: Converted Kroto+ to protoc plugin and implemented default generators  
