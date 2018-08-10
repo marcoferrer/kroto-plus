@@ -1,15 +1,8 @@
 package krotoplus.example
 
-import com.github.marcoferrer.krotoplus.coroutines.InboundStreamChannel
-import com.github.marcoferrer.krotoplus.coroutines.RpcBidiChannel
-import com.github.marcoferrer.krotoplus.coroutines.bidiCallChannel
 import com.github.marcoferrer.krotoplus.coroutines.suspendingUnaryCallObserver
 import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
-import com.google.protobuf.Empty
 import io.grpc.ManagedChannel
-import io.grpc.Status
-import io.grpc.stub.StreamObserver
-import jojo.bizarre.adventure.character.CharacterProto
 import jojo.bizarre.adventure.character.MockCharacterService
 import jojo.bizarre.adventure.stand.*
 import kotlinx.coroutines.experimental.async
@@ -22,7 +15,7 @@ import kotlin.test.assertNull
 class TestSuspendingRpcCalls{
 
     @[Rule JvmField]
-    var grpcServerRule = ServiceBindingServerRule(DummyStandService(), MockCharacterService())
+    var grpcServerRule = ServiceBindingServerRule(DummyStandService(), MockCharacterService)
             .directExecutor()!!
 
     val channel: ManagedChannel
@@ -71,7 +64,7 @@ class TestSuspendingRpcCalls{
 
         val stub = StandServiceGrpc.newStub(channel)
 
-        val request = StandServiceProtoBuilders.GetStandByNameRequest { name = "Star Platinum" }
+        val request = GetStandByNameRequest { name = "Star Platinum" }
 
         val stand: StandProto.Stand = stub.suspendingUnaryCallObserver { observer ->
             getStandByName(request,observer)

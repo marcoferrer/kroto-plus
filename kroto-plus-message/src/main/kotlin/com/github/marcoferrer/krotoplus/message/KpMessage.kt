@@ -1,32 +1,6 @@
 package com.github.marcoferrer.krotoplus.message
 
-import com.google.protobuf.Empty
-import com.google.protobuf.EmptyProto
-import com.google.protobuf.Message
 import java.util.concurrent.ConcurrentHashMap
-
-//
-//interface KpM : com.google.protobuf.Message {
-//
-//
-//}
-//
-//interface KpMComp<out T> where T: KpM, T: KpBuildable<KpMBuilder<T>> {
-//
-//    val defaultInstance: T
-//
-//    fun newBuilder() = defaultInstance.toBuilder()
-//
-//}
-//
-//interface KpBuildable<out T: KpMBuilder<KpM>>{
-//
-//    fun toBuilder(): T
-//}
-//interface KpMBuilder<out T : KpM> : com.google.protobuf.Message.Builder{
-//    override fun build(): T
-//}
-
 
 
 interface KpMessage<out M,out B> : com.google.protobuf.Message
@@ -69,10 +43,16 @@ interface KpCompanion<out M, out B>
 }
 
 /**
- * Companion Extensions
+ * Message Extensions
  */
 
-fun <M, B> KpCompanion<M, B>.build(block: B.() -> Unit): M
+inline fun <reified M, B> build( block: B.() -> Unit ): M
+        where M : KpMessage<M, B>, B : KpBuilder<M> {
+
+    return KpCompanion.Registry[M::class.java].build(block)
+}
+
+inline fun <M, B> KpCompanion<M, B>.build( block: B.() -> Unit ): M
         where B : KpBuilder<M>,M : KpMessage<M,B> {
 
     return newBuilder().apply(block).build()

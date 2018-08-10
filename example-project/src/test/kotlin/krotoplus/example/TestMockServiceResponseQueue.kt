@@ -7,6 +7,7 @@ import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
 import io.grpc.Metadata
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import jojo.bizarre.adventure.MockJojoServices
 import jojo.bizarre.adventure.character.MockCharacterService
 import jojo.bizarre.adventure.stand.*
 import org.junit.Rule
@@ -16,16 +17,8 @@ import kotlin.test.fail
 
 class TestMockServiceResponseQueue {
 
-    inline fun <reified M,B> ResponseQueue<M>.addMessage2(block:B.()->Unit): Boolean
-        where M : KpMessage<M, B>, B : KpBuilder<M> {
-
-        val builder = KpCompanion.Registry[M::class.java].newBuilder()
-
-        return builder.apply(block).build().let{ add(QueueMessage(it)) }
-    }
-
     @[Rule JvmField]
-    var grpcServerRule = ServiceBindingServerRule(MockStandService(),MockCharacterService())
+    var grpcServerRule = ServiceBindingServerRule(MockJojoServices)
             .directExecutor()!!
 
     val metadataTestKey = Metadata.Key.of("test_header", Metadata.ASCII_STRING_MARSHALLER)
@@ -35,15 +28,15 @@ class TestMockServiceResponseQueue {
         MockStandService.getStandByNameResponseQueue.apply {
 
             //Queue up a valid response message
-            addMessage2 {
+            addMessage {
                 name = "Star Platinum"
                 powerLevel = 500
                 speed = 550
-                addAttacks(StandProtoBuilders.Attack {
+                addAttacks {
                     name = "ORA ORA ORA"
                     damage = 100
                     range = StandProto.Attack.Range.CLOSE
-                })
+                }
             }
 
 
@@ -51,15 +44,15 @@ class TestMockServiceResponseQueue {
             addError(Status.INVALID_ARGUMENT)
 
             //Queue up a valid response message
-            addMessage2 {
+            addMessage {
                 name = "The World"
                 powerLevel = 490
                 speed = 550
-                addAttacks(StandProtoBuilders.Attack {
+                addAttacks {
                     name = "ZA WARUDO"
                     damage = 0
                     range = StandProto.Attack.Range.MEDIUM
-                })
+                }
             }
 
             //Queue up another error but this time with metadata

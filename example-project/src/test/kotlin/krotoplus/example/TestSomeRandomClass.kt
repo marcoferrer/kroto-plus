@@ -1,26 +1,18 @@
 package krotoplus.example
 
 import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
-import com.google.protobuf.RepeatedFieldBuilder
-import io.grpc.ManagedChannel
 import jojo.bizarre.adventure.MockJojoServices
 import jojo.bizarre.adventure.character.CharacterProto
-//import jojo.bizarre.adventure.character.CharacterProto
-//import jojo.bizarre.adventure.character.CharacterProtoBuilders
 import jojo.bizarre.adventure.character.MockCharacterService
 import jojo.bizarre.adventure.character.addCharacter
 import jojo.bizarre.adventure.character.addMessage
-import jojo.bizarre.adventure.stand.*
-//import jojo.bizarre.adventure.stand.StandProtoBuilders
+import jojo.bizarre.adventure.stand.MockStandService
+import jojo.bizarre.adventure.stand.StandProto
+import jojo.bizarre.adventure.stand.addAttacks
+import jojo.bizarre.adventure.stand.addMessage
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import validate.ValidateP
-import validate.test.TMessage
-import validate.test.Validate2Proto
-import validate.test.Validate2ProtoBuilders
-import validate.test.Validate2ProtoBuilders.TMessage.TNested
-import validate.test.copy
 import kotlin.test.assertEquals
 
 class TestSomeRandomClass{
