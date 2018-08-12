@@ -72,7 +72,9 @@ object ExtendableMessagesGenerator : Generator {
                                 $companionExtends implements
                                 $companionImplements $kpPackage.KpCompanion<${protoMessage.canonicalJavaName},${protoMessage.canonicalJavaName}.Builder> {
 
-                              private $companionClassName(){}
+                              private $companionClassName(){
+                                ${if(companionExtends.isNotEmpty()) "super()" else ""}
+                              }
 
                               @javax.annotation.Nonnull
                               @Override
