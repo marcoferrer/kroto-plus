@@ -34,7 +34,8 @@ You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build 
 * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
 * **[Mock Service Generator](https://github.com/marcoferrer/kroto-plus#mock-service-generator)**
 * **[Message Builder Lambda Generator](https://github.com/marcoferrer/kroto-plus#message-builder-lambda-generator)**
-* **[User Defined External Generators](https://github.com/marcoferrer/kroto-plus#user-defined-external-generators)**
+* **[User Defined Generator Scripts](https://github.com/marcoferrer/kroto-plus#user-defined-generator-scripts)**
+* **[Community Scripts](https://github.com/marcoferrer/kroto-plus#community-scripts)**
 
 ## Code Generators
 
@@ -246,98 +247,30 @@ val newAttack = attack.copy { damage = 200 }
             
 ```
 
-### User Defined External Generators
-This feature is being released as part of the v0.1.3 protoc rewrite. Pending documentation, see example project for usage.
+### User Defined Generator Scripts
+Users can define kotlin scripts that they would like to run during code generation.
+For type completion, scripts can be couple with a small gradle build script, although this is completely optional.
+Samples are available in the [kp-script](https://github.com/marcoferrer/kroto-plus/tree/master/example-project/kp-scripts) directory of the example project.
+
+#### Community Scripts
+Community contributions for generator scripts are welcomed and more information regarding guidelines will be published soon.  
+  
+There are two categories of scripts available. 
+* **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/sampleInsertionScript.kts)**
+  * Using the insertion api from the java protoc plugin, users can add code at specific points in generated java classes.
+  * This is useful for adding code to allow more idiomatic use of generated java classes from Kotlin.
+  * The entire ```ExtendableMessages``` generator can be implemented using an insertion script, an example can be in the example script [extendableMessages.kts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/extendableMessages.kts).   
+  * Additional information regarding the insertion api can be found in the [official docs](https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins)
+* **[Generator Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/helloThere.kts)**
+  * These scripts implement the ```Generator``` interface used by all internal kroto+ code generators.
+  * Generators rely on the ```GeneratorContext```, which is available via the property ```context```. 
+  * The ```context``` is used for iterating over files, messages, and services submitted by protoc.
+  * Example usage can be found in the [kp-script](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/helloThere.kts) directory of the example project, as well as inside the ```generators``` [package](https://github.com/marcoferrer/kroto-plus/tree/master/protoc-gen-kroto-plus/src/main/kotlin/com/github/marcoferrer/krotoplus/generators) of the ```protoc-gen-kroto-plus``` artifact.
+      
 
 ## Getting Started With Gradle
 
-##### Using Plugin DSL
-```groovy
-plugins{
-    id 'com.github.marcoferrer.kroto-plus' version '0.1.2'
-}
-```
-##### Using buildscript block (Legacy)
-```groovy
-buildscript{
-    ext.krotoplusVersion = '0.1.2'
-    
-    repositories {
-        jcenter()
-    }
-    
-    dependencies{
-        classpath "com.github.marcoferrer.krotoplus:kroto-plus-gradle-plugin:${krotoplusVersion}"
-    }
-}
-
-apply plugin: 'com.github.marcoferrer.kroto-plus'
-```
-##### Configuring Kroto+ Codegen
-```groovy
-def generatedOutputDir = "$buildDir/generated-sources/main/kotlin"
-
-sourceSets {
-    main {
-        kotlin{
-            srcDirs += generatedOutputDir
-        }
-    }
-}
-
-clean.doFirst{
-    delete generatedOutputDir
-}
-       
-krotoPlus{
-    //Proto definition source directories, or path to a jar containing proto definitions
-    sources = [
-        "$projectDir/src/main/proto",
-        "$buildDir/extracted-include-protos/main"
-    ]
-    
-    //The default file output directory for all generators
-    defaultOutputDir = file(generatedOutputDir)
-    
-    //Number of concurrent file writers (Default 3)
-    //More does not equal better here. Too many writers can lead to a decrease in performance
-    //and adjustments should be based on the overall quantity of proto files being processed.
-    fileWriterCount = 4
-    
-    //Block used for enabling individual code generators and configuring their settings
-    generators{
-        
-        stubOverloads{
-    
-            //[Optional] Output directory specific to the files created by this generator
-            outputDir = file(generatedOutputDir)
-            
-            //[Optional (Default: false)] Generate coroutine extensions for service stub rpc methods
-            supportCoroutines = true
-        }
-        
-        mockServices{
-            
-            //[Optional] Output directory specific to the files created by this generator
-            //Normally this should point to a test sources directory
-            outputDir = file(generatedOutputDir)
-        }
-        
-        //Enabling a generator with no configurable or sufficient default options
-        protoTypeBuilders
-        
-        /*
-            Enabling a custom external code generator
-            This feature is incubating and will be fully enabled in the near future
-            and include proper documentation
-            
-            external('com.some.package.MyCustomGenerator'){
-                args = ['-foo','bar','-flag']
-            }
-        */
-    }
-}
-```
+##### .
 
 
 This project was made possible by the great work being done by the devs and contributors at [Square](https://github.com/square) and 
