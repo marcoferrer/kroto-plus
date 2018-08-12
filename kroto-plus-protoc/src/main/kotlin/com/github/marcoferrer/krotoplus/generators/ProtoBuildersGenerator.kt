@@ -94,6 +94,16 @@ object ProtoBuildersGenerator : Generator {
                         fileSpecBuilder.addFunction(it.build())
                     }
 
+            FunSpec.builder("plus")
+                    .receiver(protoType.className)
+                    .addModifiers(KModifier.OPERATOR)
+                    .addParameter("other",protoType.className)
+                    .returns(protoType.className)
+                    .addStatement("return this.toBuilder().mergeFrom(other).build()")
+                    .also {
+                        fileSpecBuilder.addFunction(it.build())
+                    }
+
             fileSpecBuilder.addFunctions(buildNestedBuildersForMessage(protoType))
 
             if(protoType.nestedMessageTypes.isNotEmpty()){
