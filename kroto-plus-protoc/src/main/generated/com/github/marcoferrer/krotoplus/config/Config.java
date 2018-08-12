@@ -105,10 +105,10 @@ public final class Config {
       "nsertionsGenOptions\022.\n\006filter\030\001 \001(\0132\036.kr" +
       "otoplus.compiler.FileFilter\022=\n\005entry\030\002 \003" +
       "(\0132..krotoplus.compiler.InsertionsGenOpt" +
-      "ions.Entry\032\211\001\n\005Entry\0221\n\005point\030\002 \001(\0162\".kr" +
+      "ions.Entry\032\211\001\n\005Entry\0221\n\005point\030\001 \001(\0162\".kr" +
       "otoplus.compiler.InsertionPoint\022\017\n\007conte" +
-      "nt\030\003 \003(\t\022\034\n\024template_script_path\030\004 \003(\t\022\036" +
-      "\n\026template_script_bundle\030\005 \001(\t*\257\001\n\016Inser" +
+      "nt\030\002 \003(\t\022\034\n\024template_script_path\030\003 \003(\t\022\036" +
+      "\n\026template_script_bundle\030\004 \001(\t*\257\001\n\016Inser" +
       "tionPoint\022\013\n\007UNKNOWN\020\000\022\025\n\021INTERFACE_EXTE" +
       "NDS\020\001\022\026\n\022MESSAGE_IMPLEMENTS\020\002\022\026\n\022BUILDER" +
       "_IMPLEMENTS\020\003\022\021\n\rBUILDER_SCOPE\020\004\022\017\n\013CLAS" +

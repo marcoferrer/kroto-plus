@@ -105,58 +105,58 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+     * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     int getPointValue();
     /**
-     * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+     * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     com.github.marcoferrer.krotoplus.config.InsertionPoint getPoint();
 
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     java.util.List<java.lang.String>
         getContentList();
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     int getContentCount();
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     java.lang.String getContent(int index);
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     com.google.protobuf.ByteString
         getContentBytes(int index);
 
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     java.util.List<java.lang.String>
         getTemplateScriptPathList();
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     int getTemplateScriptPathCount();
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     java.lang.String getTemplateScriptPath(int index);
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     com.google.protobuf.ByteString
         getTemplateScriptPathBytes(int index);
 
     /**
-     * <code>string template_script_bundle = 5;</code>
+     * <code>string template_script_bundle = 4;</code>
      */
     java.lang.String getTemplateScriptBundle();
     /**
-     * <code>string template_script_bundle = 5;</code>
+     * <code>string template_script_bundle = 4;</code>
      */
     com.google.protobuf.ByteString
         getTemplateScriptBundleBytes();
@@ -204,13 +204,13 @@ private static final long serialVersionUID = 0L;
             case 0:
               done = true;
               break;
-            case 16: {
+            case 8: {
               int rawValue = input.readEnum();
 
               point_ = rawValue;
               break;
             }
-            case 26: {
+            case 18: {
               java.lang.String s = input.readStringRequireUtf8();
               if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
                 content_ = new com.google.protobuf.LazyStringArrayList();
@@ -219,7 +219,7 @@ private static final long serialVersionUID = 0L;
               content_.add(s);
               break;
             }
-            case 34: {
+            case 26: {
               java.lang.String s = input.readStringRequireUtf8();
               if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
                 templateScriptPath_ = new com.google.protobuf.LazyStringArrayList();
@@ -228,7 +228,7 @@ private static final long serialVersionUID = 0L;
               templateScriptPath_.add(s);
               break;
             }
-            case 42: {
+            case 34: {
               java.lang.String s = input.readStringRequireUtf8();
 
               templateScriptBundle_ = s;
@@ -273,16 +273,16 @@ private static final long serialVersionUID = 0L;
     }
 
     private int bitField0_;
-    public static final int POINT_FIELD_NUMBER = 2;
+    public static final int POINT_FIELD_NUMBER = 1;
     private int point_;
     /**
-     * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+     * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     public int getPointValue() {
       return point_;
     }
     /**
-     * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+     * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionPoint getPoint() {
       @SuppressWarnings("deprecation")
@@ -290,68 +290,68 @@ private static final long serialVersionUID = 0L;
       return result == null ? com.github.marcoferrer.krotoplus.config.InsertionPoint.UNRECOGNIZED : result;
     }
 
-    public static final int CONTENT_FIELD_NUMBER = 3;
+    public static final int CONTENT_FIELD_NUMBER = 2;
     private com.google.protobuf.LazyStringList content_;
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     public com.google.protobuf.ProtocolStringList
         getContentList() {
       return content_;
     }
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     public int getContentCount() {
       return content_.size();
     }
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     public java.lang.String getContent(int index) {
       return content_.get(index);
     }
     /**
-     * <code>repeated string content = 3;</code>
+     * <code>repeated string content = 2;</code>
      */
     public com.google.protobuf.ByteString
         getContentBytes(int index) {
       return content_.getByteString(index);
     }
 
-    public static final int TEMPLATE_SCRIPT_PATH_FIELD_NUMBER = 4;
+    public static final int TEMPLATE_SCRIPT_PATH_FIELD_NUMBER = 3;
     private com.google.protobuf.LazyStringList templateScriptPath_;
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     public com.google.protobuf.ProtocolStringList
         getTemplateScriptPathList() {
       return templateScriptPath_;
     }
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     public int getTemplateScriptPathCount() {
       return templateScriptPath_.size();
     }
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     public java.lang.String getTemplateScriptPath(int index) {
       return templateScriptPath_.get(index);
     }
     /**
-     * <code>repeated string template_script_path = 4;</code>
+     * <code>repeated string template_script_path = 3;</code>
      */
     public com.google.protobuf.ByteString
         getTemplateScriptPathBytes(int index) {
       return templateScriptPath_.getByteString(index);
     }
 
-    public static final int TEMPLATE_SCRIPT_BUNDLE_FIELD_NUMBER = 5;
+    public static final int TEMPLATE_SCRIPT_BUNDLE_FIELD_NUMBER = 4;
     private volatile java.lang.Object templateScriptBundle_;
     /**
-     * <code>string template_script_bundle = 5;</code>
+     * <code>string template_script_bundle = 4;</code>
      */
     public java.lang.String getTemplateScriptBundle() {
       java.lang.Object ref = templateScriptBundle_;
@@ -366,7 +366,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>string template_script_bundle = 5;</code>
+     * <code>string template_script_bundle = 4;</code>
      */
     public com.google.protobuf.ByteString
         getTemplateScriptBundleBytes() {
@@ -397,16 +397,16 @@ private static final long serialVersionUID = 0L;
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (point_ != com.github.marcoferrer.krotoplus.config.InsertionPoint.UNKNOWN.getNumber()) {
-        output.writeEnum(2, point_);
+        output.writeEnum(1, point_);
       }
       for (int i = 0; i < content_.size(); i++) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, content_.getRaw(i));
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, content_.getRaw(i));
       }
       for (int i = 0; i < templateScriptPath_.size(); i++) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, templateScriptPath_.getRaw(i));
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, templateScriptPath_.getRaw(i));
       }
       if (!getTemplateScriptBundleBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, templateScriptBundle_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, templateScriptBundle_);
       }
       unknownFields.writeTo(output);
     }
@@ -419,7 +419,7 @@ private static final long serialVersionUID = 0L;
       size = 0;
       if (point_ != com.github.marcoferrer.krotoplus.config.InsertionPoint.UNKNOWN.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(2, point_);
+          .computeEnumSize(1, point_);
       }
       {
         int dataSize = 0;
@@ -438,7 +438,7 @@ private static final long serialVersionUID = 0L;
         size += 1 * getTemplateScriptPathList().size();
       }
       if (!getTemplateScriptBundleBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, templateScriptBundle_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, templateScriptBundle_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -775,13 +775,13 @@ private static final long serialVersionUID = 0L;
 
       private int point_ = 0;
       /**
-       * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+       * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public int getPointValue() {
         return point_;
       }
       /**
-       * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+       * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public Builder setPointValue(int value) {
         point_ = value;
@@ -789,7 +789,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+       * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public com.github.marcoferrer.krotoplus.config.InsertionPoint getPoint() {
         @SuppressWarnings("deprecation")
@@ -797,7 +797,7 @@ private static final long serialVersionUID = 0L;
         return result == null ? com.github.marcoferrer.krotoplus.config.InsertionPoint.UNRECOGNIZED : result;
       }
       /**
-       * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+       * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public Builder setPoint(com.github.marcoferrer.krotoplus.config.InsertionPoint value) {
         if (value == null) {
@@ -809,7 +809,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>.krotoplus.compiler.InsertionPoint point = 2;</code>
+       * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public Builder clearPoint() {
         
@@ -826,33 +826,33 @@ private static final long serialVersionUID = 0L;
          }
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public com.google.protobuf.ProtocolStringList
           getContentList() {
         return content_.getUnmodifiableView();
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public int getContentCount() {
         return content_.size();
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public java.lang.String getContent(int index) {
         return content_.get(index);
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public com.google.protobuf.ByteString
           getContentBytes(int index) {
         return content_.getByteString(index);
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public Builder setContent(
           int index, java.lang.String value) {
@@ -865,7 +865,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public Builder addContent(
           java.lang.String value) {
@@ -878,7 +878,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public Builder addAllContent(
           java.lang.Iterable<java.lang.String> values) {
@@ -889,7 +889,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public Builder clearContent() {
         content_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -898,7 +898,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string content = 3;</code>
+       * <code>repeated string content = 2;</code>
        */
       public Builder addContentBytes(
           com.google.protobuf.ByteString value) {
@@ -920,33 +920,33 @@ private static final long serialVersionUID = 0L;
          }
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public com.google.protobuf.ProtocolStringList
           getTemplateScriptPathList() {
         return templateScriptPath_.getUnmodifiableView();
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public int getTemplateScriptPathCount() {
         return templateScriptPath_.size();
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public java.lang.String getTemplateScriptPath(int index) {
         return templateScriptPath_.get(index);
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public com.google.protobuf.ByteString
           getTemplateScriptPathBytes(int index) {
         return templateScriptPath_.getByteString(index);
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public Builder setTemplateScriptPath(
           int index, java.lang.String value) {
@@ -959,7 +959,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public Builder addTemplateScriptPath(
           java.lang.String value) {
@@ -972,7 +972,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public Builder addAllTemplateScriptPath(
           java.lang.Iterable<java.lang.String> values) {
@@ -983,7 +983,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public Builder clearTemplateScriptPath() {
         templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -992,7 +992,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 4;</code>
+       * <code>repeated string template_script_path = 3;</code>
        */
       public Builder addTemplateScriptPathBytes(
           com.google.protobuf.ByteString value) {
@@ -1008,7 +1008,7 @@ private static final long serialVersionUID = 0L;
 
       private java.lang.Object templateScriptBundle_ = "";
       /**
-       * <code>string template_script_bundle = 5;</code>
+       * <code>string template_script_bundle = 4;</code>
        */
       public java.lang.String getTemplateScriptBundle() {
         java.lang.Object ref = templateScriptBundle_;
@@ -1023,7 +1023,7 @@ private static final long serialVersionUID = 0L;
         }
       }
       /**
-       * <code>string template_script_bundle = 5;</code>
+       * <code>string template_script_bundle = 4;</code>
        */
       public com.google.protobuf.ByteString
           getTemplateScriptBundleBytes() {
@@ -1039,7 +1039,7 @@ private static final long serialVersionUID = 0L;
         }
       }
       /**
-       * <code>string template_script_bundle = 5;</code>
+       * <code>string template_script_bundle = 4;</code>
        */
       public Builder setTemplateScriptBundle(
           java.lang.String value) {
@@ -1052,7 +1052,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>string template_script_bundle = 5;</code>
+       * <code>string template_script_bundle = 4;</code>
        */
       public Builder clearTemplateScriptBundle() {
         
@@ -1061,7 +1061,7 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
-       * <code>string template_script_bundle = 5;</code>
+       * <code>string template_script_bundle = 4;</code>
        */
       public Builder setTemplateScriptBundleBytes(
           com.google.protobuf.ByteString value) {

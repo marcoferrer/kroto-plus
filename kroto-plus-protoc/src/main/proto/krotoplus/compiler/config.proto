@@ -90,13 +90,13 @@ message InsertionsGenOptions {
 
     message Entry {
 
-        InsertionPoint point = 2;
+        InsertionPoint point = 1;
 
-        repeated string content = 3;
+        repeated string content = 2;
 
-        repeated string template_script_path = 4;
+        repeated string template_script_path = 3;
 
-        string template_script_bundle = 5;
+        string template_script_bundle = 4;
 
     }
 
