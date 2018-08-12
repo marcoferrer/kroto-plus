@@ -1,34 +1,6 @@
-//apply plugin: 'com.google.protobuf'
 
 dependencies{
     implementation "io.grpc:grpc-protobuf:${versions.grpc}",
                    "io.grpc:grpc-stub:${versions.grpc}"
     implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
 }
-//
-//protobuf {
-//    protoc { artifact = "com.google.protobuf:protoc:${versions.protoc}" }
-//
-//    generatedFilesBaseDir = "$project.projectDir/src"
-//
-//    //noinspection GroovyAssignabilityCheck
-//    plugins {
-//        kroto {
-//            path = "$buildDir/libs/kroto-plus-protoc-${project.version}-jvm8.jar"
-//        }
-//    }
-//
-//    generateProtoTasks {
-//        all().each { task ->
-//            task.builtins {
-//                remove java
-//            }
-//            task.plugins {
-//                kroto {
-//                    outputSubDir = "generated"
-//                    option 'builder-lambdas|skip_common_protos=false'
-//                }
-//            }
-//        }
-//    }
-//}

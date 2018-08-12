@@ -9,7 +9,6 @@
  */
 apply plugin: 'org.springframework.boot'
 apply plugin: 'com.google.protobuf'
-//apply plugin: 'java-library'
 
 description 'Kroto+ Proto-c Plugin'
 
@@ -23,23 +22,20 @@ dependencies{
     implementation "io.grpc:grpc-protobuf:${versions.grpc}"
     implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
-    compile ("com.squareup:kotlinpoet:0.7.0") {
+    implementation ("com.squareup:kotlinpoet:0.7.0") {
         exclude group: 'org.jetbrains.kotlin'
     }
 
     // For supporting code generation through kts scripts
-    compile "org.jetbrains.kotlin:kotlin-script-util"
-    compile "org.jetbrains.kotlin:kotlin-script-runtime"
+    implementation "org.jetbrains.kotlin:kotlin-script-util"
+    implementation "org.jetbrains.kotlin:kotlin-script-runtime"
     implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable"
+    implementation "com.google.protobuf:protobuf-java-util:${versions.protobuf}"
 
-//    api "org.jetbrains.kotlin:kotlin-daemon-client"
-//    api "org.jetbrains.kotlin:kotlin-compiler-runner"
-//    api "org.jetbrains.kotlin:kotlin-compiler-embeddable"
-//    implementation("org.jetbrains.kotlin:kotlin-compiler")
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:${versions.protoc}" }
+    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}" }
 
     generateProtoTasks {
         all().each { task ->
@@ -59,13 +55,15 @@ clean {
 bootJar {
     launchScript()
     classifier = 'jvm8'
+    // Unpack the libs require for enabling user scripting support
+    // Eventually we will want to an alternative the to embedded
+    // kotlin compiler and possibly use the daemon instead.
     requiresUnpack '**/kotlin-*.jar'
     requiresUnpack '**/kroto-*.jar'
     requiresUnpack '**/protobuf-*.jar'
 
-
-    // Explicitly add our clean jar to the libs directory so that
-    // it can be made available to the kotlin script compiler classpath
+    // Explicitly add our non-executable artifact to the libs directory so that
+    // it can be made available to the kotlin script compiler classpath.
     dependsOn jar
     from(jar) { into '/BOOT-INF/lib' }
 
