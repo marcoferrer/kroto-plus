@@ -37,7 +37,7 @@ repositories {
         flatDir dirs: "../kroto-plus-message/build/libs/"
         flatDir dirs: "../kroto-plus-coroutines/build/libs/"
         flatDir dirs: "../kroto-plus-test/build/libs/"
-        flatDir dirs: "../kroto-plus-protoc/build/libs/"
+        flatDir dirs: "../protoc-gen-kroto-plus/build/libs/"
     }
 }
 

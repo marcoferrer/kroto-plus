@@ -22,26 +22,26 @@ extendable_messages {
     filter { include_path: "jojo/bizarre/adventure/stand/*" }
 }
 generator_scripts {
-    template_script_path: "helloThere.kts"
-    template_script_bundle: "templates/build/libs/templates.jar"
+    script_path: "helloThere.kts"
+    script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
 }
 insertions {
     filter {
         include_path: "jojo/bizarre/adventure/character/*"
     }
     entry { point: MESSAGE_IMPLEMENTS
-        template_script_path: "extendableMessages.kts"
-        template_script_bundle: "templates/build/libs/templates.jar"
+        script_path: "extendableMessages.kts"
+        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
     }
     entry { point: BUILDER_IMPLEMENTS
-        template_script_path: "extendableMessages.kts"
-        template_script_bundle: "templates/build/libs/templates.jar"
+        script_path: "extendableMessages.kts"
+        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
     }
     entry { point: CLASS_SCOPE
-        template_script_path: "extendableMessages.kts"
-        template_script_bundle: "templates/build/libs/templates.jar"
+        script_path: "extendableMessages.kts"
+        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
     }
     entry { point: OUTER_CLASS_SCOPE
-        template_script_path: "templates/src/main/kotlin/sampleInsertionScript.kts"
+        script_path: "kp-scripts/src/main/kotlin/sampleInsertionScript.kts"
     }
 }

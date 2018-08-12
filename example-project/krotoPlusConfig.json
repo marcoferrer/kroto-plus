@@ -28,8 +28,8 @@
     ],
     "generatorScripts": [
         {
-            "templateScriptPath": ["helloThere.kts"],
-            "templateScriptBundle": "templates/build/libs/templates.jar"
+            "scriptPath": ["helloThere.kts"],
+            "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
         }
     ],
     "insertions": [
@@ -38,22 +38,22 @@
             "entry": [
                 {
                     "point": "MESSAGE_IMPLEMENTS",
-                    "templateScriptPath": ["extendableMessages.kts"],
-                    "templateScriptBundle": "templates/build/libs/templates.jar"
+                    "scriptPath": ["extendableMessages.kts"],
+                    "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
                 },
                 {
                     "point": "BUILDER_IMPLEMENTS",
-                    "templateScriptPath": ["extendableMessages.kts"],
-                    "templateScriptBundle": "templates/build/libs/templates.jar"
+                    "scriptPath": ["extendableMessages.kts"],
+                    "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
                 },
                 {
                     "point": "CLASS_SCOPE",
-                    "templateScriptPath": ["extendableMessages.kts"],
-                    "templateScriptBundle": "templates/build/libs/templates.jar"
+                    "scriptPath": ["extendableMessages.kts"],
+                    "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
                 },
                 {
                     "point": "OUTER_CLASS_SCOPE",
-                    "templateScriptPath": ["templates/src/main/kotlin/sampleInsertionScript.kts"]
+                    "scriptPath": ["kp-scripts/src/main/kotlin/sampleInsertionScript.kts"]
                 }
             ]
         }
