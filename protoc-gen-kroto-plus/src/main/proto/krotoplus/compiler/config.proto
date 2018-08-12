@@ -7,64 +7,89 @@ option java_multiple_files = true;
 
 import "google/protobuf/descriptor.proto";
 
-//
+// Message backing the root of a Kroto+ configuration file.
 message CompilerConfig {
 
-    bool suppress_deprecation_warnings = 1;
+    // The configuration accepts multiple entries for each
+    // or the included code generators. This is to allow
+    // different or even multiple configurations for a single
+    // code generator to be applied to an input file(s).
 
+    // Configuration entries for the 'gRPC Stub Extensions' code generator.
     repeated GrpcStubExtsGenOptions grpc_stub_exts = 20;
 
+    // Configuration entries for the 'Mock Service' code generator.
     repeated MockServicesGenOptions mock_services = 21;
 
+    // Configuration entries for the 'Proto Builders' code generator.
     repeated ProtoBuildersGenOptions proto_builders = 22;
 
+    // Configuration entries for the 'Extendable Messages' code generator.
     repeated ExtenableMessagesGenOptions extendable_messages = 23;
 
+    // Configuration entries for the 'Protoc Insertions' code generator.
     repeated InsertionsGenOptions insertions = 24;
 
+    // Configuration entries for the 'Generator Scripts' code generator.
     repeated GeneratorScriptsGenOptions generator_scripts = 25;
 
 }
 
+// Represent a filter used for including and excluding source files from
+// being processed by a code generator. It is inclusive by default, so
+// all paths compared against its default instance will be included as
+// input to a generator and processed.
 message FileFilter {
 
+    // List of file paths to include as inputs for a code generator.
+    // a valid value start from the root package directory of the source file. Globs are supported
+    // ie.
+    // krotoplus/compiler/config.proto
+    // krotoplus/**
+    // **/compiler/con*.proto
     repeated string include_path = 1;
 
+    // List of file paths to exclude as inputs for a code generator.
+    // a valid value start from the root package directory of the source file. Globs are supported
+    // ie.
+    // google/*
     repeated string exclude_path = 2;
 
 }
 
+// Configuration used by the 'gRPC Stub Extensions' code generator.
 message GrpcStubExtsGenOptions{
 
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
     FileFilter filter = 1;
 
+    // Enable code generation for coroutine supporting service stub extensions.
+    // This options generates code that relies on the artifact 'kroto-plus-coroutines'
     bool support_coroutines = 2;
 
 }
 
-message MockServicesGenOptions {
-
-    FileFilter filter = 1;
-
-    bool implement_as_object = 2;
-
-    bool generate_service_list = 3;
-
-    string service_list_package = 4;
-
-    string service_list_name = 5;
-
-}
-
+// Configuration used by the 'Proto Builders' code generator.
 message ProtoBuildersGenOptions {
 
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
     FileFilter filter = 1;
 
+    // By default the generated utility methods for building messages are
+    // wrapped in an object similiar to a proto outer class. For better
+    // ergonomics with code generated using 'java_multiple_files' the
+    // builders can be unwrapped and generated at the root scope of
+    // the output file.
     bool unwrap_builders = 2;
 }
 
+// Configuration used by the 'Generator Scripts' code generator.
 message GeneratorScriptsGenOptions {
 
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
     FileFilter filter = 1;
 
     repeated string template_script_path = 2;
@@ -73,26 +98,58 @@ message GeneratorScriptsGenOptions {
 
 }
 
+// Configuration used by the 'Extendable Messages' code generator.
+// Since this code generator relies on the protoc insertion point API,
+// its outputDir must match that of the protoc java plugin.
 message ExtenableMessagesGenOptions{
 
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
     FileFilter filter = 1;
 
+    // The name of the field that will hold a reference to the pseudo companion object
     string companion_field_name = 2;
 
+    // The name to use for the class declaration of the pseudo companion object
     string companion_class_name = 3;
 
+    // The FQ name of the class that the pseudo companion object should extend.
+    // Currently limited to classes with at least one no-args contructor.
+    // Referencing the current message type, use the value '{{message_type}}'.
+    // This is useful when you want to use the current message as a generic type param.
+    // ie. com.krotoplus.example.MyCompanionInterface<{{message_type}}, {{message_type}}.Builder>
     string companion_extends = 4;
 
+    // The FQ name of an interface the pseudo companion object should implement.
+    // Referencing the current message type, use the value '{{message_type}}'.
+    // This is useful when you want to use the current message as a generic type param.
+    // ie. com.krotoplus.example.MyCompanionInterface<{{message_type}}, {{message_type}}.Builder>
     string companion_implements = 5;
 
 }
 
+// Configuration used by the 'Protoc Insertions' code generator.
+// Since this code generator relies on the protoc insertion point API,
+// its outputDir must match that of the protoc java plugin.
 message InsertionsGenOptions {
 
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
+    FileFilter filter = 1;
+
+    // List of configurations to be applied to the file filter.
+    repeated Entry entry = 2;
+
+    // Configuration to apply to the files matched by the file filter.
     message Entry {
 
+        // The protoc insertion point at which the generated code will be inserted.
         InsertionPoint point = 1;
 
+        // String literal of content to be set at the insertion point.
+        // Referencing the current message type, use the value '{{message_type}}'.
+        // This is useful when you want to use the current message as a generic type param.
+        // ie. com.krotoplus.example.MyCompanionInterface<{{message_type}}, {{message_type}}.Builder>
         repeated string content = 2;
 
         repeated string template_script_path = 3;
@@ -100,10 +157,6 @@ message InsertionsGenOptions {
         string template_script_bundle = 4;
 
     }
-
-    FileFilter filter = 1;
-
-    repeated Entry entry = 2;
 }
 
 enum InsertionPoint {
@@ -118,4 +171,26 @@ enum InsertionPoint {
 }
 
 
+// Configuration used by the 'Mock Services' code generator.
+message MockServicesGenOptions {
+
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
+    FileFilter filter = 1;
+
+    // By default, mock services are generated as an open class
+    // but an object can be generated instead.
+    bool implement_as_object = 2;
+
+    // Flag for generating a static collection of the Mock Services created.
+    // Useful when registering mock services to a GrpcServerRule during unit tests.
+    bool generate_service_list = 3;
+
+    // The java package at which the mock server list should reside.
+    string service_list_package = 4;
+
+    // The name of the property at which the mock server list will be initialized at.
+    string service_list_name = 5;
+
+}
 
