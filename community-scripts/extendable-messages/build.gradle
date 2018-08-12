@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies{
-    implementation "com.github.marcoferrer.krotoplus:kroto-plus-protoc:$krotoPlusVersion"
-    implementation "com.google.protobuf:protobuf-java:3.6.0"
+    implementation "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:$krotoPlusVersion"
+    implementation "com.google.protobuf:protobuf-java:3.6.1"
     implementation "org.jetbrains.kotlin:kotlin-script-util"
 }

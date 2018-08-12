@@ -4,8 +4,8 @@ pluginManagement{
     }
 }
 
+include 'protoc-gen-kroto-plus'
 include 'kroto-plus-message'
-include 'kroto-plus-protoc'
 include 'kroto-plus-compiler'
 include 'kroto-plus-coroutines'
 include 'kroto-plus-gradle-plugin'

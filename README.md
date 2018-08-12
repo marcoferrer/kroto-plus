@@ -10,7 +10,7 @@ To name a few:
 
 * Code compiler has been refactored into a protoc plugin.
 * **[User defined scripts](https://github.com/marcoferrer/kroto-plus/tree/master/example-project/templates/src/main/kotlin)**. Custom generators using kotlin scripts (```kts```)
-* More advanced configuration options available, supporting both [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text) formats. These are backed by [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/kroto-plus-protoc/src/main/proto/krotoplus/compiler/config.proto) (Still requires proper documenting)
+* More advanced configuration options available, supporting both [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text) formats. These are backed by [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto) (Still requires proper documenting)
 * Improvements to the ```MockService``` api
 * New options, bug fixes, and improvements to generated ```ProtoBuilders```
 * Experimental ```ExtendableMessages``` generator for adding extendable interfaces into java messages.  

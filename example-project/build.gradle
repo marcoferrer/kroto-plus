@@ -76,7 +76,7 @@ protobuf {
     plugins {
         grpc { artifact = "io.grpc:protoc-gen-grpc-java:${versions.grpc}" }
         kroto {
-            artifact = "com.github.marcoferrer.krotoplus:kroto-plus-protoc:${versions.krotoplus}:jvm8@jar"
+            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${versions.krotoplus}:jvm8@jar"
         }
     }
 
