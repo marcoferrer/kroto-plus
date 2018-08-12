@@ -1,25 +1,27 @@
 package krotoplus.example
 
-import com.github.marcoferrer.krotoplus.message.*
-import com.github.marcoferrer.krotoplus.test.QueueMessage
-import com.github.marcoferrer.krotoplus.test.ResponseQueue
-import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
+import com.github.marcoferrer.krotoplus.test.addServices
 import io.grpc.Metadata
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import io.grpc.testing.GrpcServerRule
 import jojo.bizarre.adventure.MockJojoServices
-import jojo.bizarre.adventure.character.MockCharacterService
 import jojo.bizarre.adventure.stand.*
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
 class TestMockServiceResponseQueue {
 
     @[Rule JvmField]
-    var grpcServerRule = ServiceBindingServerRule(MockJojoServices)
-            .directExecutor()!!
+    var grpcServerRule = GrpcServerRule().directExecutor()
+
+    @BeforeTest
+    fun bindMockServices() {
+        grpcServerRule?.serviceRegistry?.addServices(MockJojoServices)
+    }
 
     val metadataTestKey = Metadata.Key.of("test_header", Metadata.ASCII_STRING_MARSHALLER)
 

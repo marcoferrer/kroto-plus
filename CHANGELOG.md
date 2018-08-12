@@ -3,6 +3,8 @@ _2018-08-09_
 
 * New: Updated Kotlin runtime to ```1.2.60```
 * New: Updated Coroutine version to ```0.24.0```
+* New: Updated Protobuf version to ```3.6.1```
+* New: Updated gRPC version to ```1.14.0```
 
 #### Protoc Plugin
 * New: Converted Kroto+ to protoc plugin and implemented default generators
@@ -19,26 +21,26 @@ _2018-08-09_
 * New: Added plus operator extensions for messages 
 * Fix: Builder generator now explicitly sets the result type as non null. 
 
-#### Compiler
-* Fix: Changed visibility of cli arguments to internal
-* Fix: Removed usage of deprecated ```RpcBidiChannel``` in ```StubRpcOverloadGenerator```    
-
 #### Coroutines
 * New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 
 
 #### Mock Services
+* Deprecated: The ```ServiceBindingServerRule``` has been deprecated due to a change in the latest version of ```io.grpc:grpc-testing``` 
 * New: Helper methods generated for clearing the response queue start in between tests.
 * New: Option added for creating and naming a collection of mock services for easier usage.
-* Fix: Moved generated response queue builders into Mock service file.
-* New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 
+* Fix: Moved generated response queue builders into Mock service file. 
 
 #### Extendable Messages (Experimental)   
 * New: Generator added for creating extendable messages and inserting pseudo companion objects into java message classes.
 
+#### Legacy Compiler
+* Fix: Changed visibility of cli arguments to internal
+* Fix: Removed usage of deprecated ```RpcBidiChannel``` in ```StubRpcOverloadGenerator```    
+
 #### Gradle Plugin 
 * Fix: Added missing dsl configuration builder for ```ProtoTypeBuildersGeneratorConfig```
 * Fix: Configuration is no longer overridden when used in a multi project build   
-* New: Gradle Kotlin DSL support added for generator configuration 
+* Fix: Gradle Kotlin DSL support added for generator configuration 
 
 ## Version 0.1.2
 _2018-04-23_

@@ -1,9 +1,8 @@
 buildscript {
     ext {
         versions = [
-                "protoc":     '3.6.0',
-                "protobuf":   '3.6.0',
-                "grpc":       '1.10.0',
+                "protobuf":   '3.6.1',
+                "grpc":       '1.14.0',
                 "kotlin":     '1.2.60',
                 "coroutines": '0.24.0',
                 "bintray":    '1.7.3',
@@ -21,24 +20,14 @@ buildscript {
         jcenter()
         mavenCentral()
     }
-//
-//    dependencies {
-//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
-//        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${versions.bintray}"
-//        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${versions.artifactory}"
-//
-//        //Required for building an executable jar that is compatible with gradle protobuf plugin
-//        classpath "org.springframework.boot:spring-boot-gradle-plugin:${versions.springBoot}"
-//    }
 }
 
 plugins{
     id 'com.google.protobuf' version '0.8.6' apply false
-    id "org.jetbrains.kotlin.jvm" version "1.2.51" apply false
+    id "org.jetbrains.kotlin.jvm" version "1.2.60" apply false
     id "com.jfrog.bintray" version "1.7.3" apply false
     id "com.jfrog.artifactory" version "4.7.1" apply false
     id "org.springframework.boot" version "2.0.3.RELEASE" apply false
-
     id 'com.gradle.plugin-publish' version '0.9.7' apply false
 }
 

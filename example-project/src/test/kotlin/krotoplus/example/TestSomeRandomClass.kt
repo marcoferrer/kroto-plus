@@ -1,6 +1,8 @@
 package krotoplus.example
 
-import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
+import com.github.marcoferrer.krotoplus.test.MockServiceHelper
+import com.github.marcoferrer.krotoplus.test.addServices
+import io.grpc.testing.GrpcServerRule
 import jojo.bizarre.adventure.MockJojoServices
 import jojo.bizarre.adventure.character.CharacterProto
 import jojo.bizarre.adventure.character.MockCharacterService
@@ -13,13 +15,22 @@ import jojo.bizarre.adventure.stand.addMessage
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
 class TestSomeRandomClass{
 
     @[Rule JvmField]
-    var grpcServerRule = ServiceBindingServerRule(MockJojoServices)
-            .directExecutor()!!
+    var grpcServerRule = GrpcServerRule().directExecutor()
+
+    @BeforeTest
+    fun bindMockServices() {
+        grpcServerRule?.serviceRegistry?.addServices(MockJojoServices)
+    }
+
+    @BeforeTest
+    fun clearResponseQueues() = MockJojoServices
+            .forEach { (it as? MockServiceHelper)?.clearQueues() }
 
     @Test fun `Test Finding Strongest Attack`() = runBlocking {
 

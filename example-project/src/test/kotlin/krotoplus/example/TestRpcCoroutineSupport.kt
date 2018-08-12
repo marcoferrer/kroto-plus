@@ -1,22 +1,30 @@
 package krotoplus.example
 
 import com.github.marcoferrer.krotoplus.coroutines.suspendingUnaryCallObserver
-import com.github.marcoferrer.krotoplus.test.ServiceBindingServerRule
 import io.grpc.ManagedChannel
+import io.grpc.testing.GrpcServerRule
 import jojo.bizarre.adventure.character.MockCharacterService
 import jojo.bizarre.adventure.stand.*
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class TestSuspendingRpcCalls{
 
     @[Rule JvmField]
-    var grpcServerRule = ServiceBindingServerRule(DummyStandService(), MockCharacterService)
-            .directExecutor()!!
+    var grpcServerRule = GrpcServerRule().directExecutor()
+
+    @BeforeTest
+    fun bindMockServices() {
+        grpcServerRule?.serviceRegistry?.apply {
+            addService(DummyStandService())
+            addService(MockCharacterService)
+        }
+    }
 
     val channel: ManagedChannel
         get() = grpcServerRule.channel
