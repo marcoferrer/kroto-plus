@@ -5,10 +5,18 @@ _2018-08-09_
 * New: Updated Coroutine version to ```0.24.0```
 
 #### Protoc Plugin
-* New: Converted Kroto+ to protoc plugin and implemented default generators  
-* New: Generator added for creating extendable messages and inserting companion objects into java message classes.
+* New: Converted Kroto+ to protoc plugin and implemented default generators
+
+#### User Defined Code Generation Scripts
+* New: Allow users to define scripts to be used for adding content to Protoc insertion points
+* New: Allow users to define scripts for arbitrary code generation.
+* New: Support precompiled script jars as well as dynamic script compilation. 
+
+#### Proto Builders
+* New: Added unwrap option to declare builder extensions as top level members.
 * New: Builder generator now supports creating builders for nested message types     
-* New: Builder generator now creates extensions for nested message field builders. 
+* New: Builder generator now creates extensions for nested message field builders.
+* New: Added plus operator extensions for messages 
 * Fix: Builder generator now explicitly sets the result type as non null. 
 
 #### Compiler
@@ -18,11 +26,14 @@ _2018-08-09_
 #### Coroutines
 * New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 
 
-#### Test
-//new options
-//builders added to mock service file
+#### Mock Services
+* New: Helper methods generated for clearing the response queue start in between tests.
+* New: Option added for creating and naming a collection of mock services for easier usage.
+* Fix: Moved generated response queue builders into Mock service file.
 * New: Added ```GrpcContextContinuationInterceptor``` making the grpc context available during suspending service calls in coroutines 
 
+#### Extendable Messages (Experimental)   
+* New: Generator added for creating extendable messages and inserting pseudo companion objects into java message classes.
 
 #### Gradle Plugin 
 * Fix: Added missing dsl configuration builder for ```ProtoTypeBuildersGeneratorConfig```
