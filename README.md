@@ -1,5 +1,5 @@
 # Kroto+
-## Code generator for bringing together Kotlin, Protobuf, Coroutines, and gRPC  
+## Protoc plugin for bringing together Kotlin, Protobuf, Coroutines, and gRPC  
 [![Build Status](https://travis-ci.org/marcoferrer/kroto-plus.svg?branch=master)](https://travis-ci.org/marcoferrer/kroto-plus)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Download](https://api.bintray.com/packages/marcoferrer/kroto-plus/kroto-plus-compiler/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/kroto-plus-compiler/_latestVersion)
@@ -26,7 +26,8 @@ You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build 
 
 
 
-## Version 0.1.2
+## Version 0.1.2 
+#### (Soon to be deprecated in favor of the protoc implementation in v0.1.3)
 
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
 * **[Stub Rpc Method Overloads](https://github.com/marcoferrer/kroto-plus#stub-rpc-method-overloads)**
@@ -95,7 +96,6 @@ In addition to request message arguments as builder lambda rpc overloads, this m
 This allows blocking style rpc calls without the use of the blocking stub, preventing any negative impact on coroutine performance. 
 * This is accomplished by defining extension functions for async service stubs and combining a response observer with a coroutine builder.
 * This option requires the artifact ```kroto-plus-coroutines``` as a dependency. This artifact is small and only consists of the bridging support for response observer to coroutine.
-* If your code relies on thread local objects, such as those stored in ```io.grpc.Context``` then extra care needs to be taken to ensure these objects will be reattached via a ```ContinuationInterceptor```. The ```kroto-plus-coroutines``` artifact will provide support for this in the next release.   
 ```kotlin
 //Async Stub
 suspend fun ExampleServiceStub.myRpcMethod(request: ExampleServiceGrpc.MyRpcMethodRequest): ExampleServiceGrpc.MyRpcMethodResponse =
@@ -247,7 +247,7 @@ val newAttack = attack.copy { damage = 200 }
 ```
 
 ### User Defined External Generators
-This feature is currently in development. Api documentation and sample project are in the works. 
+This feature is being released as part of the v0.1.3 protoc rewrite. Pending documentation, see example project for usage.
 
 ## Getting Started With Gradle
 
@@ -338,13 +338,6 @@ krotoPlus{
     }
 }
 ```
-
-## Road Map
-* Document API for defining custom code generators 
-* Increase test coverage. 
-* Implement UP-TO-DATE checks in the gradle plugin
-* Add Android compatibility to project
-* Update gradle plugin to support Java 1.7 runtime
 
 
 This project was made possible by the great work being done by the devs and contributors at [Square](https://github.com/square) and 
