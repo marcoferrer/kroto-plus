@@ -8,19 +8,42 @@ public interface ProtoBuildersGenOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   boolean hasFilter();
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   com.github.marcoferrer.krotoplus.config.FileFilter getFilter();
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder();
 
   /**
+   * <pre>
+   * By default the generated utility methods for building messages are
+   * wrapped in an object similiar to a proto outer class. For better
+   * ergonomics with code generated using 'java_multiple_files' the
+   * builders can be unwrapped and generated at the root scope of
+   * the output file.
+   * </pre>
+   *
    * <code>bool unwrap_builders = 2;</code>
    */
   boolean getUnwrapBuilders();

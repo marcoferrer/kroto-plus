@@ -4,6 +4,10 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Configuration used by the 'Generator Scripts' code generator.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.GeneratorScriptsGenOptions}
  */
 public  final class GeneratorScriptsGenOptions extends
@@ -16,8 +20,8 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GeneratorScriptsGenOptions() {
-    templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    templateScriptBundle_ = "";
+    scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    scriptBundle_ = "";
   }
 
   @java.lang.Override
@@ -60,16 +64,16 @@ private static final long serialVersionUID = 0L;
           case 18: {
             java.lang.String s = input.readStringRequireUtf8();
             if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-              templateScriptPath_ = new com.google.protobuf.LazyStringArrayList();
+              scriptPath_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000002;
             }
-            templateScriptPath_.add(s);
+            scriptPath_.add(s);
             break;
           }
           case 26: {
             java.lang.String s = input.readStringRequireUtf8();
 
-            templateScriptBundle_ = s;
+            scriptBundle_ = s;
             break;
           }
           default: {
@@ -88,7 +92,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-        templateScriptPath_ = templateScriptPath_.getUnmodifiableView();
+        scriptPath_ = scriptPath_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -111,81 +115,96 @@ private static final long serialVersionUID = 0L;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public boolean hasFilter() {
     return filter_ != null;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
     return filter_ == null ? com.github.marcoferrer.krotoplus.config.FileFilter.getDefaultInstance() : filter_;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
     return getFilter();
   }
 
-  public static final int TEMPLATE_SCRIPT_PATH_FIELD_NUMBER = 2;
-  private com.google.protobuf.LazyStringList templateScriptPath_;
+  public static final int SCRIPT_PATH_FIELD_NUMBER = 2;
+  private com.google.protobuf.LazyStringList scriptPath_;
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
   public com.google.protobuf.ProtocolStringList
-      getTemplateScriptPathList() {
-    return templateScriptPath_;
+      getScriptPathList() {
+    return scriptPath_;
   }
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
-  public int getTemplateScriptPathCount() {
-    return templateScriptPath_.size();
+  public int getScriptPathCount() {
+    return scriptPath_.size();
   }
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
-  public java.lang.String getTemplateScriptPath(int index) {
-    return templateScriptPath_.get(index);
+  public java.lang.String getScriptPath(int index) {
+    return scriptPath_.get(index);
   }
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
   public com.google.protobuf.ByteString
-      getTemplateScriptPathBytes(int index) {
-    return templateScriptPath_.getByteString(index);
+      getScriptPathBytes(int index) {
+    return scriptPath_.getByteString(index);
   }
 
-  public static final int TEMPLATE_SCRIPT_BUNDLE_FIELD_NUMBER = 3;
-  private volatile java.lang.Object templateScriptBundle_;
+  public static final int SCRIPT_BUNDLE_FIELD_NUMBER = 3;
+  private volatile java.lang.Object scriptBundle_;
   /**
-   * <code>string template_script_bundle = 3;</code>
+   * <code>string script_bundle = 3;</code>
    */
-  public java.lang.String getTemplateScriptBundle() {
-    java.lang.Object ref = templateScriptBundle_;
+  public java.lang.String getScriptBundle() {
+    java.lang.Object ref = scriptBundle_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
       com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
-      templateScriptBundle_ = s;
+      scriptBundle_ = s;
       return s;
     }
   }
   /**
-   * <code>string template_script_bundle = 3;</code>
+   * <code>string script_bundle = 3;</code>
    */
   public com.google.protobuf.ByteString
-      getTemplateScriptBundleBytes() {
-    java.lang.Object ref = templateScriptBundle_;
+      getScriptBundleBytes() {
+    java.lang.Object ref = scriptBundle_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      templateScriptBundle_ = b;
+      scriptBundle_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -209,11 +228,11 @@ private static final long serialVersionUID = 0L;
     if (filter_ != null) {
       output.writeMessage(1, getFilter());
     }
-    for (int i = 0; i < templateScriptPath_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, templateScriptPath_.getRaw(i));
+    for (int i = 0; i < scriptPath_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, scriptPath_.getRaw(i));
     }
-    if (!getTemplateScriptBundleBytes().isEmpty()) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, templateScriptBundle_);
+    if (!getScriptBundleBytes().isEmpty()) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, scriptBundle_);
     }
     unknownFields.writeTo(output);
   }
@@ -230,14 +249,14 @@ private static final long serialVersionUID = 0L;
     }
     {
       int dataSize = 0;
-      for (int i = 0; i < templateScriptPath_.size(); i++) {
-        dataSize += computeStringSizeNoTag(templateScriptPath_.getRaw(i));
+      for (int i = 0; i < scriptPath_.size(); i++) {
+        dataSize += computeStringSizeNoTag(scriptPath_.getRaw(i));
       }
       size += dataSize;
-      size += 1 * getTemplateScriptPathList().size();
+      size += 1 * getScriptPathList().size();
     }
-    if (!getTemplateScriptBundleBytes().isEmpty()) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, templateScriptBundle_);
+    if (!getScriptBundleBytes().isEmpty()) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, scriptBundle_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -260,10 +279,10 @@ private static final long serialVersionUID = 0L;
       result = result && getFilter()
           .equals(other.getFilter());
     }
-    result = result && getTemplateScriptPathList()
-        .equals(other.getTemplateScriptPathList());
-    result = result && getTemplateScriptBundle()
-        .equals(other.getTemplateScriptBundle());
+    result = result && getScriptPathList()
+        .equals(other.getScriptPathList());
+    result = result && getScriptBundle()
+        .equals(other.getScriptBundle());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -279,12 +298,12 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + FILTER_FIELD_NUMBER;
       hash = (53 * hash) + getFilter().hashCode();
     }
-    if (getTemplateScriptPathCount() > 0) {
-      hash = (37 * hash) + TEMPLATE_SCRIPT_PATH_FIELD_NUMBER;
-      hash = (53 * hash) + getTemplateScriptPathList().hashCode();
+    if (getScriptPathCount() > 0) {
+      hash = (37 * hash) + SCRIPT_PATH_FIELD_NUMBER;
+      hash = (53 * hash) + getScriptPathList().hashCode();
     }
-    hash = (37 * hash) + TEMPLATE_SCRIPT_BUNDLE_FIELD_NUMBER;
-    hash = (53 * hash) + getTemplateScriptBundle().hashCode();
+    hash = (37 * hash) + SCRIPT_BUNDLE_FIELD_NUMBER;
+    hash = (53 * hash) + getScriptBundle().hashCode();
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -381,6 +400,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Configuration used by the 'Generator Scripts' code generator.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.GeneratorScriptsGenOptions}
    */
   public static final class Builder extends
@@ -424,9 +447,9 @@ private static final long serialVersionUID = 0L;
         filter_ = null;
         filterBuilder_ = null;
       }
-      templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000002);
-      templateScriptBundle_ = "";
+      scriptBundle_ = "";
 
       return this;
     }
@@ -462,11 +485,11 @@ private static final long serialVersionUID = 0L;
         result.filter_ = filterBuilder_.build();
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        templateScriptPath_ = templateScriptPath_.getUnmodifiableView();
+        scriptPath_ = scriptPath_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000002);
       }
-      result.templateScriptPath_ = templateScriptPath_;
-      result.templateScriptBundle_ = templateScriptBundle_;
+      result.scriptPath_ = scriptPath_;
+      result.scriptBundle_ = scriptBundle_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -519,18 +542,18 @@ private static final long serialVersionUID = 0L;
       if (other.hasFilter()) {
         mergeFilter(other.getFilter());
       }
-      if (!other.templateScriptPath_.isEmpty()) {
-        if (templateScriptPath_.isEmpty()) {
-          templateScriptPath_ = other.templateScriptPath_;
+      if (!other.scriptPath_.isEmpty()) {
+        if (scriptPath_.isEmpty()) {
+          scriptPath_ = other.scriptPath_;
           bitField0_ = (bitField0_ & ~0x00000002);
         } else {
-          ensureTemplateScriptPathIsMutable();
-          templateScriptPath_.addAll(other.templateScriptPath_);
+          ensureScriptPathIsMutable();
+          scriptPath_.addAll(other.scriptPath_);
         }
         onChanged();
       }
-      if (!other.getTemplateScriptBundle().isEmpty()) {
-        templateScriptBundle_ = other.templateScriptBundle_;
+      if (!other.getScriptBundle().isEmpty()) {
+        scriptBundle_ = other.scriptBundle_;
         onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -567,12 +590,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         com.github.marcoferrer.krotoplus.config.FileFilter, com.github.marcoferrer.krotoplus.config.FileFilter.Builder, com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder> filterBuilder_;
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public boolean hasFilter() {
       return filterBuilder_ != null || filter_ != null;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
@@ -583,6 +616,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -599,6 +637,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(
@@ -613,6 +656,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder mergeFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -631,6 +679,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder clearFilter() {
@@ -645,6 +698,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter.Builder getFilterBuilder() {
@@ -653,6 +711,11 @@ private static final long serialVersionUID = 0L;
       return getFilterFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -664,6 +727,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -680,165 +748,165 @@ private static final long serialVersionUID = 0L;
       return filterBuilder_;
     }
 
-    private com.google.protobuf.LazyStringList templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    private void ensureTemplateScriptPathIsMutable() {
+    private com.google.protobuf.LazyStringList scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureScriptPathIsMutable() {
       if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-        templateScriptPath_ = new com.google.protobuf.LazyStringArrayList(templateScriptPath_);
+        scriptPath_ = new com.google.protobuf.LazyStringArrayList(scriptPath_);
         bitField0_ |= 0x00000002;
        }
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
     public com.google.protobuf.ProtocolStringList
-        getTemplateScriptPathList() {
-      return templateScriptPath_.getUnmodifiableView();
+        getScriptPathList() {
+      return scriptPath_.getUnmodifiableView();
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
-    public int getTemplateScriptPathCount() {
-      return templateScriptPath_.size();
+    public int getScriptPathCount() {
+      return scriptPath_.size();
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
-    public java.lang.String getTemplateScriptPath(int index) {
-      return templateScriptPath_.get(index);
+    public java.lang.String getScriptPath(int index) {
+      return scriptPath_.get(index);
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
     public com.google.protobuf.ByteString
-        getTemplateScriptPathBytes(int index) {
-      return templateScriptPath_.getByteString(index);
+        getScriptPathBytes(int index) {
+      return scriptPath_.getByteString(index);
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
-    public Builder setTemplateScriptPath(
+    public Builder setScriptPath(
         int index, java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  ensureTemplateScriptPathIsMutable();
-      templateScriptPath_.set(index, value);
+  ensureScriptPathIsMutable();
+      scriptPath_.set(index, value);
       onChanged();
       return this;
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
-    public Builder addTemplateScriptPath(
+    public Builder addScriptPath(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  ensureTemplateScriptPathIsMutable();
-      templateScriptPath_.add(value);
+  ensureScriptPathIsMutable();
+      scriptPath_.add(value);
       onChanged();
       return this;
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
-    public Builder addAllTemplateScriptPath(
+    public Builder addAllScriptPath(
         java.lang.Iterable<java.lang.String> values) {
-      ensureTemplateScriptPathIsMutable();
+      ensureScriptPathIsMutable();
       com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, templateScriptPath_);
+          values, scriptPath_);
       onChanged();
       return this;
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
-    public Builder clearTemplateScriptPath() {
-      templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    public Builder clearScriptPath() {
+      scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000002);
       onChanged();
       return this;
     }
     /**
-     * <code>repeated string template_script_path = 2;</code>
+     * <code>repeated string script_path = 2;</code>
      */
-    public Builder addTemplateScriptPathBytes(
+    public Builder addScriptPathBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-      ensureTemplateScriptPathIsMutable();
-      templateScriptPath_.add(value);
+      ensureScriptPathIsMutable();
+      scriptPath_.add(value);
       onChanged();
       return this;
     }
 
-    private java.lang.Object templateScriptBundle_ = "";
+    private java.lang.Object scriptBundle_ = "";
     /**
-     * <code>string template_script_bundle = 3;</code>
+     * <code>string script_bundle = 3;</code>
      */
-    public java.lang.String getTemplateScriptBundle() {
-      java.lang.Object ref = templateScriptBundle_;
+    public java.lang.String getScriptBundle() {
+      java.lang.Object ref = scriptBundle_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        templateScriptBundle_ = s;
+        scriptBundle_ = s;
         return s;
       } else {
         return (java.lang.String) ref;
       }
     }
     /**
-     * <code>string template_script_bundle = 3;</code>
+     * <code>string script_bundle = 3;</code>
      */
     public com.google.protobuf.ByteString
-        getTemplateScriptBundleBytes() {
-      java.lang.Object ref = templateScriptBundle_;
+        getScriptBundleBytes() {
+      java.lang.Object ref = scriptBundle_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        templateScriptBundle_ = b;
+        scriptBundle_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>string template_script_bundle = 3;</code>
+     * <code>string script_bundle = 3;</code>
      */
-    public Builder setTemplateScriptBundle(
+    public Builder setScriptBundle(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   
-      templateScriptBundle_ = value;
+      scriptBundle_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>string template_script_bundle = 3;</code>
+     * <code>string script_bundle = 3;</code>
      */
-    public Builder clearTemplateScriptBundle() {
+    public Builder clearScriptBundle() {
       
-      templateScriptBundle_ = getDefaultInstance().getTemplateScriptBundle();
+      scriptBundle_ = getDefaultInstance().getScriptBundle();
       onChanged();
       return this;
     }
     /**
-     * <code>string template_script_bundle = 3;</code>
+     * <code>string script_bundle = 3;</code>
      */
-    public Builder setTemplateScriptBundleBytes(
+    public Builder setScriptBundleBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
       
-      templateScriptBundle_ = value;
+      scriptBundle_ = value;
       onChanged();
       return this;
     }

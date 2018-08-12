@@ -4,6 +4,13 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Represent a filter used for including and excluding source files from
+ * being processed by a code generator. It is inclusive by default, so
+ * all paths compared against its default instance will be included as
+ * input to a generator and processed.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.FileFilter}
  */
 public  final class FileFilter extends
@@ -103,6 +110,15 @@ private static final long serialVersionUID = 0L;
   public static final int INCLUDE_PATH_FIELD_NUMBER = 1;
   private com.google.protobuf.LazyStringList includePath_;
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   public com.google.protobuf.ProtocolStringList
@@ -110,18 +126,45 @@ private static final long serialVersionUID = 0L;
     return includePath_;
   }
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   public int getIncludePathCount() {
     return includePath_.size();
   }
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   public java.lang.String getIncludePath(int index) {
     return includePath_.get(index);
   }
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   public com.google.protobuf.ByteString
@@ -132,6 +175,13 @@ private static final long serialVersionUID = 0L;
   public static final int EXCLUDE_PATH_FIELD_NUMBER = 2;
   private com.google.protobuf.LazyStringList excludePath_;
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   public com.google.protobuf.ProtocolStringList
@@ -139,18 +189,39 @@ private static final long serialVersionUID = 0L;
     return excludePath_;
   }
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   public int getExcludePathCount() {
     return excludePath_.size();
   }
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   public java.lang.String getExcludePath(int index) {
     return excludePath_.get(index);
   }
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   public com.google.protobuf.ByteString
@@ -338,6 +409,13 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Represent a filter used for including and excluding source files from
+   * being processed by a code generator. It is inclusive by default, so
+   * all paths compared against its default instance will be included as
+   * input to a generator and processed.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.FileFilter}
    */
   public static final class Builder extends
@@ -522,6 +600,15 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public com.google.protobuf.ProtocolStringList
@@ -529,18 +616,45 @@ private static final long serialVersionUID = 0L;
       return includePath_.getUnmodifiableView();
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public int getIncludePathCount() {
       return includePath_.size();
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public java.lang.String getIncludePath(int index) {
       return includePath_.get(index);
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public com.google.protobuf.ByteString
@@ -548,6 +662,15 @@ private static final long serialVersionUID = 0L;
       return includePath_.getByteString(index);
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public Builder setIncludePath(
@@ -561,6 +684,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public Builder addIncludePath(
@@ -574,6 +706,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public Builder addAllIncludePath(
@@ -585,6 +726,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public Builder clearIncludePath() {
@@ -594,6 +744,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to include as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * krotoplus/compiler/config.proto
+     * krotoplus/&#42;*
+     * **&#47;compiler/con*.proto
+     * </pre>
+     *
      * <code>repeated string include_path = 1;</code>
      */
     public Builder addIncludePathBytes(
@@ -616,6 +775,13 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public com.google.protobuf.ProtocolStringList
@@ -623,18 +789,39 @@ private static final long serialVersionUID = 0L;
       return excludePath_.getUnmodifiableView();
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public int getExcludePathCount() {
       return excludePath_.size();
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public java.lang.String getExcludePath(int index) {
       return excludePath_.get(index);
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public com.google.protobuf.ByteString
@@ -642,6 +829,13 @@ private static final long serialVersionUID = 0L;
       return excludePath_.getByteString(index);
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public Builder setExcludePath(
@@ -655,6 +849,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public Builder addExcludePath(
@@ -668,6 +869,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public Builder addAllExcludePath(
@@ -679,6 +887,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public Builder clearExcludePath() {
@@ -688,6 +903,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of file paths to exclude as inputs for a code generator.
+     * a valid value start from the root package directory of the source file. Globs are supported
+     * ie.
+     * google/&#42;
+     * </pre>
+     *
      * <code>repeated string exclude_path = 2;</code>
      */
     public Builder addExcludePathBytes(

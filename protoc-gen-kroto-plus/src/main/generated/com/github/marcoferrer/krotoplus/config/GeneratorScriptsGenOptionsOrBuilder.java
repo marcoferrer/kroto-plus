@@ -8,44 +8,59 @@ public interface GeneratorScriptsGenOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   boolean hasFilter();
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   com.github.marcoferrer.krotoplus.config.FileFilter getFilter();
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder();
 
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
   java.util.List<java.lang.String>
-      getTemplateScriptPathList();
+      getScriptPathList();
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
-  int getTemplateScriptPathCount();
+  int getScriptPathCount();
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
-  java.lang.String getTemplateScriptPath(int index);
+  java.lang.String getScriptPath(int index);
   /**
-   * <code>repeated string template_script_path = 2;</code>
+   * <code>repeated string script_path = 2;</code>
    */
   com.google.protobuf.ByteString
-      getTemplateScriptPathBytes(int index);
+      getScriptPathBytes(int index);
 
   /**
-   * <code>string template_script_bundle = 3;</code>
+   * <code>string script_bundle = 3;</code>
    */
-  java.lang.String getTemplateScriptBundle();
+  java.lang.String getScriptBundle();
   /**
-   * <code>string template_script_bundle = 3;</code>
+   * <code>string script_bundle = 3;</code>
    */
   com.google.protobuf.ByteString
-      getTemplateScriptBundleBytes();
+      getScriptBundleBytes();
 }

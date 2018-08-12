@@ -30,11 +30,6 @@ public final class Config {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_krotoplus_compiler_GrpcStubExtsGenOptions_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_krotoplus_compiler_MockServicesGenOptions_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_krotoplus_compiler_MockServicesGenOptions_fieldAccessorTable;
-  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_krotoplus_compiler_ProtoBuildersGenOptions_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -59,6 +54,11 @@ public final class Config {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_krotoplus_compiler_InsertionsGenOptions_Entry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_krotoplus_compiler_MockServicesGenOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_krotoplus_compiler_MockServicesGenOptions_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -70,51 +70,49 @@ public final class Config {
     java.lang.String[] descriptorData = {
       "\n\037krotoplus/compiler/config.proto\022\022kroto" +
       "plus.compiler\032 google/protobuf/descripto" +
-      "r.proto\"\332\003\n\016CompilerConfig\022%\n\035suppress_d" +
-      "eprecation_warnings\030\001 \001(\010\022B\n\016grpc_stub_e" +
-      "xts\030\024 \003(\0132*.krotoplus.compiler.GrpcStubE" +
-      "xtsGenOptions\022A\n\rmock_services\030\025 \003(\0132*.k" +
-      "rotoplus.compiler.MockServicesGenOptions" +
-      "\022C\n\016proto_builders\030\026 \003(\0132+.krotoplus.com" +
-      "piler.ProtoBuildersGenOptions\022L\n\023extenda" +
-      "ble_messages\030\027 \003(\0132/.krotoplus.compiler." +
-      "ExtenableMessagesGenOptions\022<\n\ninsertion" +
-      "s\030\030 \003(\0132(.krotoplus.compiler.InsertionsG" +
-      "enOptions\022I\n\021generator_scripts\030\031 \003(\0132..k" +
-      "rotoplus.compiler.GeneratorScriptsGenOpt" +
-      "ions\"8\n\nFileFilter\022\024\n\014include_path\030\001 \003(\t" +
-      "\022\024\n\014exclude_path\030\002 \003(\t\"d\n\026GrpcStubExtsGe" +
-      "nOptions\022.\n\006filter\030\001 \001(\0132\036.krotoplus.com" +
-      "piler.FileFilter\022\032\n\022support_coroutines\030\002" +
-      " \001(\010\"\275\001\n\026MockServicesGenOptions\022.\n\006filte" +
-      "r\030\001 \001(\0132\036.krotoplus.compiler.FileFilter\022" +
-      "\033\n\023implement_as_object\030\002 \001(\010\022\035\n\025generate" +
-      "_service_list\030\003 \001(\010\022\034\n\024service_list_pack" +
-      "age\030\004 \001(\t\022\031\n\021service_list_name\030\005 \001(\t\"b\n\027" +
-      "ProtoBuildersGenOptions\022.\n\006filter\030\001 \001(\0132" +
-      "\036.krotoplus.compiler.FileFilter\022\027\n\017unwra" +
-      "p_builders\030\002 \001(\010\"\212\001\n\032GeneratorScriptsGen" +
-      "Options\022.\n\006filter\030\001 \001(\0132\036.krotoplus.comp" +
-      "iler.FileFilter\022\034\n\024template_script_path\030" +
-      "\002 \003(\t\022\036\n\026template_script_bundle\030\003 \001(\t\"\302\001" +
-      "\n\033ExtenableMessagesGenOptions\022.\n\006filter\030" +
-      "\001 \001(\0132\036.krotoplus.compiler.FileFilter\022\034\n" +
-      "\024companion_field_name\030\002 \001(\t\022\034\n\024companion" +
-      "_class_name\030\003 \001(\t\022\031\n\021companion_extends\030\004" +
-      " \001(\t\022\034\n\024companion_implements\030\005 \001(\t\"\221\002\n\024I" +
-      "nsertionsGenOptions\022.\n\006filter\030\001 \001(\0132\036.kr" +
-      "otoplus.compiler.FileFilter\022=\n\005entry\030\002 \003" +
-      "(\0132..krotoplus.compiler.InsertionsGenOpt" +
-      "ions.Entry\032\211\001\n\005Entry\0221\n\005point\030\001 \001(\0162\".kr" +
-      "otoplus.compiler.InsertionPoint\022\017\n\007conte" +
-      "nt\030\002 \003(\t\022\034\n\024template_script_path\030\003 \003(\t\022\036" +
-      "\n\026template_script_bundle\030\004 \001(\t*\257\001\n\016Inser" +
-      "tionPoint\022\013\n\007UNKNOWN\020\000\022\025\n\021INTERFACE_EXTE" +
-      "NDS\020\001\022\026\n\022MESSAGE_IMPLEMENTS\020\002\022\026\n\022BUILDER" +
-      "_IMPLEMENTS\020\003\022\021\n\rBUILDER_SCOPE\020\004\022\017\n\013CLAS" +
-      "S_SCOPE\020\005\022\016\n\nENUM_SCOPE\020\006\022\025\n\021OUTER_CLASS" +
-      "_SCOPE\020\007B+\n\'com.github.marcoferrer.kroto" +
-      "plus.configP\001b\006proto3"
+      "r.proto\"\263\003\n\016CompilerConfig\022B\n\016grpc_stub_" +
+      "exts\030\024 \003(\0132*.krotoplus.compiler.GrpcStub" +
+      "ExtsGenOptions\022A\n\rmock_services\030\025 \003(\0132*." +
+      "krotoplus.compiler.MockServicesGenOption" +
+      "s\022C\n\016proto_builders\030\026 \003(\0132+.krotoplus.co" +
+      "mpiler.ProtoBuildersGenOptions\022L\n\023extend" +
+      "able_messages\030\027 \003(\0132/.krotoplus.compiler" +
+      ".ExtenableMessagesGenOptions\022<\n\ninsertio" +
+      "ns\030\030 \003(\0132(.krotoplus.compiler.Insertions" +
+      "GenOptions\022I\n\021generator_scripts\030\031 \003(\0132.." +
+      "krotoplus.compiler.GeneratorScriptsGenOp" +
+      "tions\"8\n\nFileFilter\022\024\n\014include_path\030\001 \003(" +
+      "\t\022\024\n\014exclude_path\030\002 \003(\t\"d\n\026GrpcStubExtsG" +
+      "enOptions\022.\n\006filter\030\001 \001(\0132\036.krotoplus.co" +
+      "mpiler.FileFilter\022\032\n\022support_coroutines\030" +
+      "\002 \001(\010\"b\n\027ProtoBuildersGenOptions\022.\n\006filt" +
+      "er\030\001 \001(\0132\036.krotoplus.compiler.FileFilter" +
+      "\022\027\n\017unwrap_builders\030\002 \001(\010\"x\n\032GeneratorSc" +
+      "riptsGenOptions\022.\n\006filter\030\001 \001(\0132\036.krotop" +
+      "lus.compiler.FileFilter\022\023\n\013script_path\030\002" +
+      " \003(\t\022\025\n\rscript_bundle\030\003 \001(\t\"\302\001\n\033Extenabl" +
+      "eMessagesGenOptions\022.\n\006filter\030\001 \001(\0132\036.kr" +
+      "otoplus.compiler.FileFilter\022\034\n\024companion" +
+      "_field_name\030\002 \001(\t\022\034\n\024companion_class_nam" +
+      "e\030\003 \001(\t\022\031\n\021companion_extends\030\004 \001(\t\022\034\n\024co" +
+      "mpanion_implements\030\005 \001(\t\"\376\001\n\024InsertionsG" +
+      "enOptions\022.\n\006filter\030\001 \001(\0132\036.krotoplus.co" +
+      "mpiler.FileFilter\022=\n\005entry\030\002 \003(\0132..kroto" +
+      "plus.compiler.InsertionsGenOptions.Entry" +
+      "\032w\n\005Entry\0221\n\005point\030\001 \001(\0162\".krotoplus.com" +
+      "piler.InsertionPoint\022\017\n\007content\030\002 \003(\t\022\023\n" +
+      "\013script_path\030\003 \003(\t\022\025\n\rscript_bundle\030\004 \001(" +
+      "\t\"\275\001\n\026MockServicesGenOptions\022.\n\006filter\030\001" +
+      " \001(\0132\036.krotoplus.compiler.FileFilter\022\033\n\023" +
+      "implement_as_object\030\002 \001(\010\022\035\n\025generate_se" +
+      "rvice_list\030\003 \001(\010\022\034\n\024service_list_package" +
+      "\030\004 \001(\t\022\031\n\021service_list_name\030\005 \001(\t*\257\001\n\016In" +
+      "sertionPoint\022\013\n\007UNKNOWN\020\000\022\025\n\021INTERFACE_E" +
+      "XTENDS\020\001\022\026\n\022MESSAGE_IMPLEMENTS\020\002\022\026\n\022BUIL" +
+      "DER_IMPLEMENTS\020\003\022\021\n\rBUILDER_SCOPE\020\004\022\017\n\013C" +
+      "LASS_SCOPE\020\005\022\016\n\nENUM_SCOPE\020\006\022\025\n\021OUTER_CL" +
+      "ASS_SCOPE\020\007B+\n\'com.github.marcoferrer.kr" +
+      "otoplus.configP\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -134,7 +132,7 @@ public final class Config {
     internal_static_krotoplus_compiler_CompilerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_CompilerConfig_descriptor,
-        new java.lang.String[] { "SuppressDeprecationWarnings", "GrpcStubExts", "MockServices", "ProtoBuilders", "ExtendableMessages", "Insertions", "GeneratorScripts", });
+        new java.lang.String[] { "GrpcStubExts", "MockServices", "ProtoBuilders", "ExtendableMessages", "Insertions", "GeneratorScripts", });
     internal_static_krotoplus_compiler_FileFilter_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_krotoplus_compiler_FileFilter_fieldAccessorTable = new
@@ -147,32 +145,26 @@ public final class Config {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_GrpcStubExtsGenOptions_descriptor,
         new java.lang.String[] { "Filter", "SupportCoroutines", });
-    internal_static_krotoplus_compiler_MockServicesGenOptions_descriptor =
-      getDescriptor().getMessageTypes().get(3);
-    internal_static_krotoplus_compiler_MockServicesGenOptions_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_krotoplus_compiler_MockServicesGenOptions_descriptor,
-        new java.lang.String[] { "Filter", "ImplementAsObject", "GenerateServiceList", "ServiceListPackage", "ServiceListName", });
     internal_static_krotoplus_compiler_ProtoBuildersGenOptions_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_krotoplus_compiler_ProtoBuildersGenOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_ProtoBuildersGenOptions_descriptor,
         new java.lang.String[] { "Filter", "UnwrapBuilders", });
     internal_static_krotoplus_compiler_GeneratorScriptsGenOptions_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_krotoplus_compiler_GeneratorScriptsGenOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_GeneratorScriptsGenOptions_descriptor,
-        new java.lang.String[] { "Filter", "TemplateScriptPath", "TemplateScriptBundle", });
+        new java.lang.String[] { "Filter", "ScriptPath", "ScriptBundle", });
     internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_descriptor,
         new java.lang.String[] { "Filter", "CompanionFieldName", "CompanionClassName", "CompanionExtends", "CompanionImplements", });
     internal_static_krotoplus_compiler_InsertionsGenOptions_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_krotoplus_compiler_InsertionsGenOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_InsertionsGenOptions_descriptor,
@@ -182,7 +174,13 @@ public final class Config {
     internal_static_krotoplus_compiler_InsertionsGenOptions_Entry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_InsertionsGenOptions_Entry_descriptor,
-        new java.lang.String[] { "Point", "Content", "TemplateScriptPath", "TemplateScriptBundle", });
+        new java.lang.String[] { "Point", "Content", "ScriptPath", "ScriptBundle", });
+    internal_static_krotoplus_compiler_MockServicesGenOptions_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_krotoplus_compiler_MockServicesGenOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_krotoplus_compiler_MockServicesGenOptions_descriptor,
+        new java.lang.String[] { "Filter", "ImplementAsObject", "GenerateServiceList", "ServiceListPackage", "ServiceListName", });
     com.google.protobuf.DescriptorProtos.getDescriptor();
   }
 

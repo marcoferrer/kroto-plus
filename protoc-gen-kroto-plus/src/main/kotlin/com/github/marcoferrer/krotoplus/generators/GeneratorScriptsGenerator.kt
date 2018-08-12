@@ -12,8 +12,8 @@ object GeneratorScriptsGenerator : Generator {
         val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
 
         for (options in context.config.generatorScriptsList) {
-            options.templateScriptPathList
-                    .flatMap { ScriptManager.getScript(it,options.templateScriptBundle).generators }
+            options.scriptPathList
+                    .flatMap { ScriptManager.getScript(it,options.scriptBundle).generators }
                     .also {
                         assert(it.isNotEmpty())
                     }

@@ -46,9 +46,9 @@ object InsertionsGenerator : Generator {
                         }
                     }
 
-            for (templateScriptPathEntry in entry.templateScriptPathList)
-                templateScriptPathEntry.takeIf { it.isNotEmpty() }?.let { templateScriptPath ->
-                    val script = ScriptManager.getScript(templateScriptPath, entry.templateScriptBundle)
+            for (templateScriptPathEntry in entry.scriptPathList)
+                templateScriptPathEntry.takeIf { it.isNotEmpty() }?.let { scriptPath ->
+                    val script = ScriptManager.getScript(scriptPath, entry.scriptBundle)
                     val content = script.invoke(InsertionPoint.OUTER_CLASS_SCOPE.funcName,this) as? String
                     content?.let {
                         responseBuilder.addFile {
@@ -74,8 +74,8 @@ object InsertionsGenerator : Generator {
                             ?.let { responseBuilder.addFile(it) }
                 }
 
-                for (templateScriptPath in entry.templateScriptPathList){
-                    buildFileForTemplateScript(entry.point, templateScriptPath, entry.templateScriptBundle)
+                for (templateScriptPath in entry.scriptPathList){
+                    buildFileForTemplateScript(entry.point, templateScriptPath, entry.scriptBundle)
                             ?.let { responseBuilder.addFile(it) }
                 }
             }

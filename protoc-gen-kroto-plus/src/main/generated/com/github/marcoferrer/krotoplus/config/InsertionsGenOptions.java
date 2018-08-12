@@ -4,6 +4,12 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Configuration used by the 'Protoc Insertions' code generator.
+ * Since this code generator relies on the protoc insertion point API,
+ * its outputDir must match that of the protoc java plugin.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.InsertionsGenOptions}
  */
 public  final class InsertionsGenOptions extends
@@ -105,63 +111,103 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * The protoc insertion point at which the generated code will be inserted.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     int getPointValue();
     /**
+     * <pre>
+     * The protoc insertion point at which the generated code will be inserted.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     com.github.marcoferrer.krotoplus.config.InsertionPoint getPoint();
 
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     java.util.List<java.lang.String>
         getContentList();
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     int getContentCount();
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     java.lang.String getContent(int index);
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     com.google.protobuf.ByteString
         getContentBytes(int index);
 
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
     java.util.List<java.lang.String>
-        getTemplateScriptPathList();
+        getScriptPathList();
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
-    int getTemplateScriptPathCount();
+    int getScriptPathCount();
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
-    java.lang.String getTemplateScriptPath(int index);
+    java.lang.String getScriptPath(int index);
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
     com.google.protobuf.ByteString
-        getTemplateScriptPathBytes(int index);
+        getScriptPathBytes(int index);
 
     /**
-     * <code>string template_script_bundle = 4;</code>
+     * <code>string script_bundle = 4;</code>
      */
-    java.lang.String getTemplateScriptBundle();
+    java.lang.String getScriptBundle();
     /**
-     * <code>string template_script_bundle = 4;</code>
+     * <code>string script_bundle = 4;</code>
      */
     com.google.protobuf.ByteString
-        getTemplateScriptBundleBytes();
+        getScriptBundleBytes();
   }
   /**
+   * <pre>
+   * Configuration to apply to the files matched by the file filter.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.InsertionsGenOptions.Entry}
    */
   public  static final class Entry extends
@@ -176,8 +222,8 @@ private static final long serialVersionUID = 0L;
     private Entry() {
       point_ = 0;
       content_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      templateScriptBundle_ = "";
+      scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      scriptBundle_ = "";
     }
 
     @java.lang.Override
@@ -222,16 +268,16 @@ private static final long serialVersionUID = 0L;
             case 26: {
               java.lang.String s = input.readStringRequireUtf8();
               if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-                templateScriptPath_ = new com.google.protobuf.LazyStringArrayList();
+                scriptPath_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000004;
               }
-              templateScriptPath_.add(s);
+              scriptPath_.add(s);
               break;
             }
             case 34: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              templateScriptBundle_ = s;
+              scriptBundle_ = s;
               break;
             }
             default: {
@@ -253,7 +299,7 @@ private static final long serialVersionUID = 0L;
           content_ = content_.getUnmodifiableView();
         }
         if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-          templateScriptPath_ = templateScriptPath_.getUnmodifiableView();
+          scriptPath_ = scriptPath_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -276,12 +322,20 @@ private static final long serialVersionUID = 0L;
     public static final int POINT_FIELD_NUMBER = 1;
     private int point_;
     /**
+     * <pre>
+     * The protoc insertion point at which the generated code will be inserted.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     public int getPointValue() {
       return point_;
     }
     /**
+     * <pre>
+     * The protoc insertion point at which the generated code will be inserted.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionPoint getPoint() {
@@ -293,6 +347,13 @@ private static final long serialVersionUID = 0L;
     public static final int CONTENT_FIELD_NUMBER = 2;
     private com.google.protobuf.LazyStringList content_;
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     public com.google.protobuf.ProtocolStringList
@@ -300,18 +361,39 @@ private static final long serialVersionUID = 0L;
       return content_;
     }
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     public int getContentCount() {
       return content_.size();
     }
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     public java.lang.String getContent(int index) {
       return content_.get(index);
     }
     /**
+     * <pre>
+     * String literal of content to be set at the insertion point.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>repeated string content = 2;</code>
      */
     public com.google.protobuf.ByteString
@@ -319,63 +401,63 @@ private static final long serialVersionUID = 0L;
       return content_.getByteString(index);
     }
 
-    public static final int TEMPLATE_SCRIPT_PATH_FIELD_NUMBER = 3;
-    private com.google.protobuf.LazyStringList templateScriptPath_;
+    public static final int SCRIPT_PATH_FIELD_NUMBER = 3;
+    private com.google.protobuf.LazyStringList scriptPath_;
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
     public com.google.protobuf.ProtocolStringList
-        getTemplateScriptPathList() {
-      return templateScriptPath_;
+        getScriptPathList() {
+      return scriptPath_;
     }
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
-    public int getTemplateScriptPathCount() {
-      return templateScriptPath_.size();
+    public int getScriptPathCount() {
+      return scriptPath_.size();
     }
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
-    public java.lang.String getTemplateScriptPath(int index) {
-      return templateScriptPath_.get(index);
+    public java.lang.String getScriptPath(int index) {
+      return scriptPath_.get(index);
     }
     /**
-     * <code>repeated string template_script_path = 3;</code>
+     * <code>repeated string script_path = 3;</code>
      */
     public com.google.protobuf.ByteString
-        getTemplateScriptPathBytes(int index) {
-      return templateScriptPath_.getByteString(index);
+        getScriptPathBytes(int index) {
+      return scriptPath_.getByteString(index);
     }
 
-    public static final int TEMPLATE_SCRIPT_BUNDLE_FIELD_NUMBER = 4;
-    private volatile java.lang.Object templateScriptBundle_;
+    public static final int SCRIPT_BUNDLE_FIELD_NUMBER = 4;
+    private volatile java.lang.Object scriptBundle_;
     /**
-     * <code>string template_script_bundle = 4;</code>
+     * <code>string script_bundle = 4;</code>
      */
-    public java.lang.String getTemplateScriptBundle() {
-      java.lang.Object ref = templateScriptBundle_;
+    public java.lang.String getScriptBundle() {
+      java.lang.Object ref = scriptBundle_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        templateScriptBundle_ = s;
+        scriptBundle_ = s;
         return s;
       }
     }
     /**
-     * <code>string template_script_bundle = 4;</code>
+     * <code>string script_bundle = 4;</code>
      */
     public com.google.protobuf.ByteString
-        getTemplateScriptBundleBytes() {
-      java.lang.Object ref = templateScriptBundle_;
+        getScriptBundleBytes() {
+      java.lang.Object ref = scriptBundle_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        templateScriptBundle_ = b;
+        scriptBundle_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -402,11 +484,11 @@ private static final long serialVersionUID = 0L;
       for (int i = 0; i < content_.size(); i++) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, content_.getRaw(i));
       }
-      for (int i = 0; i < templateScriptPath_.size(); i++) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, templateScriptPath_.getRaw(i));
+      for (int i = 0; i < scriptPath_.size(); i++) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, scriptPath_.getRaw(i));
       }
-      if (!getTemplateScriptBundleBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, templateScriptBundle_);
+      if (!getScriptBundleBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, scriptBundle_);
       }
       unknownFields.writeTo(output);
     }
@@ -431,14 +513,14 @@ private static final long serialVersionUID = 0L;
       }
       {
         int dataSize = 0;
-        for (int i = 0; i < templateScriptPath_.size(); i++) {
-          dataSize += computeStringSizeNoTag(templateScriptPath_.getRaw(i));
+        for (int i = 0; i < scriptPath_.size(); i++) {
+          dataSize += computeStringSizeNoTag(scriptPath_.getRaw(i));
         }
         size += dataSize;
-        size += 1 * getTemplateScriptPathList().size();
+        size += 1 * getScriptPathList().size();
       }
-      if (!getTemplateScriptBundleBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, templateScriptBundle_);
+      if (!getScriptBundleBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, scriptBundle_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -459,10 +541,10 @@ private static final long serialVersionUID = 0L;
       result = result && point_ == other.point_;
       result = result && getContentList()
           .equals(other.getContentList());
-      result = result && getTemplateScriptPathList()
-          .equals(other.getTemplateScriptPathList());
-      result = result && getTemplateScriptBundle()
-          .equals(other.getTemplateScriptBundle());
+      result = result && getScriptPathList()
+          .equals(other.getScriptPathList());
+      result = result && getScriptBundle()
+          .equals(other.getScriptBundle());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -480,12 +562,12 @@ private static final long serialVersionUID = 0L;
         hash = (37 * hash) + CONTENT_FIELD_NUMBER;
         hash = (53 * hash) + getContentList().hashCode();
       }
-      if (getTemplateScriptPathCount() > 0) {
-        hash = (37 * hash) + TEMPLATE_SCRIPT_PATH_FIELD_NUMBER;
-        hash = (53 * hash) + getTemplateScriptPathList().hashCode();
+      if (getScriptPathCount() > 0) {
+        hash = (37 * hash) + SCRIPT_PATH_FIELD_NUMBER;
+        hash = (53 * hash) + getScriptPathList().hashCode();
       }
-      hash = (37 * hash) + TEMPLATE_SCRIPT_BUNDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getTemplateScriptBundle().hashCode();
+      hash = (37 * hash) + SCRIPT_BUNDLE_FIELD_NUMBER;
+      hash = (53 * hash) + getScriptBundle().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -582,6 +664,10 @@ private static final long serialVersionUID = 0L;
       return builder;
     }
     /**
+     * <pre>
+     * Configuration to apply to the files matched by the file filter.
+     * </pre>
+     *
      * Protobuf type {@code krotoplus.compiler.InsertionsGenOptions.Entry}
      */
     public static final class Builder extends
@@ -623,9 +709,9 @@ private static final long serialVersionUID = 0L;
 
         content_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
-        templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000004);
-        templateScriptBundle_ = "";
+        scriptBundle_ = "";
 
         return this;
       }
@@ -662,11 +748,11 @@ private static final long serialVersionUID = 0L;
         }
         result.content_ = content_;
         if (((bitField0_ & 0x00000004) == 0x00000004)) {
-          templateScriptPath_ = templateScriptPath_.getUnmodifiableView();
+          scriptPath_ = scriptPath_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00000004);
         }
-        result.templateScriptPath_ = templateScriptPath_;
-        result.templateScriptBundle_ = templateScriptBundle_;
+        result.scriptPath_ = scriptPath_;
+        result.scriptBundle_ = scriptBundle_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -729,18 +815,18 @@ private static final long serialVersionUID = 0L;
           }
           onChanged();
         }
-        if (!other.templateScriptPath_.isEmpty()) {
-          if (templateScriptPath_.isEmpty()) {
-            templateScriptPath_ = other.templateScriptPath_;
+        if (!other.scriptPath_.isEmpty()) {
+          if (scriptPath_.isEmpty()) {
+            scriptPath_ = other.scriptPath_;
             bitField0_ = (bitField0_ & ~0x00000004);
           } else {
-            ensureTemplateScriptPathIsMutable();
-            templateScriptPath_.addAll(other.templateScriptPath_);
+            ensureScriptPathIsMutable();
+            scriptPath_.addAll(other.scriptPath_);
           }
           onChanged();
         }
-        if (!other.getTemplateScriptBundle().isEmpty()) {
-          templateScriptBundle_ = other.templateScriptBundle_;
+        if (!other.getScriptBundle().isEmpty()) {
+          scriptBundle_ = other.scriptBundle_;
           onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -775,12 +861,20 @@ private static final long serialVersionUID = 0L;
 
       private int point_ = 0;
       /**
+       * <pre>
+       * The protoc insertion point at which the generated code will be inserted.
+       * </pre>
+       *
        * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public int getPointValue() {
         return point_;
       }
       /**
+       * <pre>
+       * The protoc insertion point at which the generated code will be inserted.
+       * </pre>
+       *
        * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public Builder setPointValue(int value) {
@@ -789,6 +883,10 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
+       * <pre>
+       * The protoc insertion point at which the generated code will be inserted.
+       * </pre>
+       *
        * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public com.github.marcoferrer.krotoplus.config.InsertionPoint getPoint() {
@@ -797,6 +895,10 @@ private static final long serialVersionUID = 0L;
         return result == null ? com.github.marcoferrer.krotoplus.config.InsertionPoint.UNRECOGNIZED : result;
       }
       /**
+       * <pre>
+       * The protoc insertion point at which the generated code will be inserted.
+       * </pre>
+       *
        * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public Builder setPoint(com.github.marcoferrer.krotoplus.config.InsertionPoint value) {
@@ -809,6 +911,10 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
+       * <pre>
+       * The protoc insertion point at which the generated code will be inserted.
+       * </pre>
+       *
        * <code>.krotoplus.compiler.InsertionPoint point = 1;</code>
        */
       public Builder clearPoint() {
@@ -826,6 +932,13 @@ private static final long serialVersionUID = 0L;
          }
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public com.google.protobuf.ProtocolStringList
@@ -833,18 +946,39 @@ private static final long serialVersionUID = 0L;
         return content_.getUnmodifiableView();
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public int getContentCount() {
         return content_.size();
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public java.lang.String getContent(int index) {
         return content_.get(index);
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public com.google.protobuf.ByteString
@@ -852,6 +986,13 @@ private static final long serialVersionUID = 0L;
         return content_.getByteString(index);
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public Builder setContent(
@@ -865,6 +1006,13 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public Builder addContent(
@@ -878,6 +1026,13 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public Builder addAllContent(
@@ -889,6 +1044,13 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public Builder clearContent() {
@@ -898,6 +1060,13 @@ private static final long serialVersionUID = 0L;
         return this;
       }
       /**
+       * <pre>
+       * String literal of content to be set at the insertion point.
+       * Referencing the current message type, use the value '{{message_type}}'.
+       * This is useful when you want to use the current message as a generic type param.
+       * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+       * </pre>
+       *
        * <code>repeated string content = 2;</code>
        */
       public Builder addContentBytes(
@@ -912,165 +1081,165 @@ private static final long serialVersionUID = 0L;
         return this;
       }
 
-      private com.google.protobuf.LazyStringList templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureTemplateScriptPathIsMutable() {
+      private com.google.protobuf.LazyStringList scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureScriptPathIsMutable() {
         if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-          templateScriptPath_ = new com.google.protobuf.LazyStringArrayList(templateScriptPath_);
+          scriptPath_ = new com.google.protobuf.LazyStringArrayList(scriptPath_);
           bitField0_ |= 0x00000004;
          }
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
       public com.google.protobuf.ProtocolStringList
-          getTemplateScriptPathList() {
-        return templateScriptPath_.getUnmodifiableView();
+          getScriptPathList() {
+        return scriptPath_.getUnmodifiableView();
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
-      public int getTemplateScriptPathCount() {
-        return templateScriptPath_.size();
+      public int getScriptPathCount() {
+        return scriptPath_.size();
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
-      public java.lang.String getTemplateScriptPath(int index) {
-        return templateScriptPath_.get(index);
+      public java.lang.String getScriptPath(int index) {
+        return scriptPath_.get(index);
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
       public com.google.protobuf.ByteString
-          getTemplateScriptPathBytes(int index) {
-        return templateScriptPath_.getByteString(index);
+          getScriptPathBytes(int index) {
+        return scriptPath_.getByteString(index);
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
-      public Builder setTemplateScriptPath(
+      public Builder setScriptPath(
           int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  ensureTemplateScriptPathIsMutable();
-        templateScriptPath_.set(index, value);
+  ensureScriptPathIsMutable();
+        scriptPath_.set(index, value);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
-      public Builder addTemplateScriptPath(
+      public Builder addScriptPath(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  ensureTemplateScriptPathIsMutable();
-        templateScriptPath_.add(value);
+  ensureScriptPathIsMutable();
+        scriptPath_.add(value);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
-      public Builder addAllTemplateScriptPath(
+      public Builder addAllScriptPath(
           java.lang.Iterable<java.lang.String> values) {
-        ensureTemplateScriptPathIsMutable();
+        ensureScriptPathIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, templateScriptPath_);
+            values, scriptPath_);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
-      public Builder clearTemplateScriptPath() {
-        templateScriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      public Builder clearScriptPath() {
+        scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string template_script_path = 3;</code>
+       * <code>repeated string script_path = 3;</code>
        */
-      public Builder addTemplateScriptPathBytes(
+      public Builder addScriptPathBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-        ensureTemplateScriptPathIsMutable();
-        templateScriptPath_.add(value);
+        ensureScriptPathIsMutable();
+        scriptPath_.add(value);
         onChanged();
         return this;
       }
 
-      private java.lang.Object templateScriptBundle_ = "";
+      private java.lang.Object scriptBundle_ = "";
       /**
-       * <code>string template_script_bundle = 4;</code>
+       * <code>string script_bundle = 4;</code>
        */
-      public java.lang.String getTemplateScriptBundle() {
-        java.lang.Object ref = templateScriptBundle_;
+      public java.lang.String getScriptBundle() {
+        java.lang.Object ref = scriptBundle_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          templateScriptBundle_ = s;
+          scriptBundle_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string template_script_bundle = 4;</code>
+       * <code>string script_bundle = 4;</code>
        */
       public com.google.protobuf.ByteString
-          getTemplateScriptBundleBytes() {
-        java.lang.Object ref = templateScriptBundle_;
+          getScriptBundleBytes() {
+        java.lang.Object ref = scriptBundle_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          templateScriptBundle_ = b;
+          scriptBundle_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string template_script_bundle = 4;</code>
+       * <code>string script_bundle = 4;</code>
        */
-      public Builder setTemplateScriptBundle(
+      public Builder setScriptBundle(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        templateScriptBundle_ = value;
+        scriptBundle_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>string template_script_bundle = 4;</code>
+       * <code>string script_bundle = 4;</code>
        */
-      public Builder clearTemplateScriptBundle() {
+      public Builder clearScriptBundle() {
         
-        templateScriptBundle_ = getDefaultInstance().getTemplateScriptBundle();
+        scriptBundle_ = getDefaultInstance().getScriptBundle();
         onChanged();
         return this;
       }
       /**
-       * <code>string template_script_bundle = 4;</code>
+       * <code>string script_bundle = 4;</code>
        */
-      public Builder setTemplateScriptBundleBytes(
+      public Builder setScriptBundleBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
         
-        templateScriptBundle_ = value;
+        scriptBundle_ = value;
         onChanged();
         return this;
       }
@@ -1131,18 +1300,33 @@ private static final long serialVersionUID = 0L;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public boolean hasFilter() {
     return filter_ != null;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
     return filter_ == null ? com.github.marcoferrer.krotoplus.config.FileFilter.getDefaultInstance() : filter_;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -1152,12 +1336,20 @@ private static final long serialVersionUID = 0L;
   public static final int ENTRY_FIELD_NUMBER = 2;
   private java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry> entry_;
   /**
+   * <pre>
+   * List of configurations to be applied to the file filter.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
    */
   public java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry> getEntryList() {
     return entry_;
   }
   /**
+   * <pre>
+   * List of configurations to be applied to the file filter.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
    */
   public java.util.List<? extends com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.EntryOrBuilder> 
@@ -1165,18 +1357,30 @@ private static final long serialVersionUID = 0L;
     return entry_;
   }
   /**
+   * <pre>
+   * List of configurations to be applied to the file filter.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
    */
   public int getEntryCount() {
     return entry_.size();
   }
   /**
+   * <pre>
+   * List of configurations to be applied to the file filter.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
    */
   public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry getEntry(int index) {
     return entry_.get(index);
   }
   /**
+   * <pre>
+   * List of configurations to be applied to the file filter.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
    */
   public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.EntryOrBuilder getEntryOrBuilder(
@@ -1359,6 +1563,12 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Configuration used by the 'Protoc Insertions' code generator.
+   * Since this code generator relies on the protoc insertion point API,
+   * its outputDir must match that of the protoc java plugin.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.InsertionsGenOptions}
    */
   public static final class Builder extends
@@ -1563,12 +1773,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         com.github.marcoferrer.krotoplus.config.FileFilter, com.github.marcoferrer.krotoplus.config.FileFilter.Builder, com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder> filterBuilder_;
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public boolean hasFilter() {
       return filterBuilder_ != null || filter_ != null;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
@@ -1579,6 +1799,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -1595,6 +1820,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(
@@ -1609,6 +1839,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder mergeFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -1627,6 +1862,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder clearFilter() {
@@ -1641,6 +1881,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter.Builder getFilterBuilder() {
@@ -1649,6 +1894,11 @@ private static final long serialVersionUID = 0L;
       return getFilterFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -1660,6 +1910,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -1689,6 +1944,10 @@ private static final long serialVersionUID = 0L;
         com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.EntryOrBuilder> entryBuilder_;
 
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry> getEntryList() {
@@ -1699,6 +1958,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public int getEntryCount() {
@@ -1709,6 +1972,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry getEntry(int index) {
@@ -1719,6 +1986,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder setEntry(
@@ -1736,6 +2007,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder setEntry(
@@ -1750,6 +2025,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder addEntry(com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry value) {
@@ -1766,6 +2045,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder addEntry(
@@ -1783,6 +2066,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder addEntry(
@@ -1797,6 +2084,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder addEntry(
@@ -1811,6 +2102,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder addAllEntry(
@@ -1826,6 +2121,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder clearEntry() {
@@ -1839,6 +2138,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public Builder removeEntry(int index) {
@@ -1852,6 +2155,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder getEntryBuilder(
@@ -1859,6 +2166,10 @@ private static final long serialVersionUID = 0L;
       return getEntryFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.EntryOrBuilder getEntryOrBuilder(
@@ -1869,6 +2180,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public java.util.List<? extends com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.EntryOrBuilder> 
@@ -1880,6 +2195,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder addEntryBuilder() {
@@ -1887,6 +2206,10 @@ private static final long serialVersionUID = 0L;
           com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.getDefaultInstance());
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder addEntryBuilder(
@@ -1895,6 +2218,10 @@ private static final long serialVersionUID = 0L;
           index, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.getDefaultInstance());
     }
     /**
+     * <pre>
+     * List of configurations to be applied to the file filter.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions.Entry entry = 2;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder> 

@@ -3,13 +3,11 @@ package com.github.marcoferrer.krotoplus.script
 import com.github.marcoferrer.krotoplus.Manifest
 import com.github.marcoferrer.krotoplus.generators.context
 import com.github.marcoferrer.krotoplus.utils.memoize
-import org.jetbrains.kotlin.build.isModuleMappingFile
 import org.jetbrains.kotlin.cli.common.repl.GenericReplEvaluatorState
 import org.jetbrains.kotlin.cli.common.repl.KotlinJsr223JvmInvocableScriptEngine
 import org.jetbrains.kotlin.cli.common.repl.KotlinJsr223JvmScriptEngineBase
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngine
-import org.jetbrains.kotlin.utils.addToStdlib.constant
 import java.io.*
 import java.math.BigInteger
 import java.net.URLClassLoader
@@ -17,7 +15,6 @@ import java.security.DigestInputStream
 import javax.script.ScriptEngineManager
 import javax.script.SimpleScriptContext
 import java.security.MessageDigest
-import java.util.*
 
 
 object ScriptManager {
@@ -36,16 +33,16 @@ object ScriptManager {
 
     private val scriptBundleClassLoaders = mutableMapOf<String, ClassLoader>()
 
-    private fun loadScriptClass(templateScriptPath: String, bundle: File): Class<*>? {
+    private fun loadScriptClass(scriptPath: String, bundle: File): Class<*>? {
         //Convert script path to java package
-        val scriptPackage = templateScriptPath
+        val scriptPackage = scriptPath
                 .takeIf { !it.startsWith("/") && "/" in it }
                 ?.substringBeforeLast("/")
                 ?.replace("/", ".")
                 ?.let { "$it." }
                 .orEmpty()
         //Convert script name to valid java classname
-        val scriptName = templateScriptPath
+        val scriptName = scriptPath
                 .substringAfterLast("/").substringBeforeLast(".")
                 .replace(Regex("[.-]"), "_")
                 .capitalize()

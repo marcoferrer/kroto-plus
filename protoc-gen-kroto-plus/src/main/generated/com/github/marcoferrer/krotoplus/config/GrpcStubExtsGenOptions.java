@@ -4,6 +4,10 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Configuration used by the 'gRPC Stub Extensions' code generator.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.GrpcStubExtsGenOptions}
  */
 public  final class GrpcStubExtsGenOptions extends
@@ -96,18 +100,33 @@ private static final long serialVersionUID = 0L;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public boolean hasFilter() {
     return filter_ != null;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
     return filter_ == null ? com.github.marcoferrer.krotoplus.config.FileFilter.getDefaultInstance() : filter_;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -117,6 +136,11 @@ private static final long serialVersionUID = 0L;
   public static final int SUPPORT_COROUTINES_FIELD_NUMBER = 2;
   private boolean supportCoroutines_;
   /**
+   * <pre>
+   * Enable code generation for coroutine supporting service stub extensions.
+   * This options generates code that relies on the artifact 'kroto-plus-coroutines'
+   * </pre>
+   *
    * <code>bool support_coroutines = 2;</code>
    */
   public boolean getSupportCoroutines() {
@@ -297,6 +321,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Configuration used by the 'gRPC Stub Extensions' code generator.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.GrpcStubExtsGenOptions}
    */
   public static final class Builder extends
@@ -461,12 +489,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         com.github.marcoferrer.krotoplus.config.FileFilter, com.github.marcoferrer.krotoplus.config.FileFilter.Builder, com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder> filterBuilder_;
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public boolean hasFilter() {
       return filterBuilder_ != null || filter_ != null;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
@@ -477,6 +515,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -493,6 +536,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(
@@ -507,6 +555,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder mergeFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -525,6 +578,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder clearFilter() {
@@ -539,6 +597,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter.Builder getFilterBuilder() {
@@ -547,6 +610,11 @@ private static final long serialVersionUID = 0L;
       return getFilterFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -558,6 +626,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -576,12 +649,22 @@ private static final long serialVersionUID = 0L;
 
     private boolean supportCoroutines_ ;
     /**
+     * <pre>
+     * Enable code generation for coroutine supporting service stub extensions.
+     * This options generates code that relies on the artifact 'kroto-plus-coroutines'
+     * </pre>
+     *
      * <code>bool support_coroutines = 2;</code>
      */
     public boolean getSupportCoroutines() {
       return supportCoroutines_;
     }
     /**
+     * <pre>
+     * Enable code generation for coroutine supporting service stub extensions.
+     * This options generates code that relies on the artifact 'kroto-plus-coroutines'
+     * </pre>
+     *
      * <code>bool support_coroutines = 2;</code>
      */
     public Builder setSupportCoroutines(boolean value) {
@@ -591,6 +674,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Enable code generation for coroutine supporting service stub extensions.
+     * This options generates code that relies on the artifact 'kroto-plus-coroutines'
+     * </pre>
+     *
      * <code>bool support_coroutines = 2;</code>
      */
     public Builder clearSupportCoroutines() {

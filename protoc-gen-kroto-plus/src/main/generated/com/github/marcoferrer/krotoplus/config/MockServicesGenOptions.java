@@ -4,6 +4,10 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Configuration used by the 'Mock Services' code generator.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.MockServicesGenOptions}
  */
 public  final class MockServicesGenOptions extends
@@ -116,18 +120,33 @@ private static final long serialVersionUID = 0L;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public boolean hasFilter() {
     return filter_ != null;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
     return filter_ == null ? com.github.marcoferrer.krotoplus.config.FileFilter.getDefaultInstance() : filter_;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -137,6 +156,11 @@ private static final long serialVersionUID = 0L;
   public static final int IMPLEMENT_AS_OBJECT_FIELD_NUMBER = 2;
   private boolean implementAsObject_;
   /**
+   * <pre>
+   * By default, mock services are generated as an open class
+   * but an object can be generated instead.
+   * </pre>
+   *
    * <code>bool implement_as_object = 2;</code>
    */
   public boolean getImplementAsObject() {
@@ -146,6 +170,11 @@ private static final long serialVersionUID = 0L;
   public static final int GENERATE_SERVICE_LIST_FIELD_NUMBER = 3;
   private boolean generateServiceList_;
   /**
+   * <pre>
+   * Flag for generating a static collection of the Mock Services created.
+   * Useful when registering mock services to a GrpcServerRule during unit tests.
+   * </pre>
+   *
    * <code>bool generate_service_list = 3;</code>
    */
   public boolean getGenerateServiceList() {
@@ -155,6 +184,10 @@ private static final long serialVersionUID = 0L;
   public static final int SERVICE_LIST_PACKAGE_FIELD_NUMBER = 4;
   private volatile java.lang.Object serviceListPackage_;
   /**
+   * <pre>
+   * The java package at which the mock server list should reside.
+   * </pre>
+   *
    * <code>string service_list_package = 4;</code>
    */
   public java.lang.String getServiceListPackage() {
@@ -170,6 +203,10 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+   * <pre>
+   * The java package at which the mock server list should reside.
+   * </pre>
+   *
    * <code>string service_list_package = 4;</code>
    */
   public com.google.protobuf.ByteString
@@ -189,6 +226,10 @@ private static final long serialVersionUID = 0L;
   public static final int SERVICE_LIST_NAME_FIELD_NUMBER = 5;
   private volatile java.lang.Object serviceListName_;
   /**
+   * <pre>
+   * The name of the property at which the mock server list will be initialized at.
+   * </pre>
+   *
    * <code>string service_list_name = 5;</code>
    */
   public java.lang.String getServiceListName() {
@@ -204,6 +245,10 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+   * <pre>
+   * The name of the property at which the mock server list will be initialized at.
+   * </pre>
+   *
    * <code>string service_list_name = 5;</code>
    */
   public com.google.protobuf.ByteString
@@ -426,6 +471,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Configuration used by the 'Mock Services' code generator.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.MockServicesGenOptions}
    */
   public static final class Builder extends
@@ -610,12 +659,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         com.github.marcoferrer.krotoplus.config.FileFilter, com.github.marcoferrer.krotoplus.config.FileFilter.Builder, com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder> filterBuilder_;
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public boolean hasFilter() {
       return filterBuilder_ != null || filter_ != null;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
@@ -626,6 +685,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -642,6 +706,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(
@@ -656,6 +725,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder mergeFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -674,6 +748,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder clearFilter() {
@@ -688,6 +767,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter.Builder getFilterBuilder() {
@@ -696,6 +780,11 @@ private static final long serialVersionUID = 0L;
       return getFilterFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -707,6 +796,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -725,12 +819,22 @@ private static final long serialVersionUID = 0L;
 
     private boolean implementAsObject_ ;
     /**
+     * <pre>
+     * By default, mock services are generated as an open class
+     * but an object can be generated instead.
+     * </pre>
+     *
      * <code>bool implement_as_object = 2;</code>
      */
     public boolean getImplementAsObject() {
       return implementAsObject_;
     }
     /**
+     * <pre>
+     * By default, mock services are generated as an open class
+     * but an object can be generated instead.
+     * </pre>
+     *
      * <code>bool implement_as_object = 2;</code>
      */
     public Builder setImplementAsObject(boolean value) {
@@ -740,6 +844,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * By default, mock services are generated as an open class
+     * but an object can be generated instead.
+     * </pre>
+     *
      * <code>bool implement_as_object = 2;</code>
      */
     public Builder clearImplementAsObject() {
@@ -751,12 +860,22 @@ private static final long serialVersionUID = 0L;
 
     private boolean generateServiceList_ ;
     /**
+     * <pre>
+     * Flag for generating a static collection of the Mock Services created.
+     * Useful when registering mock services to a GrpcServerRule during unit tests.
+     * </pre>
+     *
      * <code>bool generate_service_list = 3;</code>
      */
     public boolean getGenerateServiceList() {
       return generateServiceList_;
     }
     /**
+     * <pre>
+     * Flag for generating a static collection of the Mock Services created.
+     * Useful when registering mock services to a GrpcServerRule during unit tests.
+     * </pre>
+     *
      * <code>bool generate_service_list = 3;</code>
      */
     public Builder setGenerateServiceList(boolean value) {
@@ -766,6 +885,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Flag for generating a static collection of the Mock Services created.
+     * Useful when registering mock services to a GrpcServerRule during unit tests.
+     * </pre>
+     *
      * <code>bool generate_service_list = 3;</code>
      */
     public Builder clearGenerateServiceList() {
@@ -777,6 +901,10 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object serviceListPackage_ = "";
     /**
+     * <pre>
+     * The java package at which the mock server list should reside.
+     * </pre>
+     *
      * <code>string service_list_package = 4;</code>
      */
     public java.lang.String getServiceListPackage() {
@@ -792,6 +920,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The java package at which the mock server list should reside.
+     * </pre>
+     *
      * <code>string service_list_package = 4;</code>
      */
     public com.google.protobuf.ByteString
@@ -808,6 +940,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The java package at which the mock server list should reside.
+     * </pre>
+     *
      * <code>string service_list_package = 4;</code>
      */
     public Builder setServiceListPackage(
@@ -821,6 +957,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The java package at which the mock server list should reside.
+     * </pre>
+     *
      * <code>string service_list_package = 4;</code>
      */
     public Builder clearServiceListPackage() {
@@ -830,6 +970,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The java package at which the mock server list should reside.
+     * </pre>
+     *
      * <code>string service_list_package = 4;</code>
      */
     public Builder setServiceListPackageBytes(
@@ -846,6 +990,10 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object serviceListName_ = "";
     /**
+     * <pre>
+     * The name of the property at which the mock server list will be initialized at.
+     * </pre>
+     *
      * <code>string service_list_name = 5;</code>
      */
     public java.lang.String getServiceListName() {
@@ -861,6 +1009,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The name of the property at which the mock server list will be initialized at.
+     * </pre>
+     *
      * <code>string service_list_name = 5;</code>
      */
     public com.google.protobuf.ByteString
@@ -877,6 +1029,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The name of the property at which the mock server list will be initialized at.
+     * </pre>
+     *
      * <code>string service_list_name = 5;</code>
      */
     public Builder setServiceListName(
@@ -890,6 +1046,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The name of the property at which the mock server list will be initialized at.
+     * </pre>
+     *
      * <code>string service_list_name = 5;</code>
      */
     public Builder clearServiceListName() {
@@ -899,6 +1059,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The name of the property at which the mock server list will be initialized at.
+     * </pre>
+     *
      * <code>string service_list_name = 5;</code>
      */
     public Builder setServiceListNameBytes(

@@ -4,6 +4,10 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Message backing the root of a Kroto+ configuration file.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.CompilerConfig}
  */
 public  final class CompilerConfig extends
@@ -16,7 +20,6 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private CompilerConfig() {
-    suppressDeprecationWarnings_ = false;
     grpcStubExts_ = java.util.Collections.emptyList();
     mockServices_ = java.util.Collections.emptyList();
     protoBuilders_ = java.util.Collections.emptyList();
@@ -49,60 +52,55 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          case 8: {
-
-            suppressDeprecationWarnings_ = input.readBool();
-            break;
-          }
           case 162: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
               grpcStubExts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions>();
-              mutable_bitField0_ |= 0x00000002;
+              mutable_bitField0_ |= 0x00000001;
             }
             grpcStubExts_.add(
                 input.readMessage(com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.parser(), extensionRegistry));
             break;
           }
           case 170: {
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
               mockServices_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions>();
-              mutable_bitField0_ |= 0x00000004;
+              mutable_bitField0_ |= 0x00000002;
             }
             mockServices_.add(
                 input.readMessage(com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.parser(), extensionRegistry));
             break;
           }
           case 178: {
-            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
               protoBuilders_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions>();
-              mutable_bitField0_ |= 0x00000008;
+              mutable_bitField0_ |= 0x00000004;
             }
             protoBuilders_.add(
                 input.readMessage(com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.parser(), extensionRegistry));
             break;
           }
           case 186: {
-            if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
               extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions>();
-              mutable_bitField0_ |= 0x00000010;
+              mutable_bitField0_ |= 0x00000008;
             }
             extendableMessages_.add(
                 input.readMessage(com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.parser(), extensionRegistry));
             break;
           }
           case 194: {
-            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+            if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
               insertions_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions>();
-              mutable_bitField0_ |= 0x00000020;
+              mutable_bitField0_ |= 0x00000010;
             }
             insertions_.add(
                 input.readMessage(com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.parser(), extensionRegistry));
             break;
           }
           case 202: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
               generatorScripts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions>();
-              mutable_bitField0_ |= 0x00000040;
+              mutable_bitField0_ |= 0x00000020;
             }
             generatorScripts_.add(
                 input.readMessage(com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.parser(), extensionRegistry));
@@ -123,22 +121,22 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
         grpcStubExts_ = java.util.Collections.unmodifiableList(grpcStubExts_);
       }
-      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
         mockServices_ = java.util.Collections.unmodifiableList(mockServices_);
       }
-      if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
         protoBuilders_ = java.util.Collections.unmodifiableList(protoBuilders_);
       }
-      if (((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
         extendableMessages_ = java.util.Collections.unmodifiableList(extendableMessages_);
       }
-      if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
         insertions_ = java.util.Collections.unmodifiableList(insertions_);
       }
-      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
         generatorScripts_ = java.util.Collections.unmodifiableList(generatorScripts_);
       }
       this.unknownFields = unknownFields.build();
@@ -158,25 +156,23 @@ private static final long serialVersionUID = 0L;
             com.github.marcoferrer.krotoplus.config.CompilerConfig.class, com.github.marcoferrer.krotoplus.config.CompilerConfig.Builder.class);
   }
 
-  private int bitField0_;
-  public static final int SUPPRESS_DEPRECATION_WARNINGS_FIELD_NUMBER = 1;
-  private boolean suppressDeprecationWarnings_;
-  /**
-   * <code>bool suppress_deprecation_warnings = 1;</code>
-   */
-  public boolean getSuppressDeprecationWarnings() {
-    return suppressDeprecationWarnings_;
-  }
-
   public static final int GRPC_STUB_EXTS_FIELD_NUMBER = 20;
   private java.util.List<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions> grpcStubExts_;
   /**
+   * <pre>
+   * Configuration entries for the 'gRPC Stub Extensions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
    */
   public java.util.List<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions> getGrpcStubExtsList() {
     return grpcStubExts_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'gRPC Stub Extensions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
    */
   public java.util.List<? extends com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptionsOrBuilder> 
@@ -184,18 +180,30 @@ private static final long serialVersionUID = 0L;
     return grpcStubExts_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'gRPC Stub Extensions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
    */
   public int getGrpcStubExtsCount() {
     return grpcStubExts_.size();
   }
   /**
+   * <pre>
+   * Configuration entries for the 'gRPC Stub Extensions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
    */
   public com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions getGrpcStubExts(int index) {
     return grpcStubExts_.get(index);
   }
   /**
+   * <pre>
+   * Configuration entries for the 'gRPC Stub Extensions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
    */
   public com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptionsOrBuilder getGrpcStubExtsOrBuilder(
@@ -206,12 +214,20 @@ private static final long serialVersionUID = 0L;
   public static final int MOCK_SERVICES_FIELD_NUMBER = 21;
   private java.util.List<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions> mockServices_;
   /**
+   * <pre>
+   * Configuration entries for the 'Mock Service' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
    */
   public java.util.List<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions> getMockServicesList() {
     return mockServices_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Mock Service' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
    */
   public java.util.List<? extends com.github.marcoferrer.krotoplus.config.MockServicesGenOptionsOrBuilder> 
@@ -219,18 +235,30 @@ private static final long serialVersionUID = 0L;
     return mockServices_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Mock Service' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
    */
   public int getMockServicesCount() {
     return mockServices_.size();
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Mock Service' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
    */
   public com.github.marcoferrer.krotoplus.config.MockServicesGenOptions getMockServices(int index) {
     return mockServices_.get(index);
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Mock Service' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
    */
   public com.github.marcoferrer.krotoplus.config.MockServicesGenOptionsOrBuilder getMockServicesOrBuilder(
@@ -241,12 +269,20 @@ private static final long serialVersionUID = 0L;
   public static final int PROTO_BUILDERS_FIELD_NUMBER = 22;
   private java.util.List<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions> protoBuilders_;
   /**
+   * <pre>
+   * Configuration entries for the 'Proto Builders' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
    */
   public java.util.List<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions> getProtoBuildersList() {
     return protoBuilders_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Proto Builders' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
    */
   public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptionsOrBuilder> 
@@ -254,18 +290,30 @@ private static final long serialVersionUID = 0L;
     return protoBuilders_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Proto Builders' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
    */
   public int getProtoBuildersCount() {
     return protoBuilders_.size();
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Proto Builders' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
    */
   public com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions getProtoBuilders(int index) {
     return protoBuilders_.get(index);
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Proto Builders' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
    */
   public com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptionsOrBuilder getProtoBuildersOrBuilder(
@@ -276,12 +324,20 @@ private static final long serialVersionUID = 0L;
   public static final int EXTENDABLE_MESSAGES_FIELD_NUMBER = 23;
   private java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> extendableMessages_;
   /**
+   * <pre>
+   * Configuration entries for the 'Extendable Messages' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
    */
   public java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> getExtendableMessagesList() {
     return extendableMessages_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Extendable Messages' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
    */
   public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> 
@@ -289,18 +345,30 @@ private static final long serialVersionUID = 0L;
     return extendableMessages_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Extendable Messages' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
    */
   public int getExtendableMessagesCount() {
     return extendableMessages_.size();
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Extendable Messages' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
    */
   public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getExtendableMessages(int index) {
     return extendableMessages_.get(index);
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Extendable Messages' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
    */
   public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
@@ -311,12 +379,20 @@ private static final long serialVersionUID = 0L;
   public static final int INSERTIONS_FIELD_NUMBER = 24;
   private java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions> insertions_;
   /**
+   * <pre>
+   * Configuration entries for the 'Protoc Insertions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
    */
   public java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions> getInsertionsList() {
     return insertions_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Protoc Insertions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
    */
   public java.util.List<? extends com.github.marcoferrer.krotoplus.config.InsertionsGenOptionsOrBuilder> 
@@ -324,18 +400,30 @@ private static final long serialVersionUID = 0L;
     return insertions_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Protoc Insertions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
    */
   public int getInsertionsCount() {
     return insertions_.size();
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Protoc Insertions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
    */
   public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions getInsertions(int index) {
     return insertions_.get(index);
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Protoc Insertions' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
    */
   public com.github.marcoferrer.krotoplus.config.InsertionsGenOptionsOrBuilder getInsertionsOrBuilder(
@@ -346,12 +434,20 @@ private static final long serialVersionUID = 0L;
   public static final int GENERATOR_SCRIPTS_FIELD_NUMBER = 25;
   private java.util.List<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions> generatorScripts_;
   /**
+   * <pre>
+   * Configuration entries for the 'Generator Scripts' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
    */
   public java.util.List<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions> getGeneratorScriptsList() {
     return generatorScripts_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Generator Scripts' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
    */
   public java.util.List<? extends com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder> 
@@ -359,18 +455,30 @@ private static final long serialVersionUID = 0L;
     return generatorScripts_;
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Generator Scripts' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
    */
   public int getGeneratorScriptsCount() {
     return generatorScripts_.size();
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Generator Scripts' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
    */
   public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions getGeneratorScripts(int index) {
     return generatorScripts_.get(index);
   }
   /**
+   * <pre>
+   * Configuration entries for the 'Generator Scripts' code generator.
+   * </pre>
+   *
    * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
    */
   public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder getGeneratorScriptsOrBuilder(
@@ -392,9 +500,6 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (suppressDeprecationWarnings_ != false) {
-      output.writeBool(1, suppressDeprecationWarnings_);
-    }
     for (int i = 0; i < grpcStubExts_.size(); i++) {
       output.writeMessage(20, grpcStubExts_.get(i));
     }
@@ -422,10 +527,6 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    if (suppressDeprecationWarnings_ != false) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(1, suppressDeprecationWarnings_);
-    }
     for (int i = 0; i < grpcStubExts_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(20, grpcStubExts_.get(i));
@@ -466,8 +567,6 @@ private static final long serialVersionUID = 0L;
     com.github.marcoferrer.krotoplus.config.CompilerConfig other = (com.github.marcoferrer.krotoplus.config.CompilerConfig) obj;
 
     boolean result = true;
-    result = result && (getSuppressDeprecationWarnings()
-        == other.getSuppressDeprecationWarnings());
     result = result && getGrpcStubExtsList()
         .equals(other.getGrpcStubExtsList());
     result = result && getMockServicesList()
@@ -491,9 +590,6 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    hash = (37 * hash) + SUPPRESS_DEPRECATION_WARNINGS_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-        getSuppressDeprecationWarnings());
     if (getGrpcStubExtsCount() > 0) {
       hash = (37 * hash) + GRPC_STUB_EXTS_FIELD_NUMBER;
       hash = (53 * hash) + getGrpcStubExtsList().hashCode();
@@ -614,6 +710,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Message backing the root of a Kroto+ configuration file.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.CompilerConfig}
    */
   public static final class Builder extends
@@ -657,41 +757,39 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public Builder clear() {
       super.clear();
-      suppressDeprecationWarnings_ = false;
-
       if (grpcStubExtsBuilder_ == null) {
         grpcStubExts_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
       } else {
         grpcStubExtsBuilder_.clear();
       }
       if (mockServicesBuilder_ == null) {
         mockServices_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
       } else {
         mockServicesBuilder_.clear();
       }
       if (protoBuildersBuilder_ == null) {
         protoBuilders_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
       } else {
         protoBuildersBuilder_.clear();
       }
       if (extendableMessagesBuilder_ == null) {
         extendableMessages_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
       } else {
         extendableMessagesBuilder_.clear();
       }
       if (insertionsBuilder_ == null) {
         insertions_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
       } else {
         insertionsBuilder_.clear();
       }
       if (generatorScriptsBuilder_ == null) {
         generatorScripts_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
       } else {
         generatorScriptsBuilder_.clear();
       }
@@ -722,63 +820,60 @@ private static final long serialVersionUID = 0L;
     public com.github.marcoferrer.krotoplus.config.CompilerConfig buildPartial() {
       com.github.marcoferrer.krotoplus.config.CompilerConfig result = new com.github.marcoferrer.krotoplus.config.CompilerConfig(this);
       int from_bitField0_ = bitField0_;
-      int to_bitField0_ = 0;
-      result.suppressDeprecationWarnings_ = suppressDeprecationWarnings_;
       if (grpcStubExtsBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
           grpcStubExts_ = java.util.Collections.unmodifiableList(grpcStubExts_);
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.grpcStubExts_ = grpcStubExts_;
       } else {
         result.grpcStubExts_ = grpcStubExtsBuilder_.build();
       }
       if (mockServicesBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
           mockServices_ = java.util.Collections.unmodifiableList(mockServices_);
-          bitField0_ = (bitField0_ & ~0x00000004);
+          bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.mockServices_ = mockServices_;
       } else {
         result.mockServices_ = mockServicesBuilder_.build();
       }
       if (protoBuildersBuilder_ == null) {
-        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
           protoBuilders_ = java.util.Collections.unmodifiableList(protoBuilders_);
-          bitField0_ = (bitField0_ & ~0x00000008);
+          bitField0_ = (bitField0_ & ~0x00000004);
         }
         result.protoBuilders_ = protoBuilders_;
       } else {
         result.protoBuilders_ = protoBuildersBuilder_.build();
       }
       if (extendableMessagesBuilder_ == null) {
-        if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
           extendableMessages_ = java.util.Collections.unmodifiableList(extendableMessages_);
-          bitField0_ = (bitField0_ & ~0x00000010);
+          bitField0_ = (bitField0_ & ~0x00000008);
         }
         result.extendableMessages_ = extendableMessages_;
       } else {
         result.extendableMessages_ = extendableMessagesBuilder_.build();
       }
       if (insertionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((bitField0_ & 0x00000010) == 0x00000010)) {
           insertions_ = java.util.Collections.unmodifiableList(insertions_);
-          bitField0_ = (bitField0_ & ~0x00000020);
+          bitField0_ = (bitField0_ & ~0x00000010);
         }
         result.insertions_ = insertions_;
       } else {
         result.insertions_ = insertionsBuilder_.build();
       }
       if (generatorScriptsBuilder_ == null) {
-        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((bitField0_ & 0x00000020) == 0x00000020)) {
           generatorScripts_ = java.util.Collections.unmodifiableList(generatorScripts_);
-          bitField0_ = (bitField0_ & ~0x00000040);
+          bitField0_ = (bitField0_ & ~0x00000020);
         }
         result.generatorScripts_ = generatorScripts_;
       } else {
         result.generatorScripts_ = generatorScriptsBuilder_.build();
       }
-      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -827,14 +922,11 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(com.github.marcoferrer.krotoplus.config.CompilerConfig other) {
       if (other == com.github.marcoferrer.krotoplus.config.CompilerConfig.getDefaultInstance()) return this;
-      if (other.getSuppressDeprecationWarnings() != false) {
-        setSuppressDeprecationWarnings(other.getSuppressDeprecationWarnings());
-      }
       if (grpcStubExtsBuilder_ == null) {
         if (!other.grpcStubExts_.isEmpty()) {
           if (grpcStubExts_.isEmpty()) {
             grpcStubExts_ = other.grpcStubExts_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureGrpcStubExtsIsMutable();
             grpcStubExts_.addAll(other.grpcStubExts_);
@@ -847,7 +939,7 @@ private static final long serialVersionUID = 0L;
             grpcStubExtsBuilder_.dispose();
             grpcStubExtsBuilder_ = null;
             grpcStubExts_ = other.grpcStubExts_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
             grpcStubExtsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getGrpcStubExtsFieldBuilder() : null;
@@ -860,7 +952,7 @@ private static final long serialVersionUID = 0L;
         if (!other.mockServices_.isEmpty()) {
           if (mockServices_.isEmpty()) {
             mockServices_ = other.mockServices_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000002);
           } else {
             ensureMockServicesIsMutable();
             mockServices_.addAll(other.mockServices_);
@@ -873,7 +965,7 @@ private static final long serialVersionUID = 0L;
             mockServicesBuilder_.dispose();
             mockServicesBuilder_ = null;
             mockServices_ = other.mockServices_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000002);
             mockServicesBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getMockServicesFieldBuilder() : null;
@@ -886,7 +978,7 @@ private static final long serialVersionUID = 0L;
         if (!other.protoBuilders_.isEmpty()) {
           if (protoBuilders_.isEmpty()) {
             protoBuilders_ = other.protoBuilders_;
-            bitField0_ = (bitField0_ & ~0x00000008);
+            bitField0_ = (bitField0_ & ~0x00000004);
           } else {
             ensureProtoBuildersIsMutable();
             protoBuilders_.addAll(other.protoBuilders_);
@@ -899,7 +991,7 @@ private static final long serialVersionUID = 0L;
             protoBuildersBuilder_.dispose();
             protoBuildersBuilder_ = null;
             protoBuilders_ = other.protoBuilders_;
-            bitField0_ = (bitField0_ & ~0x00000008);
+            bitField0_ = (bitField0_ & ~0x00000004);
             protoBuildersBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getProtoBuildersFieldBuilder() : null;
@@ -912,7 +1004,7 @@ private static final long serialVersionUID = 0L;
         if (!other.extendableMessages_.isEmpty()) {
           if (extendableMessages_.isEmpty()) {
             extendableMessages_ = other.extendableMessages_;
-            bitField0_ = (bitField0_ & ~0x00000010);
+            bitField0_ = (bitField0_ & ~0x00000008);
           } else {
             ensureExtendableMessagesIsMutable();
             extendableMessages_.addAll(other.extendableMessages_);
@@ -925,7 +1017,7 @@ private static final long serialVersionUID = 0L;
             extendableMessagesBuilder_.dispose();
             extendableMessagesBuilder_ = null;
             extendableMessages_ = other.extendableMessages_;
-            bitField0_ = (bitField0_ & ~0x00000010);
+            bitField0_ = (bitField0_ & ~0x00000008);
             extendableMessagesBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getExtendableMessagesFieldBuilder() : null;
@@ -938,7 +1030,7 @@ private static final long serialVersionUID = 0L;
         if (!other.insertions_.isEmpty()) {
           if (insertions_.isEmpty()) {
             insertions_ = other.insertions_;
-            bitField0_ = (bitField0_ & ~0x00000020);
+            bitField0_ = (bitField0_ & ~0x00000010);
           } else {
             ensureInsertionsIsMutable();
             insertions_.addAll(other.insertions_);
@@ -951,7 +1043,7 @@ private static final long serialVersionUID = 0L;
             insertionsBuilder_.dispose();
             insertionsBuilder_ = null;
             insertions_ = other.insertions_;
-            bitField0_ = (bitField0_ & ~0x00000020);
+            bitField0_ = (bitField0_ & ~0x00000010);
             insertionsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getInsertionsFieldBuilder() : null;
@@ -964,7 +1056,7 @@ private static final long serialVersionUID = 0L;
         if (!other.generatorScripts_.isEmpty()) {
           if (generatorScripts_.isEmpty()) {
             generatorScripts_ = other.generatorScripts_;
-            bitField0_ = (bitField0_ & ~0x00000040);
+            bitField0_ = (bitField0_ & ~0x00000020);
           } else {
             ensureGeneratorScriptsIsMutable();
             generatorScripts_.addAll(other.generatorScripts_);
@@ -977,7 +1069,7 @@ private static final long serialVersionUID = 0L;
             generatorScriptsBuilder_.dispose();
             generatorScriptsBuilder_ = null;
             generatorScripts_ = other.generatorScripts_;
-            bitField0_ = (bitField0_ & ~0x00000040);
+            bitField0_ = (bitField0_ & ~0x00000020);
             generatorScriptsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getGeneratorScriptsFieldBuilder() : null;
@@ -1016,38 +1108,12 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private boolean suppressDeprecationWarnings_ ;
-    /**
-     * <code>bool suppress_deprecation_warnings = 1;</code>
-     */
-    public boolean getSuppressDeprecationWarnings() {
-      return suppressDeprecationWarnings_;
-    }
-    /**
-     * <code>bool suppress_deprecation_warnings = 1;</code>
-     */
-    public Builder setSuppressDeprecationWarnings(boolean value) {
-      
-      suppressDeprecationWarnings_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>bool suppress_deprecation_warnings = 1;</code>
-     */
-    public Builder clearSuppressDeprecationWarnings() {
-      
-      suppressDeprecationWarnings_ = false;
-      onChanged();
-      return this;
-    }
-
     private java.util.List<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions> grpcStubExts_ =
       java.util.Collections.emptyList();
     private void ensureGrpcStubExtsIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
         grpcStubExts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions>(grpcStubExts_);
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
        }
     }
 
@@ -1055,6 +1121,10 @@ private static final long serialVersionUID = 0L;
         com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions, com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptionsOrBuilder> grpcStubExtsBuilder_;
 
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions> getGrpcStubExtsList() {
@@ -1065,6 +1135,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public int getGrpcStubExtsCount() {
@@ -1075,6 +1149,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions getGrpcStubExts(int index) {
@@ -1085,6 +1163,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder setGrpcStubExts(
@@ -1102,6 +1184,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder setGrpcStubExts(
@@ -1116,6 +1202,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder addGrpcStubExts(com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions value) {
@@ -1132,6 +1222,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder addGrpcStubExts(
@@ -1149,6 +1243,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder addGrpcStubExts(
@@ -1163,6 +1261,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder addGrpcStubExts(
@@ -1177,6 +1279,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder addAllGrpcStubExts(
@@ -1192,12 +1298,16 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder clearGrpcStubExts() {
       if (grpcStubExtsBuilder_ == null) {
         grpcStubExts_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
       } else {
         grpcStubExtsBuilder_.clear();
@@ -1205,6 +1315,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public Builder removeGrpcStubExts(int index) {
@@ -1218,6 +1332,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.Builder getGrpcStubExtsBuilder(
@@ -1225,6 +1343,10 @@ private static final long serialVersionUID = 0L;
       return getGrpcStubExtsFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptionsOrBuilder getGrpcStubExtsOrBuilder(
@@ -1235,6 +1357,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public java.util.List<? extends com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptionsOrBuilder> 
@@ -1246,6 +1372,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.Builder addGrpcStubExtsBuilder() {
@@ -1253,6 +1383,10 @@ private static final long serialVersionUID = 0L;
           com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.Builder addGrpcStubExtsBuilder(
@@ -1261,6 +1395,10 @@ private static final long serialVersionUID = 0L;
           index, com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'gRPC Stub Extensions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GrpcStubExtsGenOptions grpc_stub_exts = 20;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.Builder> 
@@ -1274,7 +1412,7 @@ private static final long serialVersionUID = 0L;
         grpcStubExtsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions, com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptionsOrBuilder>(
                 grpcStubExts_,
-                ((bitField0_ & 0x00000002) == 0x00000002),
+                ((bitField0_ & 0x00000001) == 0x00000001),
                 getParentForChildren(),
                 isClean());
         grpcStubExts_ = null;
@@ -1285,9 +1423,9 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions> mockServices_ =
       java.util.Collections.emptyList();
     private void ensureMockServicesIsMutable() {
-      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
         mockServices_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions>(mockServices_);
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
        }
     }
 
@@ -1295,6 +1433,10 @@ private static final long serialVersionUID = 0L;
         com.github.marcoferrer.krotoplus.config.MockServicesGenOptions, com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.MockServicesGenOptionsOrBuilder> mockServicesBuilder_;
 
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions> getMockServicesList() {
@@ -1305,6 +1447,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public int getMockServicesCount() {
@@ -1315,6 +1461,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public com.github.marcoferrer.krotoplus.config.MockServicesGenOptions getMockServices(int index) {
@@ -1325,6 +1475,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder setMockServices(
@@ -1342,6 +1496,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder setMockServices(
@@ -1356,6 +1514,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder addMockServices(com.github.marcoferrer.krotoplus.config.MockServicesGenOptions value) {
@@ -1372,6 +1534,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder addMockServices(
@@ -1389,6 +1555,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder addMockServices(
@@ -1403,6 +1573,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder addMockServices(
@@ -1417,6 +1591,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder addAllMockServices(
@@ -1432,12 +1610,16 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder clearMockServices() {
       if (mockServicesBuilder_ == null) {
         mockServices_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
       } else {
         mockServicesBuilder_.clear();
@@ -1445,6 +1627,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public Builder removeMockServices(int index) {
@@ -1458,6 +1644,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.Builder getMockServicesBuilder(
@@ -1465,6 +1655,10 @@ private static final long serialVersionUID = 0L;
       return getMockServicesFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public com.github.marcoferrer.krotoplus.config.MockServicesGenOptionsOrBuilder getMockServicesOrBuilder(
@@ -1475,6 +1669,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public java.util.List<? extends com.github.marcoferrer.krotoplus.config.MockServicesGenOptionsOrBuilder> 
@@ -1486,6 +1684,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.Builder addMockServicesBuilder() {
@@ -1493,6 +1695,10 @@ private static final long serialVersionUID = 0L;
           com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.Builder addMockServicesBuilder(
@@ -1501,6 +1707,10 @@ private static final long serialVersionUID = 0L;
           index, com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Mock Service' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.MockServicesGenOptions mock_services = 21;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.Builder> 
@@ -1514,7 +1724,7 @@ private static final long serialVersionUID = 0L;
         mockServicesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.MockServicesGenOptions, com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.MockServicesGenOptionsOrBuilder>(
                 mockServices_,
-                ((bitField0_ & 0x00000004) == 0x00000004),
+                ((bitField0_ & 0x00000002) == 0x00000002),
                 getParentForChildren(),
                 isClean());
         mockServices_ = null;
@@ -1525,9 +1735,9 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions> protoBuilders_ =
       java.util.Collections.emptyList();
     private void ensureProtoBuildersIsMutable() {
-      if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
         protoBuilders_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions>(protoBuilders_);
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
        }
     }
 
@@ -1535,6 +1745,10 @@ private static final long serialVersionUID = 0L;
         com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions, com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptionsOrBuilder> protoBuildersBuilder_;
 
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions> getProtoBuildersList() {
@@ -1545,6 +1759,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public int getProtoBuildersCount() {
@@ -1555,6 +1773,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions getProtoBuilders(int index) {
@@ -1565,6 +1787,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder setProtoBuilders(
@@ -1582,6 +1808,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder setProtoBuilders(
@@ -1596,6 +1826,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder addProtoBuilders(com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions value) {
@@ -1612,6 +1846,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder addProtoBuilders(
@@ -1629,6 +1867,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder addProtoBuilders(
@@ -1643,6 +1885,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder addProtoBuilders(
@@ -1657,6 +1903,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder addAllProtoBuilders(
@@ -1672,12 +1922,16 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder clearProtoBuilders() {
       if (protoBuildersBuilder_ == null) {
         protoBuilders_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
       } else {
         protoBuildersBuilder_.clear();
@@ -1685,6 +1939,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public Builder removeProtoBuilders(int index) {
@@ -1698,6 +1956,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.Builder getProtoBuildersBuilder(
@@ -1705,6 +1967,10 @@ private static final long serialVersionUID = 0L;
       return getProtoBuildersFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptionsOrBuilder getProtoBuildersOrBuilder(
@@ -1715,6 +1981,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptionsOrBuilder> 
@@ -1726,6 +1996,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.Builder addProtoBuildersBuilder() {
@@ -1733,6 +2007,10 @@ private static final long serialVersionUID = 0L;
           com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.Builder addProtoBuildersBuilder(
@@ -1741,6 +2019,10 @@ private static final long serialVersionUID = 0L;
           index, com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Proto Builders' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ProtoBuildersGenOptions proto_builders = 22;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.Builder> 
@@ -1754,7 +2036,7 @@ private static final long serialVersionUID = 0L;
         protoBuildersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions, com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptionsOrBuilder>(
                 protoBuilders_,
-                ((bitField0_ & 0x00000008) == 0x00000008),
+                ((bitField0_ & 0x00000004) == 0x00000004),
                 getParentForChildren(),
                 isClean());
         protoBuilders_ = null;
@@ -1765,9 +2047,9 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> extendableMessages_ =
       java.util.Collections.emptyList();
     private void ensureExtendableMessagesIsMutable() {
-      if (!((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (!((bitField0_ & 0x00000008) == 0x00000008)) {
         extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions>(extendableMessages_);
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
        }
     }
 
@@ -1775,6 +2057,10 @@ private static final long serialVersionUID = 0L;
         com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> extendableMessagesBuilder_;
 
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> getExtendableMessagesList() {
@@ -1785,6 +2071,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public int getExtendableMessagesCount() {
@@ -1795,6 +2085,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getExtendableMessages(int index) {
@@ -1805,6 +2099,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder setExtendableMessages(
@@ -1822,6 +2120,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder setExtendableMessages(
@@ -1836,6 +2138,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addExtendableMessages(com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions value) {
@@ -1852,6 +2158,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addExtendableMessages(
@@ -1869,6 +2179,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addExtendableMessages(
@@ -1883,6 +2197,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addExtendableMessages(
@@ -1897,6 +2215,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addAllExtendableMessages(
@@ -1912,12 +2234,16 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder clearExtendableMessages() {
       if (extendableMessagesBuilder_ == null) {
         extendableMessages_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         onChanged();
       } else {
         extendableMessagesBuilder_.clear();
@@ -1925,6 +2251,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder removeExtendableMessages(int index) {
@@ -1938,6 +2268,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder getExtendableMessagesBuilder(
@@ -1945,6 +2279,10 @@ private static final long serialVersionUID = 0L;
       return getExtendableMessagesFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
@@ -1955,6 +2293,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> 
@@ -1966,6 +2308,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder addExtendableMessagesBuilder() {
@@ -1973,6 +2319,10 @@ private static final long serialVersionUID = 0L;
           com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder addExtendableMessagesBuilder(
@@ -1981,6 +2331,10 @@ private static final long serialVersionUID = 0L;
           index, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Extendable Messages' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder> 
@@ -1994,7 +2348,7 @@ private static final long serialVersionUID = 0L;
         extendableMessagesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder>(
                 extendableMessages_,
-                ((bitField0_ & 0x00000010) == 0x00000010),
+                ((bitField0_ & 0x00000008) == 0x00000008),
                 getParentForChildren(),
                 isClean());
         extendableMessages_ = null;
@@ -2005,9 +2359,9 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions> insertions_ =
       java.util.Collections.emptyList();
     private void ensureInsertionsIsMutable() {
-      if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (!((bitField0_ & 0x00000010) == 0x00000010)) {
         insertions_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions>(insertions_);
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
        }
     }
 
@@ -2015,6 +2369,10 @@ private static final long serialVersionUID = 0L;
         com.github.marcoferrer.krotoplus.config.InsertionsGenOptions, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.InsertionsGenOptionsOrBuilder> insertionsBuilder_;
 
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions> getInsertionsList() {
@@ -2025,6 +2383,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public int getInsertionsCount() {
@@ -2035,6 +2397,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions getInsertions(int index) {
@@ -2045,6 +2411,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder setInsertions(
@@ -2062,6 +2432,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder setInsertions(
@@ -2076,6 +2450,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder addInsertions(com.github.marcoferrer.krotoplus.config.InsertionsGenOptions value) {
@@ -2092,6 +2470,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder addInsertions(
@@ -2109,6 +2491,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder addInsertions(
@@ -2123,6 +2509,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder addInsertions(
@@ -2137,6 +2527,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder addAllInsertions(
@@ -2152,12 +2546,16 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder clearInsertions() {
       if (insertionsBuilder_ == null) {
         insertions_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         onChanged();
       } else {
         insertionsBuilder_.clear();
@@ -2165,6 +2563,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public Builder removeInsertions(int index) {
@@ -2178,6 +2580,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Builder getInsertionsBuilder(
@@ -2185,6 +2591,10 @@ private static final long serialVersionUID = 0L;
       return getInsertionsFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptionsOrBuilder getInsertionsOrBuilder(
@@ -2195,6 +2605,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public java.util.List<? extends com.github.marcoferrer.krotoplus.config.InsertionsGenOptionsOrBuilder> 
@@ -2206,6 +2620,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Builder addInsertionsBuilder() {
@@ -2213,6 +2631,10 @@ private static final long serialVersionUID = 0L;
           com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Builder addInsertionsBuilder(
@@ -2221,6 +2643,10 @@ private static final long serialVersionUID = 0L;
           index, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Protoc Insertions' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.InsertionsGenOptions insertions = 24;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Builder> 
@@ -2234,7 +2660,7 @@ private static final long serialVersionUID = 0L;
         insertionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.InsertionsGenOptions, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.InsertionsGenOptionsOrBuilder>(
                 insertions_,
-                ((bitField0_ & 0x00000020) == 0x00000020),
+                ((bitField0_ & 0x00000010) == 0x00000010),
                 getParentForChildren(),
                 isClean());
         insertions_ = null;
@@ -2245,9 +2671,9 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions> generatorScripts_ =
       java.util.Collections.emptyList();
     private void ensureGeneratorScriptsIsMutable() {
-      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (!((bitField0_ & 0x00000020) == 0x00000020)) {
         generatorScripts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions>(generatorScripts_);
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
        }
     }
 
@@ -2255,6 +2681,10 @@ private static final long serialVersionUID = 0L;
         com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder> generatorScriptsBuilder_;
 
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions> getGeneratorScriptsList() {
@@ -2265,6 +2695,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public int getGeneratorScriptsCount() {
@@ -2275,6 +2709,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions getGeneratorScripts(int index) {
@@ -2285,6 +2723,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder setGeneratorScripts(
@@ -2302,6 +2744,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder setGeneratorScripts(
@@ -2316,6 +2762,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder addGeneratorScripts(com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions value) {
@@ -2332,6 +2782,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder addGeneratorScripts(
@@ -2349,6 +2803,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder addGeneratorScripts(
@@ -2363,6 +2821,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder addGeneratorScripts(
@@ -2377,6 +2839,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder addAllGeneratorScripts(
@@ -2392,12 +2858,16 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder clearGeneratorScripts() {
       if (generatorScriptsBuilder_ == null) {
         generatorScripts_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
       } else {
         generatorScriptsBuilder_.clear();
@@ -2405,6 +2875,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public Builder removeGeneratorScripts(int index) {
@@ -2418,6 +2892,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder getGeneratorScriptsBuilder(
@@ -2425,6 +2903,10 @@ private static final long serialVersionUID = 0L;
       return getGeneratorScriptsFieldBuilder().getBuilder(index);
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder getGeneratorScriptsOrBuilder(
@@ -2435,6 +2917,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public java.util.List<? extends com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder> 
@@ -2446,6 +2932,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder addGeneratorScriptsBuilder() {
@@ -2453,6 +2943,10 @@ private static final long serialVersionUID = 0L;
           com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder addGeneratorScriptsBuilder(
@@ -2461,6 +2955,10 @@ private static final long serialVersionUID = 0L;
           index, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.getDefaultInstance());
     }
     /**
+     * <pre>
+     * Configuration entries for the 'Generator Scripts' code generator.
+     * </pre>
+     *
      * <code>repeated .krotoplus.compiler.GeneratorScriptsGenOptions generator_scripts = 25;</code>
      */
     public java.util.List<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder> 
@@ -2474,7 +2972,7 @@ private static final long serialVersionUID = 0L;
         generatorScriptsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder>(
                 generatorScripts_,
-                ((bitField0_ & 0x00000040) == 0x00000040),
+                ((bitField0_ & 0x00000020) == 0x00000020),
                 getParentForChildren(),
                 isClean());
         generatorScripts_ = null;

@@ -4,6 +4,12 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Configuration used by the 'Extendable Messages' code generator.
+ * Since this code generator relies on the protoc insertion point API,
+ * its outputDir must match that of the protoc java plugin.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.ExtenableMessagesGenOptions}
  */
 public  final class ExtenableMessagesGenOptions extends
@@ -118,18 +124,33 @@ private static final long serialVersionUID = 0L;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public boolean hasFilter() {
     return filter_ != null;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
     return filter_ == null ? com.github.marcoferrer.krotoplus.config.FileFilter.getDefaultInstance() : filter_;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -139,6 +160,10 @@ private static final long serialVersionUID = 0L;
   public static final int COMPANION_FIELD_NAME_FIELD_NUMBER = 2;
   private volatile java.lang.Object companionFieldName_;
   /**
+   * <pre>
+   * The name of the field that will hold a reference to the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_field_name = 2;</code>
    */
   public java.lang.String getCompanionFieldName() {
@@ -154,6 +179,10 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+   * <pre>
+   * The name of the field that will hold a reference to the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_field_name = 2;</code>
    */
   public com.google.protobuf.ByteString
@@ -173,6 +202,10 @@ private static final long serialVersionUID = 0L;
   public static final int COMPANION_CLASS_NAME_FIELD_NUMBER = 3;
   private volatile java.lang.Object companionClassName_;
   /**
+   * <pre>
+   * The name to use for the class declaration of the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_class_name = 3;</code>
    */
   public java.lang.String getCompanionClassName() {
@@ -188,6 +221,10 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+   * <pre>
+   * The name to use for the class declaration of the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_class_name = 3;</code>
    */
   public com.google.protobuf.ByteString
@@ -207,6 +244,14 @@ private static final long serialVersionUID = 0L;
   public static final int COMPANION_EXTENDS_FIELD_NUMBER = 4;
   private volatile java.lang.Object companionExtends_;
   /**
+   * <pre>
+   * The FQ name of the class that the pseudo companion object should extend.
+   * Currently limited to classes with at least one no-args contructor.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_extends = 4;</code>
    */
   public java.lang.String getCompanionExtends() {
@@ -222,6 +267,14 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+   * <pre>
+   * The FQ name of the class that the pseudo companion object should extend.
+   * Currently limited to classes with at least one no-args contructor.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_extends = 4;</code>
    */
   public com.google.protobuf.ByteString
@@ -241,6 +294,13 @@ private static final long serialVersionUID = 0L;
   public static final int COMPANION_IMPLEMENTS_FIELD_NUMBER = 5;
   private volatile java.lang.Object companionImplements_;
   /**
+   * <pre>
+   * The FQ name of an interface the pseudo companion object should implement.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_implements = 5;</code>
    */
   public java.lang.String getCompanionImplements() {
@@ -256,6 +316,13 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+   * <pre>
+   * The FQ name of an interface the pseudo companion object should implement.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_implements = 5;</code>
    */
   public com.google.protobuf.ByteString
@@ -474,6 +541,12 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Configuration used by the 'Extendable Messages' code generator.
+   * Since this code generator relies on the protoc insertion point API,
+   * its outputDir must match that of the protoc java plugin.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.ExtenableMessagesGenOptions}
    */
   public static final class Builder extends
@@ -660,12 +733,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         com.github.marcoferrer.krotoplus.config.FileFilter, com.github.marcoferrer.krotoplus.config.FileFilter.Builder, com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder> filterBuilder_;
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public boolean hasFilter() {
       return filterBuilder_ != null || filter_ != null;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
@@ -676,6 +759,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -692,6 +780,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(
@@ -706,6 +799,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder mergeFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -724,6 +822,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder clearFilter() {
@@ -738,6 +841,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter.Builder getFilterBuilder() {
@@ -746,6 +854,11 @@ private static final long serialVersionUID = 0L;
       return getFilterFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -757,6 +870,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -775,6 +893,10 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object companionFieldName_ = "";
     /**
+     * <pre>
+     * The name of the field that will hold a reference to the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_field_name = 2;</code>
      */
     public java.lang.String getCompanionFieldName() {
@@ -790,6 +912,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The name of the field that will hold a reference to the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_field_name = 2;</code>
      */
     public com.google.protobuf.ByteString
@@ -806,6 +932,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The name of the field that will hold a reference to the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_field_name = 2;</code>
      */
     public Builder setCompanionFieldName(
@@ -819,6 +949,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The name of the field that will hold a reference to the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_field_name = 2;</code>
      */
     public Builder clearCompanionFieldName() {
@@ -828,6 +962,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The name of the field that will hold a reference to the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_field_name = 2;</code>
      */
     public Builder setCompanionFieldNameBytes(
@@ -844,6 +982,10 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object companionClassName_ = "";
     /**
+     * <pre>
+     * The name to use for the class declaration of the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_class_name = 3;</code>
      */
     public java.lang.String getCompanionClassName() {
@@ -859,6 +1001,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The name to use for the class declaration of the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_class_name = 3;</code>
      */
     public com.google.protobuf.ByteString
@@ -875,6 +1021,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The name to use for the class declaration of the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_class_name = 3;</code>
      */
     public Builder setCompanionClassName(
@@ -888,6 +1038,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The name to use for the class declaration of the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_class_name = 3;</code>
      */
     public Builder clearCompanionClassName() {
@@ -897,6 +1051,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The name to use for the class declaration of the pseudo companion object
+     * </pre>
+     *
      * <code>string companion_class_name = 3;</code>
      */
     public Builder setCompanionClassNameBytes(
@@ -913,6 +1071,14 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object companionExtends_ = "";
     /**
+     * <pre>
+     * The FQ name of the class that the pseudo companion object should extend.
+     * Currently limited to classes with at least one no-args contructor.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_extends = 4;</code>
      */
     public java.lang.String getCompanionExtends() {
@@ -928,6 +1094,14 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The FQ name of the class that the pseudo companion object should extend.
+     * Currently limited to classes with at least one no-args contructor.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_extends = 4;</code>
      */
     public com.google.protobuf.ByteString
@@ -944,6 +1118,14 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The FQ name of the class that the pseudo companion object should extend.
+     * Currently limited to classes with at least one no-args contructor.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_extends = 4;</code>
      */
     public Builder setCompanionExtends(
@@ -957,6 +1139,14 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The FQ name of the class that the pseudo companion object should extend.
+     * Currently limited to classes with at least one no-args contructor.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_extends = 4;</code>
      */
     public Builder clearCompanionExtends() {
@@ -966,6 +1156,14 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The FQ name of the class that the pseudo companion object should extend.
+     * Currently limited to classes with at least one no-args contructor.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_extends = 4;</code>
      */
     public Builder setCompanionExtendsBytes(
@@ -982,6 +1180,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object companionImplements_ = "";
     /**
+     * <pre>
+     * The FQ name of an interface the pseudo companion object should implement.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_implements = 5;</code>
      */
     public java.lang.String getCompanionImplements() {
@@ -997,6 +1202,13 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The FQ name of an interface the pseudo companion object should implement.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_implements = 5;</code>
      */
     public com.google.protobuf.ByteString
@@ -1013,6 +1225,13 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * The FQ name of an interface the pseudo companion object should implement.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_implements = 5;</code>
      */
     public Builder setCompanionImplements(
@@ -1026,6 +1245,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The FQ name of an interface the pseudo companion object should implement.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_implements = 5;</code>
      */
     public Builder clearCompanionImplements() {
@@ -1035,6 +1261,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * The FQ name of an interface the pseudo companion object should implement.
+     * Referencing the current message type, use the value '{{message_type}}'.
+     * This is useful when you want to use the current message as a generic type param.
+     * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+     * </pre>
+     *
      * <code>string companion_implements = 5;</code>
      */
     public Builder setCompanionImplementsBytes(

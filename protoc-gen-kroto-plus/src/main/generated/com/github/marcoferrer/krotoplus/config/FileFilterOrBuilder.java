@@ -8,38 +8,102 @@ public interface FileFilterOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   java.util.List<java.lang.String>
       getIncludePathList();
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   int getIncludePathCount();
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   java.lang.String getIncludePath(int index);
   /**
+   * <pre>
+   * List of file paths to include as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * krotoplus/compiler/config.proto
+   * krotoplus/&#42;*
+   * **&#47;compiler/con*.proto
+   * </pre>
+   *
    * <code>repeated string include_path = 1;</code>
    */
   com.google.protobuf.ByteString
       getIncludePathBytes(int index);
 
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   java.util.List<java.lang.String>
       getExcludePathList();
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   int getExcludePathCount();
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   java.lang.String getExcludePath(int index);
   /**
+   * <pre>
+   * List of file paths to exclude as inputs for a code generator.
+   * a valid value start from the root package directory of the source file. Globs are supported
+   * ie.
+   * google/&#42;
+   * </pre>
+   *
    * <code>repeated string exclude_path = 2;</code>
    */
   com.google.protobuf.ByteString

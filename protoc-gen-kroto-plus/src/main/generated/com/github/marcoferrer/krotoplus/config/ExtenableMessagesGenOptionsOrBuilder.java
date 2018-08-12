@@ -8,53 +8,114 @@ public interface ExtenableMessagesGenOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   boolean hasFilter();
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   com.github.marcoferrer.krotoplus.config.FileFilter getFilter();
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder();
 
   /**
+   * <pre>
+   * The name of the field that will hold a reference to the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_field_name = 2;</code>
    */
   java.lang.String getCompanionFieldName();
   /**
+   * <pre>
+   * The name of the field that will hold a reference to the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_field_name = 2;</code>
    */
   com.google.protobuf.ByteString
       getCompanionFieldNameBytes();
 
   /**
+   * <pre>
+   * The name to use for the class declaration of the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_class_name = 3;</code>
    */
   java.lang.String getCompanionClassName();
   /**
+   * <pre>
+   * The name to use for the class declaration of the pseudo companion object
+   * </pre>
+   *
    * <code>string companion_class_name = 3;</code>
    */
   com.google.protobuf.ByteString
       getCompanionClassNameBytes();
 
   /**
+   * <pre>
+   * The FQ name of the class that the pseudo companion object should extend.
+   * Currently limited to classes with at least one no-args contructor.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_extends = 4;</code>
    */
   java.lang.String getCompanionExtends();
   /**
+   * <pre>
+   * The FQ name of the class that the pseudo companion object should extend.
+   * Currently limited to classes with at least one no-args contructor.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_extends = 4;</code>
    */
   com.google.protobuf.ByteString
       getCompanionExtendsBytes();
 
   /**
+   * <pre>
+   * The FQ name of an interface the pseudo companion object should implement.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_implements = 5;</code>
    */
   java.lang.String getCompanionImplements();
   /**
+   * <pre>
+   * The FQ name of an interface the pseudo companion object should implement.
+   * Referencing the current message type, use the value '{{message_type}}'.
+   * This is useful when you want to use the current message as a generic type param.
+   * ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_type}}.Builder&gt;
+   * </pre>
+   *
    * <code>string companion_implements = 5;</code>
    */
   com.google.protobuf.ByteString

@@ -4,6 +4,10 @@
 package com.github.marcoferrer.krotoplus.config;
 
 /**
+ * <pre>
+ * Configuration used by the 'Proto Builders' code generator.
+ * </pre>
+ *
  * Protobuf type {@code krotoplus.compiler.ProtoBuildersGenOptions}
  */
 public  final class ProtoBuildersGenOptions extends
@@ -96,18 +100,33 @@ private static final long serialVersionUID = 0L;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public boolean hasFilter() {
     return filter_ != null;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
     return filter_ == null ? com.github.marcoferrer.krotoplus.config.FileFilter.getDefaultInstance() : filter_;
   }
   /**
+   * <pre>
+   * Filter used for limiting the input files that are processed by the code generator
+   * The default filter will match true against all input files.
+   * </pre>
+   *
    * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
    */
   public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -117,6 +136,14 @@ private static final long serialVersionUID = 0L;
   public static final int UNWRAP_BUILDERS_FIELD_NUMBER = 2;
   private boolean unwrapBuilders_;
   /**
+   * <pre>
+   * By default the generated utility methods for building messages are
+   * wrapped in an object similiar to a proto outer class. For better
+   * ergonomics with code generated using 'java_multiple_files' the
+   * builders can be unwrapped and generated at the root scope of
+   * the output file.
+   * </pre>
+   *
    * <code>bool unwrap_builders = 2;</code>
    */
   public boolean getUnwrapBuilders() {
@@ -297,6 +324,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * Configuration used by the 'Proto Builders' code generator.
+   * </pre>
+   *
    * Protobuf type {@code krotoplus.compiler.ProtoBuildersGenOptions}
    */
   public static final class Builder extends
@@ -461,12 +492,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         com.github.marcoferrer.krotoplus.config.FileFilter, com.github.marcoferrer.krotoplus.config.FileFilter.Builder, com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder> filterBuilder_;
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public boolean hasFilter() {
       return filterBuilder_ != null || filter_ != null;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter getFilter() {
@@ -477,6 +518,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -493,6 +539,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder setFilter(
@@ -507,6 +558,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder mergeFilter(com.github.marcoferrer.krotoplus.config.FileFilter value) {
@@ -525,6 +581,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public Builder clearFilter() {
@@ -539,6 +600,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilter.Builder getFilterBuilder() {
@@ -547,6 +613,11 @@ private static final long serialVersionUID = 0L;
       return getFilterFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     public com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder() {
@@ -558,6 +629,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Filter used for limiting the input files that are processed by the code generator
+     * The default filter will match true against all input files.
+     * </pre>
+     *
      * <code>.krotoplus.compiler.FileFilter filter = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -576,12 +652,28 @@ private static final long serialVersionUID = 0L;
 
     private boolean unwrapBuilders_ ;
     /**
+     * <pre>
+     * By default the generated utility methods for building messages are
+     * wrapped in an object similiar to a proto outer class. For better
+     * ergonomics with code generated using 'java_multiple_files' the
+     * builders can be unwrapped and generated at the root scope of
+     * the output file.
+     * </pre>
+     *
      * <code>bool unwrap_builders = 2;</code>
      */
     public boolean getUnwrapBuilders() {
       return unwrapBuilders_;
     }
     /**
+     * <pre>
+     * By default the generated utility methods for building messages are
+     * wrapped in an object similiar to a proto outer class. For better
+     * ergonomics with code generated using 'java_multiple_files' the
+     * builders can be unwrapped and generated at the root scope of
+     * the output file.
+     * </pre>
+     *
      * <code>bool unwrap_builders = 2;</code>
      */
     public Builder setUnwrapBuilders(boolean value) {
@@ -591,6 +683,14 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * By default the generated utility methods for building messages are
+     * wrapped in an object similiar to a proto outer class. For better
+     * ergonomics with code generated using 'java_multiple_files' the
+     * builders can be unwrapped and generated at the root scope of
+     * the output file.
+     * </pre>
+     *
      * <code>bool unwrap_builders = 2;</code>
      */
     public Builder clearUnwrapBuilders() {

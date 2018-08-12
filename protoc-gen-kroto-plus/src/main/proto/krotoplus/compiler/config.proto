@@ -92,9 +92,9 @@ message GeneratorScriptsGenOptions {
     // The default filter will match true against all input files.
     FileFilter filter = 1;
 
-    repeated string template_script_path = 2;
+    repeated string script_path = 2;
 
-    string template_script_bundle = 3;
+    string script_bundle = 3;
 
 }
 
@@ -152,9 +152,9 @@ message InsertionsGenOptions {
         // ie. com.krotoplus.example.MyCompanionInterface<{{message_type}}, {{message_type}}.Builder>
         repeated string content = 2;
 
-        repeated string template_script_path = 3;
+        repeated string script_path = 3;
 
-        string template_script_bundle = 4;
+        string script_bundle = 4;
 
     }
 }
