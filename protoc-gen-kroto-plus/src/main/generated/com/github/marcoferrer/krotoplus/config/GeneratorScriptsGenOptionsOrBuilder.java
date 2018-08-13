@@ -36,29 +36,81 @@ public interface GeneratorScriptsGenOptionsOrBuilder extends
   com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder getFilterOrBuilder();
 
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   java.util.List<java.lang.String>
       getScriptPathList();
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   int getScriptPathCount();
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   java.lang.String getScriptPath(int index);
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   com.google.protobuf.ByteString
       getScriptPathBytes(int index);
 
   /**
+   * <pre>
+   * Path to the jar containing precompile scripts.
+   * </pre>
+   *
    * <code>string script_bundle = 3;</code>
    */
   java.lang.String getScriptBundle();
   /**
+   * <pre>
+   * Path to the jar containing precompile scripts.
+   * </pre>
+   *
    * <code>string script_bundle = 3;</code>
    */
   com.google.protobuf.ByteString

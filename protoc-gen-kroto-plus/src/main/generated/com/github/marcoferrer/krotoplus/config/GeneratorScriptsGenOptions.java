@@ -151,6 +151,17 @@ private static final long serialVersionUID = 0L;
   public static final int SCRIPT_PATH_FIELD_NUMBER = 2;
   private com.google.protobuf.LazyStringList scriptPath_;
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   public com.google.protobuf.ProtocolStringList
@@ -158,18 +169,51 @@ private static final long serialVersionUID = 0L;
     return scriptPath_;
   }
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   public int getScriptPathCount() {
     return scriptPath_.size();
   }
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   public java.lang.String getScriptPath(int index) {
     return scriptPath_.get(index);
   }
   /**
+   * <pre>
+   * List of paths to kotlin script files to execute for this configuration.
+   * The scripts are compile at runtime by an embedded kotlin compiler.
+   * This comes at the cost of performance.
+   * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+   * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+   * For a more performant option for script execution, precompiled scripts are supported.
+   * Paths for precompile scripts need to match their location in the supplied jar.
+   * ie. 'sampleInsertionScript.kts'
+   * </pre>
+   *
    * <code>repeated string script_path = 2;</code>
    */
   public com.google.protobuf.ByteString
@@ -180,6 +224,10 @@ private static final long serialVersionUID = 0L;
   public static final int SCRIPT_BUNDLE_FIELD_NUMBER = 3;
   private volatile java.lang.Object scriptBundle_;
   /**
+   * <pre>
+   * Path to the jar containing precompile scripts.
+   * </pre>
+   *
    * <code>string script_bundle = 3;</code>
    */
   public java.lang.String getScriptBundle() {
@@ -195,6 +243,10 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+   * <pre>
+   * Path to the jar containing precompile scripts.
+   * </pre>
+   *
    * <code>string script_bundle = 3;</code>
    */
   public com.google.protobuf.ByteString
@@ -756,6 +808,17 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public com.google.protobuf.ProtocolStringList
@@ -763,18 +826,51 @@ private static final long serialVersionUID = 0L;
       return scriptPath_.getUnmodifiableView();
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public int getScriptPathCount() {
       return scriptPath_.size();
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public java.lang.String getScriptPath(int index) {
       return scriptPath_.get(index);
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public com.google.protobuf.ByteString
@@ -782,6 +878,17 @@ private static final long serialVersionUID = 0L;
       return scriptPath_.getByteString(index);
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public Builder setScriptPath(
@@ -795,6 +902,17 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public Builder addScriptPath(
@@ -808,6 +926,17 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public Builder addAllScriptPath(
@@ -819,6 +948,17 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public Builder clearScriptPath() {
@@ -828,6 +968,17 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * List of paths to kotlin script files to execute for this configuration.
+     * The scripts are compile at runtime by an embedded kotlin compiler.
+     * This comes at the cost of performance.
+     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
+     * For a more performant option for script execution, precompiled scripts are supported.
+     * Paths for precompile scripts need to match their location in the supplied jar.
+     * ie. 'sampleInsertionScript.kts'
+     * </pre>
+     *
      * <code>repeated string script_path = 2;</code>
      */
     public Builder addScriptPathBytes(
@@ -844,6 +995,10 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object scriptBundle_ = "";
     /**
+     * <pre>
+     * Path to the jar containing precompile scripts.
+     * </pre>
+     *
      * <code>string script_bundle = 3;</code>
      */
     public java.lang.String getScriptBundle() {
@@ -859,6 +1014,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Path to the jar containing precompile scripts.
+     * </pre>
+     *
      * <code>string script_bundle = 3;</code>
      */
     public com.google.protobuf.ByteString
@@ -875,6 +1034,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Path to the jar containing precompile scripts.
+     * </pre>
+     *
      * <code>string script_bundle = 3;</code>
      */
     public Builder setScriptBundle(
@@ -888,6 +1051,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Path to the jar containing precompile scripts.
+     * </pre>
+     *
      * <code>string script_bundle = 3;</code>
      */
     public Builder clearScriptBundle() {
@@ -897,6 +1064,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Path to the jar containing precompile scripts.
+     * </pre>
+     *
      * <code>string script_bundle = 3;</code>
      */
     public Builder setScriptBundleBytes(
