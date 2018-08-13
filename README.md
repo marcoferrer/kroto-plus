@@ -4,8 +4,6 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Download](https://api.bintray.com/packages/marcoferrer/kroto-plus/kroto-plus-compiler/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/kroto-plus-compiler/_latestVersion)
 
-## Lots of changes, improvements and features coming in *v0.1.3* ❗❗❗ 
-
 * Code compiler has been refactored into a protoc plugin.
 
 You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build file.
@@ -15,9 +13,6 @@ You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build 
       maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
   }
 ```
-**Proper documentation to come shortly**. Until then you can reference the [Example Project](https://github.com/marcoferrer/kroto-plus/tree/master/example-project) or feel free to open an issue with any questions or suggestions.
-
-
 
 ## Version 0.1.3
 
@@ -288,13 +283,13 @@ For type completion, scripts can be couple with a small gradle build script, alt
 Samples are available in the [kp-script](https://github.com/marcoferrer/kroto-plus/tree/master/example-project/kp-scripts) directory of the example project.
 
 There are two categories of scripts available. 
-* ##### **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/sampleInsertionScript.kts)**
+* #### **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/sampleInsertionScript.kts)**
   * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L145)
   * Using the insertion api from the java protoc plugin, users can add code at specific points in generated java classes.
   * This is useful for adding code to allow more idiomatic use of generated java classes from Kotlin.
   * The entire ```ExtendableMessages``` generator can be implemented using an insertion script, an example can be in the example script [extendableMessages.kts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/extendableMessages.kts).   
   * Additional information regarding the insertion api can be found in the [official docs](https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins)
-* ##### **[Generator Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/helloThere.kts)**
+* #### **[Generator Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/helloThere.kts)**
   * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L89)
   * These scripts implement the ```Generator``` interface used by all internal kroto+ code generators.
   * Generators rely on the ```GeneratorContext```, which is available via the property ```context```. 
@@ -350,7 +345,7 @@ protobuf {
 
 ## Configuring Generators
 #### All available generator options are documented in [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto)
-* Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text) formats.
+* Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
 
 #### Credit
 This project relies on [Kotlin Poet](https://github.com/square/kotlinpoet) for building Kotlin sources. A big thanks to all it contributors. 
