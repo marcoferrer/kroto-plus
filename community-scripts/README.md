@@ -1,7 +1,8 @@
 # Community Scripts
 
 Details to come about contribution guidelines
-Required files
+
+Minimum Required files
 * Script
 * build
 * README
