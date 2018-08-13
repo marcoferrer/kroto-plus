@@ -395,5 +395,8 @@ protobuf {
 }
 ```
 
+## Version 0.1.2 (Deprecated)
+Information and samples for legacy versions of kroto plus (pre protoc-gen) can be found [here](https://github.com/marcoferrer/kroto-plus/tree/v0.1.2) 
+
 #### Credit
 This project relies on [Kotlin Poet](https://github.com/square/kotlinpoet) for building Kotlin sources. A big thanks to all it contributors. 
