@@ -346,7 +346,7 @@ protobuf {
 ## Configuring Generators
 #### All available generator options are documented in [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto)
 * Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
-```javascript
+```json
 {
     "protoBuilders": [
         {
@@ -387,8 +387,7 @@ protobuf {
                 },
                 {
                     "point": "CLASS_SCOPE",
-                    "scriptPath": ["extendableMessages.kts"],
-                    "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
+                    "scriptPath": ["kp-scripts/src/main/kotlin/extendableMessages.kts"]
                 }
             ]
         }
