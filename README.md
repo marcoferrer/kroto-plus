@@ -4,17 +4,12 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Download](https://api.bintray.com/packages/marcoferrer/kroto-plus/kroto-plus-compiler/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/kroto-plus-compiler/_latestVersion)
 
-* Code compiler has been refactored into a protoc plugin.
-
-You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build file.
-
-```
-  repositories {
-      maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
-  }
-```
-
 ## Version 0.1.3
+* 0.1.3 is a complete rewrite. [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
+* Most notable changes
+  * Code compiler has been refactored into a protoc plugin.
+  * User defined code generator scripts are now supported.
+  * Previous cli compiler has been deprecated in favor of its protoc implementation
 
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
 * **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
