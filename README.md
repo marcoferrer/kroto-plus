@@ -346,6 +346,55 @@ protobuf {
 ## Configuring Generators
 #### All available generator options are documented in [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto)
 * Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
+```javascript
+{
+    "protoBuilders": [
+        {
+            "filter": { "excludePath": ["google/*"] },
+            "unwrapBuilders": true
+        }
+    ],
+    "grpcStubExts": [
+        { "supportCoroutines": true }
+    ],
+    "extendableMessages": [
+        { "filter": { "excludePath": ["google/*"] } }
+    ],
+    "mockServices": [
+        {
+            "implementAsObject": true,
+            "generateServiceList": true,
+            "serviceListPackage": "com.my.package",
+            "serviceListName": "MyMockServices"
+        }
+    ],
+    "generatorScripts": [
+        {
+            "scriptPath": ["helloThere.kts"],
+            "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
+        }
+    ],
+    "insertions": [
+        {
+            "entry": [
+                {
+                    "point": "MESSAGE_IMPLEMENTS",
+                    "content": ["com.my.Interface<{{message_type}}>"]
+                },
+                {
+                    "point": "BUILDER_IMPLEMENTS",
+                    "content": ["com.my.Interface<{{message_type}}>"]
+                },
+                {
+                    "point": "CLASS_SCOPE",
+                    "scriptPath": ["extendableMessages.kts"],
+                    "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
+                }
+            ]
+        }
+    ]
+}
+```
 
 #### Credit
 This project relies on [Kotlin Poet](https://github.com/square/kotlinpoet) for building Kotlin sources. A big thanks to all it contributors. 
