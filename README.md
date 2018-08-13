@@ -298,11 +298,19 @@ Community contributions for scripts are welcomed and more information regarding 
   
 ## Getting Started With Gradle
 
-#### SNAPSHOT Usage
-Add the following repository to your build
+#### Repositories
+* Available on ```jcenter()``` or ```mavenCentral()```
+* SNAPSHOT
 ```groovy
 repositories {
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+}
+```
+* Bintray
+```groovy
+// Useful when syncronization to jcenter or maven central are taking longer than expected
+repositories {
+    maven { url 'https://dl.bintray.com/marcoferrer/kroto-plus/' }
 }
 ```
 
