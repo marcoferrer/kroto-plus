@@ -16,6 +16,8 @@ object MockServicesGenerator : Generator {
     private val responseQueueClassName =
             ClassName("com.github.marcoferrer.krotoplus.test", "ResponseQueue")
 
+    private val responseQueueExts = mutableSetOf<ResponseQueueExtSpecs>()
+
     override fun invoke(): PluginProtos.CodeGeneratorResponse {
         val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
 
@@ -40,6 +42,16 @@ object MockServicesGenerator : Generator {
                 }
             }
         }
+
+        responseQueueExts.groupBy { it.protoType.protoFile }
+                .forEach{ protoFile, extsList ->
+                    val fileSpecBuilder = FileSpec.builder(protoFile.javaPackage,protoFile.javaOuterClassname+"RespQueueExts")
+                    for((_, addFunSpec, pushFunSpec) in extsList){
+                        fileSpecBuilder.addFunction(addFunSpec)
+                        fileSpecBuilder.addFunction(pushFunSpec)
+                    }
+                    responseBuilder.addFile(fileSpecBuilder.build().toResponseFileProto())
+                }
 
         return responseBuilder
                 .addAllFile(buildMockServiceList(mockServiceListMap))
@@ -204,7 +216,7 @@ object MockServicesGenerator : Generator {
                     val methodBodyTemplate = "return %T.newBuilder().apply(block).build().let{ this.%NMessage(it) }"
 
                     /** Add Message w/ Builder Lambda */
-                    FunSpec.builder("addMessage")
+                    val addFunSpec = FunSpec.builder("addMessage")
                             .addModifiers(KModifier.INLINE)
                             .receiver(queueClassName)
                             .addParameter("block", builderLambdaTypeName)
@@ -214,12 +226,10 @@ object MockServicesGenerator : Generator {
                                     .builder(JvmName::class.asClassName())
                                     .addMember("%S", "add${protoType.name}")
                                     .build())
-                            .also {
-                                this@buildResponseQueueOverloads.addFunction(it.build())
-                            }
+                            .build()
 
                     /** Push Message w/ Builder Lambda */
-                    FunSpec.builder("pushMessage")
+                    val pushFunSpec = FunSpec.builder("pushMessage")
                             .addModifiers(KModifier.INLINE)
                             .receiver(queueClassName)
                             .addParameter("block", builderLambdaTypeName)
@@ -229,12 +239,13 @@ object MockServicesGenerator : Generator {
                                     .builder(JvmName::class.asClassName())
                                     .addMember("%S", "push${protoType.name}")
                                     .build())
-                            .also {
-                                this@buildResponseQueueOverloads.addFunction(it.build())
-                            }
+                            .build()
+
+                    responseQueueExts.add(ResponseQueueExtSpecs(protoType,addFunSpec,pushFunSpec))
                 }
 
         return this@buildResponseQueueOverloads
     }
 
+    data class ResponseQueueExtSpecs(val protoType: ProtoType, val addFunSpec: FunSpec, val pushFunSPec: FunSpec)
 }

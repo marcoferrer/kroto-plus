@@ -59,7 +59,7 @@ bootJar {
     // Eventually we will want to an alternative the to embedded
     // kotlin compiler and possibly use the daemon instead.
     requiresUnpack '**/kotlin-*.jar'
-    requiresUnpack '**/kroto-*.jar'
+    requiresUnpack '**/protoc-gen-kroto-*.jar'
     requiresUnpack '**/protobuf-*.jar'
 
     // Explicitly add our non-executable artifact to the libs directory so that
