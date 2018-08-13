@@ -19,3 +19,7 @@ cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
+jobs:
+  include:
+  - stage: "Tests"
+    script: ./example-project/gradlew test

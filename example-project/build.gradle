@@ -1,16 +1,20 @@
+buildscript {
+    ext {
+        versions = [
+                "protobuf":   '3.6.1',
+                "grpc":       '1.14.0',
+                "kotlin":     '1.2.60',
+                "coroutines": '0.24.0',
+                "krotoplus":  '0.1.3-SNAPSHOT'
+        ]
+    }
+}
+
 plugins{
     id 'idea'
     id 'com.google.protobuf' version '0.8.6'
     id "org.jetbrains.kotlin.jvm" version "1.2.60"
 }
-
-def versions = [
-        "protobuf":   '3.6.1',
-        "grpc":       '1.14.0',
-        "kotlin":     '1.2.60',
-        "coroutines": '0.24.0',
-        "krotoplus":  '0.1.3-SNAPSHOT'
-]
 
 group = 'com.github.marcoferrer.krotoplus'
 version = versions.krotoplus
@@ -31,13 +35,17 @@ compileTestKotlin {
     }
 }
 
-repositories {
-    jcenter()
-    if(versions.krotoplus.endsWith("SNAPSHOT")) {
-        flatDir dirs: "../kroto-plus-message/build/libs/"
-        flatDir dirs: "../kroto-plus-coroutines/build/libs/"
-        flatDir dirs: "../kroto-plus-test/build/libs/"
-        flatDir dirs: "../protoc-gen-kroto-plus/build/libs/"
+allprojects {
+    apply plugin: 'kotlin'
+
+    repositories {
+        jcenter()
+        if(versions.krotoplus.endsWith("SNAPSHOT")) {
+            flatDir dirs: "${rootDir}/../kroto-plus-message/build/libs/"
+            flatDir dirs: "${rootDir}/../kroto-plus-coroutines/build/libs/"
+            flatDir dirs: "${rootDir}/../kroto-plus-test/build/libs/"
+            flatDir dirs: "${rootDir}/../protoc-gen-kroto-plus/build/libs/"
+        }
     }
 }
 
@@ -84,9 +92,13 @@ protobuf {
         def krotoConfig = file("krotoPlusConfig.json")
 
         all().each{ task ->
-            // Adding the config file to the task inputs enabled UP-TO-DATE checks
-            // to include changes to configuration
+            // Adding the config file to the task inputs lets UP-TO-DATE checks
+            // include changes to configuration
             task.inputs.files krotoConfig
+            
+            // If we're using precompiled scripts for improved performance then we
+            // should depend on the jar task for our scripts
+            task.dependsOn ':kp-scripts:jar'
 
             task.plugins {
                 grpc { outputSubDir = "java" }
