@@ -11,6 +11,8 @@
   * User defined code generator scripts are now supported.
   * Previous cli compiler has been deprecated in favor of its protoc implementation
 
+---
+
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
 * **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
 * Generators
