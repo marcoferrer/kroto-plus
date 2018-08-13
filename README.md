@@ -10,7 +10,6 @@ To name a few:
 
 * Code compiler has been refactored into a protoc plugin.
 * **[User defined scripts](https://github.com/marcoferrer/kroto-plus/tree/master/example-project/kp-scripts/src/main/kotlin)**. Custom generators using kotlin scripts (```kts```)
-* More advanced configuration options available, supporting both [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text) formats. These are backed by [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto) (Still requires proper documenting)
 * Improvements to the ```MockService``` api
 * New options, bug fixes, and improvements to generated ```ProtoBuilders```
 * Experimental ```ExtendableMessages``` generator for adding extendable interfaces into java messages.  
@@ -30,19 +29,22 @@ You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build 
 #### (Soon to be deprecated in favor of the protoc implementation in v0.1.3)
 
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
-* **[Stub Rpc Method Overloads](https://github.com/marcoferrer/kroto-plus#stub-rpc-method-overloads)**
+* **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
+* **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
 * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
 * **[Mock Service Generator](https://github.com/marcoferrer/kroto-plus#mock-service-generator)**
-* **[Message Builder Lambda Generator](https://github.com/marcoferrer/kroto-plus#message-builder-lambda-generator)**
+* **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
 * **[User Defined Generator Scripts](https://github.com/marcoferrer/kroto-plus#user-defined-generator-scripts)**
 * **[Community Scripts](https://github.com/marcoferrer/kroto-plus#community-scripts)**
+* **[Extendable Messages Generator](https://github.com/marcoferrer/kroto-plus#extenable-messages-generator)**
 
 ## Code Generators
 
 * There are several built in code generators that each accept unique configuration options.
 * There is also preliminary support for registering custom external code generators. The api for doing so will be documented in the near future and accompanied by an example project.  
 
-### Stub Rpc Method Overloads
+### gRPC Stub Extensions
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L61)
 
 This modules generates extension methods that overload the request message argument for rpc methods with a builder lambda block.
 
@@ -69,8 +71,7 @@ val response = serviceStub.myRpcMethod(Empty.getDefaultInstance())
 val response = serviceStub.myRpcMethod()
 ```
 
-
-For unary rpc methods, the stub overload generator will create the following extensions
+For unary rpc methods, the generator will create the following extensions
 ```kotlin
 //If request type is Empty
 inline fun ExampleServiceStub.myRpcMethod(): ExampleServiceGrpc.MyRpcMethodResponse =
@@ -93,7 +94,7 @@ inline fun ExampleServiceBlockingStub.myRpcMethod(block: ExampleServiceGrpc.MyRp
 ``` 
 
 ### Coroutine Support
-In addition to request message arguments as builder lambda rpc overloads, this module can also generate suspending overloads for rpc calls.
+In addition to request message arguments as builder lambda rpc overloads, suspending overloads for rpc calls can also be generated.
 This allows blocking style rpc calls without the use of the blocking stub, preventing any negative impact on coroutine performance. 
 * This is accomplished by defining extension functions for async service stubs and combining a response observer with a coroutine builder.
 * This option requires the artifact ```kroto-plus-coroutines``` as a dependency. This artifact is small and only consists of the bridging support for response observer to coroutine.
@@ -187,6 +188,7 @@ Bidirectional Rpc Channel Example
 ```   
    
 ### Mock Service Generator
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L196)
 
 This generator creates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses, aiding in unit testing methods that rely on rpc calls.
 [Full example for mocking services in unit tests](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestMockServiceResponseQueue.kt). The code generated relies on the ``` kroto-plus-test ``` artifact as a dependency. It is a small library that provides utility methods used by the mock services. 
@@ -201,11 +203,11 @@ This generator creates mock implementations of proto service definitions. This i
             name = "Star Platinum"
             powerLevel = 500
             speed = 550
-            addAttacks(StandProtoBuilders.Attack {
+            addAttacks {
                 name = "ORA ORA ORA"
                 damage = 100
                 range = StandProto.Attack.Range.CLOSE
-            })
+            }
         }   
            
         //Queue up an error
@@ -233,10 +235,11 @@ This generator creates mock implementations of proto service definitions. This i
     }
 }
 ```
-### Message Builder Lambda Generator
+### Proto Builder Generator
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L74)
 This generator creates lambda based builders for message types
 ```kotlin
-val attack = StandProtoBuilders.Attack {
+val attack = Attack {
                 name = "ORA ORA ORA"
                 damage = 100
                 range = StandProto.Attack.Range.CLOSE
@@ -244,6 +247,9 @@ val attack = StandProtoBuilders.Attack {
 
 //Copy extensions are also generated
 val newAttack = attack.copy { damage = 200 }            
+
+//As well as plus operator extensions 
+val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }
             
 ```
 
@@ -257,21 +263,99 @@ Community contributions for generator scripts are welcomed and more information 
   
 There are two categories of scripts available. 
 * **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/sampleInsertionScript.kts)**
+  * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L145)
   * Using the insertion api from the java protoc plugin, users can add code at specific points in generated java classes.
   * This is useful for adding code to allow more idiomatic use of generated java classes from Kotlin.
   * The entire ```ExtendableMessages``` generator can be implemented using an insertion script, an example can be in the example script [extendableMessages.kts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/extendableMessages.kts).   
   * Additional information regarding the insertion api can be found in the [official docs](https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins)
 * **[Generator Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/helloThere.kts)**
+  * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L89)
   * These scripts implement the ```Generator``` interface used by all internal kroto+ code generators.
   * Generators rely on the ```GeneratorContext```, which is available via the property ```context```. 
   * The ```context``` is used for iterating over files, messages, and services submitted by protoc.
   * Example usage can be found in the [kp-script](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/helloThere.kts) directory of the example project, as well as inside the ```generators``` [package](https://github.com/marcoferrer/kroto-plus/tree/master/protoc-gen-kroto-plus/src/main/kotlin/com/github/marcoferrer/krotoplus/generators) of the ```protoc-gen-kroto-plus``` artifact.
       
+#### Extendable Messages Generator (Experimental)
+Generated code relies on the ```kroto-plus-message``` artifact. This generator adds tagging interfaces to the java classes produce by protoc.
+It also adds pseudo companion objects to provide a way to access proto message APIs in a non static manner.
+The following is a small example of how to write generic methods and extensions that resolve both message and builders type.
+  
+```kotlin
+inline fun <reified M, B> M.copy( block: B.() -> Unit ): M
+        where M : KpMessage<M, B>, B : KpBuilder<M> {
+    return this.toBuilder.apply(block).build()
+}
 
+// Usage
+myMessage.copy { ... }
+
+inline fun <reified M, B> build( block: B.() -> Unit ): M
+        where M : KpMessage<M, B>, B : KpBuilder<M> {
+
+    return KpCompanion.Registry[M::class.java].build(block)
+}
+
+// Usage
+build<MyMessage> { ... }
+
+inline fun <M, B> KpCompanion<M, B>.build( block: B.() -> Unit ): M
+        where B : KpBuilder<M>,M : KpMessage<M,B> {
+
+    return newBuilder().apply(block).build()
+}
+
+// Usage
+MyMessage.Companion.build { ... }
+
+```
+  
 ## Getting Started With Gradle
 
-##### .
+#### SNAPSHOT Usage
+Add the following repository to your build
+```groovy
+repositories {
+    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+}
+```
 
+##### Configuring Protobuf Gradle Plugin
+```groovy
+plugins{
+    id 'com.google.protobuf' version '0.8.6'
+}
 
-This project was made possible by the great work being done by the devs and contributors at [Square](https://github.com/square) and 
-relies heavily on their open source projects [Kotlin Poet](https://github.com/square/kotlinpoet) and [Wire](https://github.com/square/wire)
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:$protobufVersion"}
+
+    plugins {
+        kroto {
+            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:$krotoPlusVersion:jvm8@jar"
+        }
+    }
+
+    generateProtoTasks {
+        def krotoConfig = file("krotoPlusConfig.json")
+
+        all().each{ task ->
+            // Adding the config file to the task inputs enabled UP-TO-DATE checks
+            // to include changes to configuration
+            task.inputs.files krotoConfig
+
+            task.plugins {
+                kroto {
+                    outputSubDir = "java"
+                    option "ConfigPath=$krotoConfig"
+                }
+            }
+        }
+    }
+}
+```
+
+## Configuring Generators
+#### All available generator options are documented in [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto)
+* Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text) formats.
+
+#### Credit
+This project relies on [Kotlin Poet](https://github.com/square/kotlinpoet) for building Kotlin sources. A big thanks to all it contributors. 
