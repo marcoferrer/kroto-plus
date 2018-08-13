@@ -328,8 +328,8 @@ protobuf {
         def krotoConfig = file("krotoPlusConfig.json")
 
         all().each{ task ->
-            // Adding the config file to the task inputs enabled UP-TO-DATE checks
-            // to include changes to configuration
+            // Adding the config file to the task inputs lets UP-TO-DATE checks
+            // include changes to configuration
             task.inputs.files krotoConfig
 
             task.plugins {
