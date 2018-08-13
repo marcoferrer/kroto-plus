@@ -30,8 +30,8 @@ You can try out ```0.1.3-SNAPSHOT``` by adding the following repo to your build 
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
   * **[Extendable Messages Generator](https://github.com/marcoferrer/kroto-plus#extendable-messages-generator-experimental)**
   * **[User Defined Generator Scripts](https://github.com/marcoferrer/kroto-plus#user-defined-generator-scripts)**
-    * Insertion Scripts
-    * Generator Scripts
+    * **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus#insertion-scripts)**
+    * **[Generator Scripts](https://github.com/marcoferrer/kroto-plus#generator-scripts)**
 
 ## Code Generators
 
