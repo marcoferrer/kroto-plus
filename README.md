@@ -5,11 +5,11 @@
 [ ![Download](https://api.bintray.com/packages/marcoferrer/kroto-plus/protoc-gen-kroto-plus/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/protoc-gen-kroto-plus/_latestVersion)
 
 ## Version 0.1.3
-* 0.1.3 is a complete rewrite. [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
+* 0.1.3 Brings many changes in preparation for _0.2.0_. [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
   * Code compiler has been refactored into a protoc plugin.
   * User defined code generator scripts are now supported.
-  * Previous cli compiler has been deprecated in favor of its protoc implementation
+  * Cli compiler has been deprecated in favor of its protoc implementation. It will be remove completely in _0.2.0_
 
 ---
 
@@ -404,4 +404,4 @@ protobuf {
 Information and samples for legacy versions of kroto plus (pre protoc-gen) can be found [here](https://github.com/marcoferrer/kroto-plus/tree/v0.1.2) 
 
 #### Credit
-This project relies on [Kotlin Poet](https://github.com/square/kotlinpoet) for building Kotlin sources. A big thanks to all it contributors. 
+This project relies on [Kotlin Poet](https://github.com/square/kotlinpoet) for building Kotlin sources. A big thanks to all of its contributors. 
