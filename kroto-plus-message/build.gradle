@@ -1,3 +1,4 @@
+description = "Kroto+ Extendable Messages"
 
 dependencies{
     implementation "io.grpc:grpc-protobuf:${versions.grpc}",
