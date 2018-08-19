@@ -57,12 +57,12 @@ object ExtendableMessagesGenerator : Generator {
                                         .setInsertionPoint("class_scope:${protoMessage.canonicalProtoName}")
                                         .setContent(
                                                 """
-                            @javax.annotation.Nonnull
+                            @org.jetbrains.annotations.NotNull
                             public static final $companionClassName $companionFieldName =
                                     $kpPackage.KpCompanion.Registry
                                             .initializeCompanion(${protoMessage.canonicalJavaName}.class, new $companionClassName());
 
-                            @javax.annotation.Nonnull
+                            @org.jetbrains.annotations.NotNull
                             @Override
                             public ${protoMessage.canonicalJavaName}.$companionClassName getCompanion() {
                               return ${protoMessage.canonicalJavaName}.$companionFieldName;
@@ -76,13 +76,13 @@ object ExtendableMessagesGenerator : Generator {
                                 ${if(companionExtends.isNotEmpty()) "super()" else ""}
                               }
 
-                              @javax.annotation.Nonnull
+                              @org.jetbrains.annotations.NotNull
                               @Override
                               public ${protoMessage.canonicalJavaName} getDefaultInstance() {
                                 return ${protoMessage.canonicalJavaName}.getDefaultInstance();
                               }
 
-                              @javax.annotation.Nonnull
+                              @org.jetbrains.annotations.NotNull
                               @Override
                               public ${protoMessage.canonicalJavaName}.Builder newBuilder() {
                                 return ${protoMessage.canonicalJavaName}.newBuilder();
