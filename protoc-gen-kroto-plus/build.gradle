@@ -9,6 +9,7 @@
  */
 apply plugin: 'org.springframework.boot'
 apply plugin: 'com.google.protobuf'
+apply from: "$rootDir/publishing.gradle"
 
 description 'Kroto+ Proto-c Plugin'
 

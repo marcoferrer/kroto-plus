@@ -1,5 +1,7 @@
 description = "Kroto+ Coroutine Support"
 
+apply from: "$rootDir/publishing.gradle"
+
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
     implementation "io.grpc:grpc-protobuf:${versions.grpc}",

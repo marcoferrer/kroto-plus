@@ -1,19 +1,21 @@
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
 
+apply from: "$rootDir/publishing.gradle"
+
 def pluginId = 'com.github.marcoferrer.kroto-plus'
 
 gradlePlugin {
     plugins {
         krotoPlusPlugin {
             id = pluginId
-            implementationClass = 'com.github.marcoferrer.krotoplus.KrotoPlusGradlePlugin'
+            implementationClass = 'com.github.marcoferrer.krotoplus.gradle.KrotoPlusGradlePlugin'
         }
     }
 }
 
 dependencies{
-    implementation project(":kroto-plus-compiler")
+    implementation project(":protoc-gen-kroto-plus")
 }
 
 description = "Kroto+ Gradle Plugin"
@@ -25,8 +27,8 @@ pluginBundle {
     plugins {
         krotoPlusPlugin {
             id = pluginId
-            displayName = 'Kroto+ Compiler Plugin'
-            description = 'Code generator for bringing together Kotlin, Protobuf, Coroutines, and gRPC'
+            displayName = 'Kroto+ Config Plugin'
+            description = 'Protoc plugin for bringing together Kotlin, Protobuf, Coroutines, and gRPC'
             tags = [ 'coroutines', 'kotlin', 'grpc', 'protobuf','protocol-buffers', 'code-generation' ]
         }
     }

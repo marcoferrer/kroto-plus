@@ -1,4 +1,4 @@
-package com.github.marcoferrer.krotoplus
+package com.github.marcoferrer.krotoplus.gradle
 
 import java.io.File
 import kotlin.String
@@ -7,7 +7,7 @@ interface GeneratorModuleConfig{
     fun toCliArgs(defaultOutputPath: String): List<String>
 }
 
-open class StubOverloadGeneratorConfig: GeneratorModuleConfig{
+open class StubOverloadGeneratorConfig: GeneratorModuleConfig {
 
     var outputDir: File? = null
     var supportCoroutines: Boolean = false
@@ -23,7 +23,7 @@ open class StubOverloadGeneratorConfig: GeneratorModuleConfig{
             }
 }
 
-open class MockServicesGeneratorConfig: GeneratorModuleConfig{
+open class MockServicesGeneratorConfig: GeneratorModuleConfig {
 
     var outputDir: File? = null
 
@@ -35,7 +35,7 @@ open class MockServicesGeneratorConfig: GeneratorModuleConfig{
             }
 }
 
-open class ProtoTypeBuildersGeneratorConfig: GeneratorModuleConfig{
+open class ProtoTypeBuildersGeneratorConfig: GeneratorModuleConfig {
 
     override fun toCliArgs(defaultOutputPath: String): List<String> =
             listOf("-ProtoTypeBuilder")

@@ -1,4 +1,4 @@
-package com.github.marcoferrer.krotoplus
+package com.github.marcoferrer.krotoplus.gradle
 
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
