@@ -1,5 +1,6 @@
 ## Version 0.2.0
 _2018-10-03_
+* Deprecated: Legacy CLI Compiler
 
 ## Version 0.1.3
 _2018-08-09_
