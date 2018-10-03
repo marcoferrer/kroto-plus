@@ -116,7 +116,7 @@ object GrpcStubExtsGenerator : Generator {
                 }
                 .returns(method.responseClassName)
                 .addStatement(
-                        "return %W suspendingUnaryCallObserver{ observer -> %N(request,observer) }",
+                        "return suspendingUnaryCallObserver{ observer -> %N(request,observer) }",
                         method.functionName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
 
