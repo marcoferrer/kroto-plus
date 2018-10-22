@@ -3,14 +3,9 @@ package com.github.marcoferrer.krotoplus
 
 import com.github.marcoferrer.krotoplus.generators.*
 import com.google.protobuf.compiler.PluginProtos
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
-import org.jetbrains.kotlin.daemon.KotlinCompileDaemon
-import org.jetbrains.kotlin.script.jsr223.KotlinStandardJsr223ScriptTemplate
-import org.jetbrains.kotlin.script.util.KotlinJars
-import org.jetbrains.kotlin.script.util.classpathFromClasspathProperty
-import org.jetbrains.kotlin.utils.sure
-import java.io.File
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlin.script.experimental.jvm.util.KotlinJars
 
 
 fun main(args: Array<String>) = runBlocking {

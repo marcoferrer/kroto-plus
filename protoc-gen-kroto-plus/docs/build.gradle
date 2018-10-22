@@ -1,0 +1,87 @@
+apply plugin: 'com.google.protobuf'
+
+def isGoLangPresent = hasGolang()
+
+sourceSets{
+    html { compileClasspath = configurations.compileOnly }
+    markdown { compileClasspath = configurations.compileOnly }
+}
+
+dependencies{
+    compileOnly "com.google.protobuf:protobuf-java:${versions.protobuf}"
+
+    htmlProtobuf project(":protoc-gen-kroto-plus")
+    markdownProtobuf project(":protoc-gen-kroto-plus")
+}
+
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}" }
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        docs { path = "${getGoPath()}/bin/protoc-gen-doc" }
+    }
+
+    generatedFilesBaseDir = "${rootProject.projectDir}/docs"
+
+    generateProtoTasks {
+        all().each {
+            it.enabled = isGoLangPresent
+            it.dependsOn getProtocDocGenPlugin
+            it.builtins { remove java }
+            it.plugins {
+                docs{ outputSubDir = "./" }
+            }
+        }
+        ofSourceSet("html").each { task ->
+            task.group = 'documentation'
+            task.plugins {
+                docs { option "html,kroto-plus-config.html" }
+            }
+        }
+        ofSourceSet("markdown").each { task ->
+            task.group = 'documentation'
+            task.plugins {
+                docs { option "markdown,kroto-plus-config.md" }
+            }
+        }
+    }
+}
+
+task allProtoDoc(){
+    group = "documentation"
+    dependsOn 'generateHtmlProto', 'generateMarkdownProto'
+}
+
+task getProtocDocGenPlugin() {
+    onlyIf{ isGoLangPresent && !protocGenDocExists() }
+    doLast {
+        println("GETTING DOC PLUGIN")
+        println("go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc".execute().text)
+    }
+}
+
+static Boolean protocGenDocExists() {
+    try{
+        return new File(getGoPath()+"/bin/protoc-gen-doc").exists()
+    }catch(Exception ignored){
+        return false
+    }
+}
+
+static Boolean hasGolang() {
+    try{
+        return "go version".execute().text.startsWith("go version")
+    }catch(Exception ignored){
+        return false
+    }
+}
+
+static String getGoPath(){
+    try{
+        return "go env GOPATH".execute().text.trim()
+    }catch(Exception ignored){
+        return null
+    }
+}

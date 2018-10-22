@@ -3,8 +3,8 @@ buildscript {
         versions = [
                 "protobuf":   '3.6.1',
                 "grpc":       '1.15.1',
-                "kotlin":     '1.2.60',
-                "coroutines": '0.24.0',
+                "kotlin":     '1.3.0-rc-190',
+                "coroutines": '1.0.0-RC1',
                 "bintray":    '1.7.3',
                 'artifactory':'4.7.1',
                 "springBoot": '2.0.3.RELEASE'
@@ -19,12 +19,13 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
     }
 }
 
 plugins{
     id 'com.google.protobuf' version '0.8.6' apply false
-    id "org.jetbrains.kotlin.jvm" version "1.2.60" apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.3.0-rc-116' apply false
     id "com.jfrog.bintray" version "1.7.3" apply false
     id "com.jfrog.artifactory" version "4.7.1" apply false
     id "org.springframework.boot" version "2.0.3.RELEASE" apply false
@@ -37,6 +38,7 @@ subprojects{ subproject ->
         jcenter()
         mavenCentral()
         maven { url "https://dl.bintray.com/marcoferrer/kroto-plus/" }
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
     }
 
     apply plugin: 'idea'
@@ -44,10 +46,6 @@ subprojects{ subproject ->
 
     group = 'com.github.marcoferrer.krotoplus'
     version = '0.2.0-SNAPSHOT'
-
-    kotlin {
-        experimental { coroutines 'enable' }
-    }
 
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"

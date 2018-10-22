@@ -74,12 +74,6 @@ bootJar {
         attributes 'Implementation-Version': project.version
     }
 }
-task copyJar(type: Copy) {
-    from jar // here it automatically reads jar file produced from jar task
-    into 'destination-folder'
-}
-
-build.dependsOn copyJar
 
 jar.enabled = true
 

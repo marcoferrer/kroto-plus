@@ -4,7 +4,6 @@ import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
-import com.github.marcoferrer.krotoplus.utils.getRegexFilter
 import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
@@ -173,7 +172,7 @@ object GrpcStubExtsGenerator : Generator {
                         method.requestClassName,
                         method.responseClassName
                 ))
-                .addStatement("return %W bidiCallChannel{ responseObserver -> %N(responseObserver) }",
+                .addStatement("return bidiCallChannel{ responseObserver -> %N(responseObserver) }",
                         method.functionName)
                 .also { fileSpecBuilder.addFunction(it.build()) }
     }

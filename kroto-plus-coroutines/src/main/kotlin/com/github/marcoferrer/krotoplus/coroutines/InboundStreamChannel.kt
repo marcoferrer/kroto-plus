@@ -1,8 +1,8 @@
 package com.github.marcoferrer.krotoplus.coroutines
 
 import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 
 class InboundStreamChannel<T>(
         capacity: Int = Channel.UNLIMITED,

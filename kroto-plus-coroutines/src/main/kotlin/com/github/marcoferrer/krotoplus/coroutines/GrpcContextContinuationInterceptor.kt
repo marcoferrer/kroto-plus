@@ -1,16 +1,13 @@
 package com.github.marcoferrer.krotoplus.coroutines
 
-import kotlinx.coroutines.experimental.CoroutineDispatcher
-import kotlinx.coroutines.experimental.DefaultDispatcher
-import kotlin.coroutines.experimental.AbstractCoroutineContextElement
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.ContinuationInterceptor
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.*
 
-
+@Deprecated("Deprecated in favor of ThreadLocalElement",ReplaceWith("GrpcContextElement"))
 class GrpcContextContinuationInterceptor(
         val grpcContext: io.grpc.Context = io.grpc.Context.current(),
-        private val dispatcher: CoroutineDispatcher = DefaultDispatcher
+        private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AbstractCoroutineContextElement(ContinuationInterceptor), ContinuationInterceptor {
 
     override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> =
@@ -31,16 +28,14 @@ class GrpcContextContinuationInterceptor(
             }
         }
 
-        override fun resume(value: T): Unit = wrap { continuation.resume(value) }
+        override fun resumeWith(value: Result<T>): Unit = wrap { continuation.resumeWith(value) }
 
-        override fun resumeWithException(exception: Throwable): Unit = wrap {
-            continuation.resumeWithException(exception)
-        }
     }
 }
 
+@Deprecated("Deprecated in favor of ThreadLocalElement",ReplaceWith("asContextElement"))
 fun io.grpc.Context.asContinuationInterceptor(
-        dispatcher: CoroutineDispatcher = DefaultDispatcher
+        dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) = GrpcContextContinuationInterceptor(
         grpcContext = this,
         dispatcher = dispatcher

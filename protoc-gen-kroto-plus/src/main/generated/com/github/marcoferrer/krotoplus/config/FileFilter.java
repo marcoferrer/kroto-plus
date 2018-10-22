@@ -112,7 +112,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * List of file paths to include as inputs for a code generator.
-   * a valid value start from the root package directory of the source file. Globs are supported
+   * A valid value starts from the root package directory of the source file. Globs are supported
    * ie.
    * krotoplus/compiler/config.proto
    * krotoplus/&#42;*
@@ -128,7 +128,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * List of file paths to include as inputs for a code generator.
-   * a valid value start from the root package directory of the source file. Globs are supported
+   * A valid value starts from the root package directory of the source file. Globs are supported
    * ie.
    * krotoplus/compiler/config.proto
    * krotoplus/&#42;*
@@ -143,7 +143,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * List of file paths to include as inputs for a code generator.
-   * a valid value start from the root package directory of the source file. Globs are supported
+   * A valid value starts from the root package directory of the source file. Globs are supported
    * ie.
    * krotoplus/compiler/config.proto
    * krotoplus/&#42;*
@@ -158,7 +158,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * List of file paths to include as inputs for a code generator.
-   * a valid value start from the root package directory of the source file. Globs are supported
+   * A valid value starts from the root package directory of the source file. Globs are supported
    * ie.
    * krotoplus/compiler/config.proto
    * krotoplus/&#42;*
@@ -178,8 +178,7 @@ private static final long serialVersionUID = 0L;
    * <pre>
    * List of file paths to exclude as inputs for a code generator.
    * a valid value start from the root package directory of the source file. Globs are supported
-   * ie.
-   * google/&#42;
+   * ie. google/&#42;
    * </pre>
    *
    * <code>repeated string exclude_path = 2;</code>
@@ -192,8 +191,7 @@ private static final long serialVersionUID = 0L;
    * <pre>
    * List of file paths to exclude as inputs for a code generator.
    * a valid value start from the root package directory of the source file. Globs are supported
-   * ie.
-   * google/&#42;
+   * ie. google/&#42;
    * </pre>
    *
    * <code>repeated string exclude_path = 2;</code>
@@ -205,8 +203,7 @@ private static final long serialVersionUID = 0L;
    * <pre>
    * List of file paths to exclude as inputs for a code generator.
    * a valid value start from the root package directory of the source file. Globs are supported
-   * ie.
-   * google/&#42;
+   * ie. google/&#42;
    * </pre>
    *
    * <code>repeated string exclude_path = 2;</code>
@@ -218,8 +215,7 @@ private static final long serialVersionUID = 0L;
    * <pre>
    * List of file paths to exclude as inputs for a code generator.
    * a valid value start from the root package directory of the source file. Globs are supported
-   * ie.
-   * google/&#42;
+   * ie. google/&#42;
    * </pre>
    *
    * <code>repeated string exclude_path = 2;</code>
@@ -602,7 +598,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -618,7 +614,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -633,7 +629,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -648,7 +644,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -664,7 +660,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -686,7 +682,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -708,7 +704,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -728,7 +724,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -746,7 +742,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <pre>
      * List of file paths to include as inputs for a code generator.
-     * a valid value start from the root package directory of the source file. Globs are supported
+     * A valid value starts from the root package directory of the source file. Globs are supported
      * ie.
      * krotoplus/compiler/config.proto
      * krotoplus/&#42;*
@@ -778,8 +774,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -792,8 +787,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -805,8 +799,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -818,8 +811,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -832,8 +824,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -852,8 +843,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -872,8 +862,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -890,8 +879,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>
@@ -906,8 +894,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of file paths to exclude as inputs for a code generator.
      * a valid value start from the root package directory of the source file. Globs are supported
-     * ie.
-     * google/&#42;
+     * ie. google/&#42;
      * </pre>
      *
      * <code>repeated string exclude_path = 2;</code>

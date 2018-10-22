@@ -12,7 +12,7 @@ import jojo.bizarre.adventure.stand.MockStandService
 import jojo.bizarre.adventure.stand.StandProto
 import jojo.bizarre.adventure.stand.addAttacks
 import jojo.bizarre.adventure.stand.addMessage
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest

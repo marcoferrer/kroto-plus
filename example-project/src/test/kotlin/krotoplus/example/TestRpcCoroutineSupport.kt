@@ -5,13 +5,17 @@ import io.grpc.ManagedChannel
 import io.grpc.testing.GrpcServerRule
 import jojo.bizarre.adventure.character.MockCharacterService
 import jojo.bizarre.adventure.stand.*
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.fail
 
 class TestSuspendingRpcCalls{
 
@@ -100,13 +104,15 @@ class TestSuspendingRpcCalls{
         val respChannel = stub.getAllStandsStream()
 
         for((_,expected) in stands){
-            assertEquals(expected.toString(), respChannel.receive().toString())
+            assertEquals(expected, respChannel.receive())
         }
 
         assertNull(respChannel.receiveOrNull(),"Response quantity was greater than expected")
     }
 
-    @Test fun `Test Bidirectional Rpc Channel`() = runBlocking {
+
+    @UseExperimental(ExperimentalCoroutinesApi::class)
+    @Test fun `Test Bidirectional Rpc Channel`(): Unit = runBlocking {
 
         val stub = StandServiceGrpc.newStub(grpcServerRule.channel)
 
@@ -115,25 +121,25 @@ class TestSuspendingRpcCalls{
         //Our dummy service is sending three responses for each request it receives
 
         rpcChannel.send(characters["Dio Brando"]!!)
-        stands["The World"].toString().let {
-            assertEquals(it,rpcChannel.receive().toString())
-            assertEquals(it,rpcChannel.receive().toString())
-            assertEquals(it,rpcChannel.receive().toString())
+        stands["The World"].let {
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
         }
 
         rpcChannel.send(characters["Jotaro Kujo"]!!)
-        stands["Star Platinum"].toString().let {
-            assertEquals(it,rpcChannel.receive().toString())
-            assertEquals(it,rpcChannel.receive().toString())
-            assertEquals(it,rpcChannel.receive().toString())
+        stands["Star Platinum"].let {
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
         }
 
         rpcChannel.close()
-
-        assertNull(rpcChannel.receiveOrNull(),"Response quantity was greater than expected")
+        try{
+            rpcChannel.receive()
+            fail("Response quantity was greater than expected")
+        }catch (e: Throwable){
+            assert(e is ClosedReceiveChannelException)
+        }
     }
-
 }
-
-
-
