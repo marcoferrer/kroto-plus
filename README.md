@@ -353,8 +353,43 @@ protobuf {
 ```
 
 ## Configuring Generators
-#### All available generator options are documented in [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto)
+#### All available generator options are documented in [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto) and [kroto-plus-config.md](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md)
 * Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
+#### Asciipb (Proto Plain Text)
+```asciipb
+proto_builders {
+    filter { exclude_path: "google/*" }
+    unwrap_builders: true
+}
+grpc_stub_exts {
+    support_coroutines: true
+}
+generator_scripts {
+    script_path: "helloThere.kts"
+    script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
+}
+insertions {
+    filter {
+        include_path: "jojo/bizarre/adventure/character/*"
+    }
+    entry { point: MESSAGE_IMPLEMENTS
+        script_path: "extendableMessages.kts"
+        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
+    }
+    entry { point: BUILDER_IMPLEMENTS
+        script_path: "extendableMessages.kts"
+        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
+    }
+    entry { point: CLASS_SCOPE
+        script_path: "extendableMessages.kts"
+        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
+    }
+    entry { point: OUTER_CLASS_SCOPE
+        script_path: "kp-scripts/src/main/kotlin/sampleInsertionScript.kts"
+    }
+}
+```
+#### JSON
 ```json
 {
     "protoBuilders": [

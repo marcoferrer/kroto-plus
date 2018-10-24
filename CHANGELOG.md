@@ -1,5 +1,8 @@
 ## Version 0.2.0
 _2018-10-03_
+* New: Added doc generation for configuration api
+* New: Updated to Kotlin ```1.3.0```
+* New: Updated to Coroutines ```1.0```
 * New: Updated [grpc-java](https://github.com/grpc/grpc-java/releases/tag/v1.15.1) to ```1.15.1```  
 * Deprecated: Legacy CLI Compiler in favor of protoc compiler plugin
 
