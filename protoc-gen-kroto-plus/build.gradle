@@ -60,6 +60,7 @@ bootJar {
     // Eventually we will want to an alternative the to embedded
     // kotlin compiler and possibly use the daemon instead.
     requiresUnpack '**/kotlin-*.jar'
+    requiresUnpack '**/kotlinpoet*.jar'
     requiresUnpack '**/protoc-gen-kroto-*.jar'
     requiresUnpack '**/protobuf-*.jar'
 
