@@ -1,5 +1,6 @@
 package com.github.marcoferrer.krotoplus.generators
 
+import com.github.marcoferrer.krotoplus.config.InsertionPoint
 import com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.ProtoFile
@@ -54,6 +55,11 @@ object ProtoBuildersGenerator : Generator {
             fileSpecBuilder.addTypes(typeSpec.typeSpecs)
         }else{
             fileSpecBuilder.addType(typeSpec)
+        }
+
+        if(options.useDslMarkers) {
+            fileSpecBuilder.buildDslMarkerInterface(protoFile)
+            responseBuilder.addFiles(protoFile.buildDslInterfaceInsertions())
         }
 
         fileSpecBuilder.build().takeIf { it.members.isNotEmpty() }?.let {
@@ -135,15 +141,67 @@ object ProtoBuildersGenerator : Generator {
                     else FunSpec.builder(fieldNameCamelCase.decapitalize())
                                 .addStatement(statementTemplate, "set$fieldNameCamelCase", protoMessageForField.className)
 
-                    funSpecBuilder
-                            .receiver(protoType.builderClassName)
-                            .addModifiers(KModifier.INLINE)
-                            .addParameter("block", LambdaTypeName.get(
-                                    receiver = protoMessageForField.builderClassName,
-                                    returnType = UNIT ))
-                            .returns(protoType.builderClassName)
-                            .build()
-                }.toList()
+                funSpecBuilder
+                    .receiver(protoType.builderClassName)
+                    .addModifiers(KModifier.INLINE)
+                    .addParameter(
+                        "block", LambdaTypeName.get(
+                            receiver = protoMessageForField.builderClassName,
+                            returnType = UNIT
+                        )
+                    )
+                    .returns(protoType.builderClassName)
+                    .build()
+            }.toList()
+
+
+    private fun FileSpec.Builder.buildDslMarkerInterface(protoFile: ProtoFile) {
+
+        val dslMarker = TypeSpec
+            .annotationBuilder(protoFile.dslAnnotationClassName.simpleName())
+            .addAnnotation(DslMarker::class)
+            .addAnnotation(
+                AnnotationSpec.builder(Target::class)
+                    .addMember("%T.CLASS", AnnotationTarget::class).build()
+            )
+            .addAnnotation(
+                AnnotationSpec.builder(Retention::class)
+                    .addMember("%T.BINARY", AnnotationRetention::class).build()
+            )
+            .build()
+            .also { this@buildDslMarkerInterface.addType(it) }
+
+        TypeSpec.interfaceBuilder(protoFile.dslBuilderClassName.simpleName())
+            .addAnnotation(
+                AnnotationSpec
+                    .builder(ClassName(protoFile.javaPackage, dslMarker.name!!))
+                    .build()
+            )
+            .build()
+            .also { this@buildDslMarkerInterface.addType(it) }
+    }
+
+    private fun ProtoFile.buildDslInterfaceInsertions(): List<PluginProtos.CodeGeneratorResponse.File> =
+        protoMessages
+            .asSequence()
+            .filter { !it.isMapEntry }
+            .map { it.buildDslInsertion() }
+            .toList()
+
+    private fun ProtoMessage.buildDslInsertion() =
+        PluginProtos.CodeGeneratorResponse.File.newBuilder()
+            .apply {
+                name = outputFilePath
+                insertionPoint = "${InsertionPoint.BUILDER_IMPLEMENTS.key}:$canonicalProtoName"
+                content = protoFile.dslBuilderClassName.canonicalName + ","
+            }
+            .build()
+
+    private val ProtoFile.dslAnnotationClassName: ClassName
+        get() = ClassName(javaPackage,"${javaOuterClassname}DslMarker")
+
+    private val ProtoFile.dslBuilderClassName: ClassName
+        get() = ClassName(javaPackage,"${javaOuterClassname}DslBuilder")
 }
 
 private val camelCaseFieldName = { it: String ->

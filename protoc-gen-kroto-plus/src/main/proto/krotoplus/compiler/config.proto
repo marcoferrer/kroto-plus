@@ -82,6 +82,12 @@ message ProtoBuildersGenOptions {
     // builders can be unwrapped and generated at the root scope of
     // the output file.
     bool unwrap_builders = 2;
+
+    // Tag java builder classes with a kotlin interface annotated
+    // with @DslMarker. This requires the kroto-plus output directory to
+    // match the generated java classes directory. Using @DslMarker
+    // provides safer and predictable dsl usage.
+    bool use_dsl_markers = 3;
 }
 
 // Configuration used by the 'Generator Scripts' code generator.

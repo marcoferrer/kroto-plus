@@ -6,6 +6,9 @@ _2018-10-03_
 * New: Updated [grpc-java](https://github.com/grpc/grpc-java/releases/tag/v1.15.1) to ```1.15.1```  
 * Deprecated: Legacy CLI Compiler in favor of protoc compiler plugin
 
+#### Proto Builders (DSL)
+* New: [GH-7](https://github.com/marcoferrer/kroto-plus/issues/7) Support kotlin ```@DslMarker``` annotation for proto builders
+
 ## Version 0.1.3
 _2018-08-09_
 

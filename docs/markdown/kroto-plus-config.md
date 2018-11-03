@@ -188,6 +188,7 @@ Configuration used by the &#39;Proto Builders&#39; code generator.
 | ----- | ---- | ----- | ----------- |
 | filter | [FileFilter](#krotoplus.compiler.FileFilter) |  | Filter used for limiting the input files that are processed by the code generator The default filter will match true against all input files. |
 | unwrap_builders | [bool](#bool) |  | By default the generated utility methods for building messages are wrapped in an object similiar to a proto outer class. For better ergonomics with code generated using &#39;java_multiple_files&#39; the builders can be unwrapped and generated at the root scope of the output file. |
+| use_dsl_markers | [bool](#bool) |  | Tag java builder classes with a kotlin interface annotated with @DslMarker. This requires the kroto-plus output directory to match the generated java classes directory. Using @DslMarker provides safer and predictable dsl usage. |
 
 
 

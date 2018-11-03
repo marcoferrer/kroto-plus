@@ -11,6 +11,12 @@ fun PluginProtos.CodeGeneratorResponse.Builder.addFile(block: PluginProtos.CodeG
     return this
 }
 
+fun PluginProtos.CodeGeneratorResponse.Builder.addFiles(files: Iterable<PluginProtos.CodeGeneratorResponse.File>)
+        : PluginProtos.CodeGeneratorResponse.Builder {
+    for (file in files) addFile(file)
+    return this
+}
+
 fun FileSpec.Builder.addFunctions(funSpecs: Iterable<FunSpec>): FileSpec.Builder{
     for(funSpec in funSpecs) this.addFunction(funSpec)
     return this

@@ -21,6 +21,7 @@ private static final long serialVersionUID = 0L;
   }
   private ProtoBuildersGenOptions() {
     unwrapBuilders_ = false;
+    useDslMarkers_ = false;
   }
 
   @java.lang.Override
@@ -63,6 +64,11 @@ private static final long serialVersionUID = 0L;
           case 16: {
 
             unwrapBuilders_ = input.readBool();
+            break;
+          }
+          case 24: {
+
+            useDslMarkers_ = input.readBool();
             break;
           }
           default: {
@@ -150,6 +156,22 @@ private static final long serialVersionUID = 0L;
     return unwrapBuilders_;
   }
 
+  public static final int USE_DSL_MARKERS_FIELD_NUMBER = 3;
+  private boolean useDslMarkers_;
+  /**
+   * <pre>
+   * Tag java builder classes with a kotlin interface annotated
+   * with &#64;DslMarker. This requires the kroto-plus output directory to
+   * match the generated java classes directory. Using &#64;DslMarker
+   * provides safer and predictable dsl usage.
+   * </pre>
+   *
+   * <code>bool use_dsl_markers = 3;</code>
+   */
+  public boolean getUseDslMarkers() {
+    return useDslMarkers_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -170,6 +192,9 @@ private static final long serialVersionUID = 0L;
     if (unwrapBuilders_ != false) {
       output.writeBool(2, unwrapBuilders_);
     }
+    if (useDslMarkers_ != false) {
+      output.writeBool(3, useDslMarkers_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -186,6 +211,10 @@ private static final long serialVersionUID = 0L;
     if (unwrapBuilders_ != false) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(2, unwrapBuilders_);
+    }
+    if (useDslMarkers_ != false) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(3, useDslMarkers_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -210,6 +239,8 @@ private static final long serialVersionUID = 0L;
     }
     result = result && (getUnwrapBuilders()
         == other.getUnwrapBuilders());
+    result = result && (getUseDslMarkers()
+        == other.getUseDslMarkers());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -228,6 +259,9 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + UNWRAP_BUILDERS_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
         getUnwrapBuilders());
+    hash = (37 * hash) + USE_DSL_MARKERS_FIELD_NUMBER;
+    hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+        getUseDslMarkers());
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -373,6 +407,8 @@ private static final long serialVersionUID = 0L;
       }
       unwrapBuilders_ = false;
 
+      useDslMarkers_ = false;
+
       return this;
     }
 
@@ -405,6 +441,7 @@ private static final long serialVersionUID = 0L;
         result.filter_ = filterBuilder_.build();
       }
       result.unwrapBuilders_ = unwrapBuilders_;
+      result.useDslMarkers_ = useDslMarkers_;
       onBuilt();
       return result;
     }
@@ -458,6 +495,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.getUnwrapBuilders() != false) {
         setUnwrapBuilders(other.getUnwrapBuilders());
+      }
+      if (other.getUseDslMarkers() != false) {
+        setUseDslMarkers(other.getUseDslMarkers());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -696,6 +736,53 @@ private static final long serialVersionUID = 0L;
     public Builder clearUnwrapBuilders() {
       
       unwrapBuilders_ = false;
+      onChanged();
+      return this;
+    }
+
+    private boolean useDslMarkers_ ;
+    /**
+     * <pre>
+     * Tag java builder classes with a kotlin interface annotated
+     * with &#64;DslMarker. This requires the kroto-plus output directory to
+     * match the generated java classes directory. Using &#64;DslMarker
+     * provides safer and predictable dsl usage.
+     * </pre>
+     *
+     * <code>bool use_dsl_markers = 3;</code>
+     */
+    public boolean getUseDslMarkers() {
+      return useDslMarkers_;
+    }
+    /**
+     * <pre>
+     * Tag java builder classes with a kotlin interface annotated
+     * with &#64;DslMarker. This requires the kroto-plus output directory to
+     * match the generated java classes directory. Using &#64;DslMarker
+     * provides safer and predictable dsl usage.
+     * </pre>
+     *
+     * <code>bool use_dsl_markers = 3;</code>
+     */
+    public Builder setUseDslMarkers(boolean value) {
+      
+      useDslMarkers_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Tag java builder classes with a kotlin interface annotated
+     * with &#64;DslMarker. This requires the kroto-plus output directory to
+     * match the generated java classes directory. Using &#64;DslMarker
+     * provides safer and predictable dsl usage.
+     * </pre>
+     *
+     * <code>bool use_dsl_markers = 3;</code>
+     */
+    public Builder clearUseDslMarkers() {
+      
+      useDslMarkers_ = false;
       onChanged();
       return this;
     }

@@ -47,4 +47,16 @@ public interface ProtoBuildersGenOptionsOrBuilder extends
    * <code>bool unwrap_builders = 2;</code>
    */
   boolean getUnwrapBuilders();
+
+  /**
+   * <pre>
+   * Tag java builder classes with a kotlin interface annotated
+   * with &#64;DslMarker. This requires the kroto-plus output directory to
+   * match the generated java classes directory. Using &#64;DslMarker
+   * provides safer and predictable dsl usage.
+   * </pre>
+   *
+   * <code>bool use_dsl_markers = 3;</code>
+   */
+  boolean getUseDslMarkers();
 }
