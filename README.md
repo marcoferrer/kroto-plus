@@ -5,25 +5,25 @@
 [ ![JCenter](https://api.bintray.com/packages/marcoferrer/kroto-plus/protoc-gen-kroto-plus/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/protoc-gen-kroto-plus/_latestVersion)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.marcoferrer.krotoplus/protoc-gen-kroto-plus.svg?label=Maven%20Central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.github.marcoferrer.krotoplus%22%20a%3A%22protoc-gen-kroto-plus%22)
 
-### ___Kotlin 1.3 / Coroutines 1.0 Support - Available Soon___ 
-To try it out in the mean time, use version ```0.2.0-SNAPSHOT``` 
-
-## Version 0.1.3
-* 0.1.3 Brings many changes in preparation for _0.2.0_. [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
+## Version 0.2.0
+* [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
-  * Code compiler has been refactored into a protoc plugin.
-  * User defined code generator scripts are now supported.
-  * Cli compiler has been deprecated in favor of its protoc implementation. It will be remove completely in _0.2.0_
+  * Update to Kotlin 1.3.0
+  * Update to Coroutines 1.0.0
+  * Builder DSL support and safety via Kotlin's ```@DslMarker``` annotation
 
+## Coming Soon
+ * New gradle configuration dsl
+ * Windows executable
 ---
 
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
 * **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
 * Generators
+  * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
     * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
   * **[Mock Service Generator](https://github.com/marcoferrer/kroto-plus#mock-service-generator)**
-  * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
   * **[Extendable Messages Generator](https://github.com/marcoferrer/kroto-plus#extendable-messages-generator-experimental)**
   * **[User Defined Generator Scripts](https://github.com/marcoferrer/kroto-plus#user-defined-generator-scripts)**
     * **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus#insertion-scripts)**
@@ -33,54 +33,78 @@ To try it out in the mean time, use version ```0.2.0-SNAPSHOT```
 
 * There are several built in code generators that each accept unique configuration options.
 
+### Proto Builder Generator
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L74)
+This generator creates lambda based builders for message types
+```kotlin
+    val attack = Attack {
+        name = "ORA ORA ORA"
+        damage = 100
+        range = StandProto.Attack.Range.CLOSE
+    }
+    
+    //Copy extensions are also generated
+    val newAttack = attack.copy { damage = 200 }            
+    
+    //As well as plus operator extensions 
+    val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }
+                
+```
+
+The generated extensions allow composition of proto messages in a dsl style. Support for Kotlin's ```@DslMarker``` annotation is enabled using the configuration option ```useDslMarkers = true```. Using dsl markers relies on protoc insertions, so take care to ensure that the ___kroto-plus___ output directory is the same as the directory for generated ___java___ code  
+
+```kotlin
+     Stand {
+        name = "Star Platinum"
+        powerLevel = 500
+        speed = 550
+        attack {
+            name = "ORA ORA ORA"
+            damage = 100
+            range = StandProto.Attack.Range.CLOSE
+        }
+    }
+```
+
 ### gRPC Stub Extensions
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L61)
 
 This modules generates extension methods that overload the request message argument for rpc methods with a builder lambda block.
 
 ```kotlin
-//Original Java-Style builders
-val response = serviceStub.myRpcMethod(ExampleServiceGrpc.MyRpcMethodRequest
-                                   .newBuilder()
-                                   .setId(100)
-                                   .setName("some name")
-                                   .build())
-                                   
-//Kroto+ Overloaded
-val response = serviceStub.myRpcMethod{
-                         id = 100
-                         name = "some name"
-                    }
+               
+    //Kroto+ Generated Extension
+    val response = serviceStub.myRpcMethod {
+         id = 100
+         name = "some name"
+    }
+
+    //Original Java Fluent builders
+    val response = serviceStub.myRpcMethod(ExampleServiceGrpc.MyRpcMethodRequest
+        .newBuilder()
+        .setId(100)
+        .setName("some name")
+        .build())                  
 ```
 For rpc methods with a request type of ```com.google.protobuf.Empty``` then a no args overload is supplied.
 ```kotlin
-//Original 
-val response = serviceStub.myRpcMethod(Empty.getDefaultInstance())
-                                   
-//Kroto+ Overloaded
-val response = serviceStub.myRpcMethod()
+    //Original 
+    val response = serviceStub.myRpcMethod(Empty.getDefaultInstance())
+                                       
+    //Kroto+ Overloaded
+    val response = serviceStub.myRpcMethod()
 ```
 
 For unary rpc methods, the generator will create the following extensions
 ```kotlin
-//If request type is Empty
-inline fun ExampleServiceStub.myRpcMethod(): ExampleServiceGrpc.MyRpcMethodResponse =
-    myRpcMethod(Empty.getDefaultInstace())
-
-//Otherwise
-
-//Future Stub
-inline fun ExampleServiceFutureStub.myRpcMethod(block: ExampleServiceGrpc.MyRpcMethodRequest.Builder.() -> Unit): ListenableFuture<ExampleServiceGrpc.MyRpcMethodResponse> {
-    val request = ExampleServiceGrpc.MyRpcMethodRequest.newBuilder().apply(block).build()
-    return myRpcMethod(request)
-}
+    //If request type is google.protobuf.Empty then a no-args extension is created for each stub type
+    inline fun ServiceBlockingStub.myRpcMethod(): Response
     
-//BlockingStub
-inline fun ExampleServiceBlockingStub.myRpcMethod(block: ExampleServiceGrpc.MyRpcMethodRequest.Builder.() -> Unit): ExampleServiceGrpc.MyRpcMethodResponse {
-    val request = ExampleServiceGrpc.MyRpcMethodRequest.newBuilder().apply(block).build()
-    return myRpcMethod(request)
-}
-
+    //Future Stub
+    inline fun ServiceFutureStub.myRpcMethod(block: Request.Builder.() -> Unit): ListenableFuture<Response>
+        
+    //BlockingStub
+    inline fun ServiceBlockingStub.myRpcMethod(block: Request.Builder.() -> Unit): Response 
 ``` 
 
 ### Coroutine Support
@@ -89,92 +113,91 @@ This allows blocking style rpc calls without the use of the blocking stub, preve
 * This is accomplished by defining extension functions for async service stubs and combining a response observer with a coroutine builder.
 * This option requires the artifact ```kroto-plus-coroutines``` as a dependency. This artifact is small and only consists of the bridging support for response observer to coroutine.
 ```kotlin
-//Async Stub
-suspend fun ExampleServiceStub.myRpcMethod(request: ExampleServiceGrpc.MyRpcMethodRequest): ExampleServiceGrpc.MyRpcMethodResponse =
-    suspendingUnaryCallObserver{ observer -> myRpcMethod(request,observer) }
-    
-suspend inline fun ExampleServiceStub.myRpcMethod(block: ExampleServiceGrpc.MyRpcMethodRequest.Builder.() -> Unit): ExampleServiceGrpc.MyRpcMethodResponse {
-    val request = ExampleServiceGrpc.MyRpcMethodRequest.newBuilder().apply(block).build()
-    return myRpcMethod(request)
-}
+    //Async Stub
+    suspend fun ServiceStub.myRpcMethod(request: Request): Response
+        
+    suspend inline fun ServiceStub.myRpcMethod(block: Request.Builder.() -> Unit): Response
 ```
-* If using rpc interceptors or other code that relies on ```io.grpc.Context``` then you need to be sure to add a ```GrpcContextContinuationInterceptor``` to your ```CoroutineContext``` when launching a coroutine.
-Child coroutines will inherit this ```ContinuationInterceptor``` if ```coroutineContext``` is passed down from the parent coroutine.   
+* #__(TODO:FIXME: Update to next context element)__ 
+If using rpc interceptors or other code that relies on ```io.grpc.Context``` then you need to be sure to add a ```GrpcContextElement``` to your ```CoroutineContext``` when launching a coroutine.
+Child coroutines will inherit this ```ThreadContextElement``` and the dispatcher will ensure that your grpc context is present on the executing thread.   
+
+#__(TODO:FIXME: Change to cooperative cancellation)__
 ```kotlin
-Context.current().withValue(MY_KEY, myValue).attach()
 
-val myGrpcContext = Context.current()
-
-val job = launch( myGrpcContext.asContinuationInterceptor() ) {
+    Context.current().withValue(MY_KEY, myValue).attach()
     
-    launch{
-        assertNotEquals(myGrpcContext, Context.current())
+    val myGrpcContext = Context.current()
+    
+    val job = launch( GrpcContextElement() ) { //Alternate usage:  myGrpcContext.asContextElement() 
+       
+        launch {
+            assertEquals(myGrpcContext, Context.current())
+        }
+       
+        GlobalScope.launch{
+            assertNotEquals(myGrpcContext, Context.current())
+        } 
     }
-    
-    launch(coroutineContext) {
-        assertEquals(myGrpcContext, Context.current())
-    }
-    
-}
 ```
 
 There are also overloads generated for bridging Client, Server, and Bidirectional streaming methods with coroutine ```Channels``` 
 The included example project contains full samples. [TestRpcCoroutineSupport](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestRpcCoroutineSupport.kt)
 ```kotlin
-suspend fun findStrongestAttack(): StandProto.Attack {
-    
-    val standService = StandServiceGrpc.newStub(managedChannel)
-    val characterService = CharacterServiceGrpc.newStub(managedChannel)
-    
-    val deferredStands = characterService.getAllCharactersStream() //Service call returns a ReceiveChannel<Character>
-            .map { character ->
-                //Suspending unary call. Using the generated overloads we can rely on
-                //coroutines for deferred calls instead of listenable futures 
-                async { standService.getStandByCharacter(character) }
-            }
-            .toList()
-            
-    val strongestAttack = deferredStands
-            .flatMap { it.await().attacksList }
-            .maxBy { it.damage }
-            
-    return strongestAttack ?: StandProto.Attack.getDefaultInstance()
-}
+    suspend fun CoroutineScope.findStrongestAttack(): StandProto.Attack {
+        
+        val standService = StandServiceGrpc.newStub(managedChannel)
+        val characterService = CharacterServiceGrpc.newStub(managedChannel)
+        
+        val deferredStands = characterService.getAllCharactersStream() //Service call returns a ReceiveChannel<Character>
+                .map { character ->
+                    //Suspending unary call. Using the generated overloads we can rely on
+                    //coroutines for deferred calls instead of listenable futures 
+                    async { standService.getStandByCharacter(character) }
+                }
+                .toList()
+                
+        val strongestAttack = deferredStands
+                .flatMap { it.await().attacksList }
+                .maxBy { it.damage }
+                
+        return strongestAttack ?: StandProto.Attack.getDefaultInstance()
+    }
 ```
-Bidirectional Rpc Channel Example
-```kotlin
-@Test fun `Test Bidirectional Rpc Channel`() = runBlocking {
-    
-    val stub = StandServiceGrpc.newStub(grpcServerRule.channel)
-    
-    //Bidi method overload returns a channel that accepts our request type (A Character) and
-    //returns our response type (A Stand)
-    val rpcChannel = stub.getStandsForCharacters()
-    
-    //Our dummy service is sending three responses for each request it receives
-     
-    rpcChannel.send(characters["Dio Brando"]!!)
-    stands["The World"].toString().let {
-        assertEquals(it,rpcChannel.receive().toString())
-        assertEquals(it,rpcChannel.receive().toString())
-        assertEquals(it,rpcChannel.receive().toString())
-    }
-    
-    rpcChannel.send(characters["Jotaro Kujo"]!!)
-    stands["Star Platinum"].toString().let {
-        assertEquals(it,rpcChannel.receive().toString())
-        assertEquals(it,rpcChannel.receive().toString())
-        assertEquals(it,rpcChannel.receive().toString())
-    }
-    
-    //Closing the channel has the same behavior as calling onComplete on the request stream observer.
-    //Calling close(throwable) behaves the same as onError(throwable)
-    rpcChannel.close()
-    
-    //Assert that we consumed the expected number of responses from the stream
-    assertNull(rpcChannel.receiveOrNull(),"Response quantity was greater than expected")
-}
 
+##### Bidirectional Rpc Channel Example
+```kotlin
+    @Test fun `Test Bidirectional Rpc Channel`() = runBlocking {
+        
+        val stub = StandServiceGrpc.newStub(grpcServerRule.channel)
+        
+        //Bidi method overload returns a channel that accepts our request type (A Character) and
+        //returns our response type (A Stand)
+        val rpcChannel = stub.getStandsForCharacters()
+        
+        //Our dummy service is sending three responses for each request it receives
+         
+        rpcChannel.send(characters["Dio Brando"])
+        stands["The World"].let {
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
+        }
+        
+        rpcChannel.send(characters["Jotaro Kujo"])
+        stands["Star Platinum"].let {
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
+            assertEquals(it,rpcChannel.receive())
+        }
+        
+        //Closing the channel has the same behavior as calling onComplete on the request stream observer.
+        //Calling close(throwable) behaves the same as onError(throwable)
+        rpcChannel.close()
+        
+        //Assert that we consumed the expected number of responses from the stream
+        assertNull(rpcChannel.receiveOrNull(),"Response quantity was greater than expected")
+    }
 ```   
    
 ### Mock Service Generator
@@ -225,25 +248,8 @@ This generator creates mock implementations of proto service definitions. This i
     }
 }
 ```
-### Proto Builder Generator
-#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L74)
-This generator creates lambda based builders for message types
-```kotlin
-val attack = Attack {
-                name = "ORA ORA ORA"
-                damage = 100
-                range = StandProto.Attack.Range.CLOSE
-            }
 
-//Copy extensions are also generated
-val newAttack = attack.copy { damage = 200 }            
-
-//As well as plus operator extensions 
-val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }
-            
-```
-
-### Extendable Messages Generator (Experimental)
+### Extendable Messages Generator ___(Experimental)___
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L115)
 Generated code relies on the ```kroto-plus-message``` artifact. This generator adds tagging interfaces to the java classes produce by protoc.
 It also adds pseudo companion objects to provide a way to access proto message APIs in a non static manner.
@@ -334,7 +340,7 @@ protobuf {
     }
 
     generateProtoTasks {
-        def krotoConfig = file("krotoPlusConfig.json")
+        def krotoConfig = file("krotoPlusConfig.asciipb") // Or .json
 
         all().each{ task ->
             // Adding the config file to the task inputs lets UP-TO-DATE checks
@@ -353,7 +359,7 @@ protobuf {
 ```
 
 ## Configuring Generators
-#### All available generator options are documented in [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto) and [kroto-plus-config.md](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md)
+#### All available generator options are documented in [kroto-plus-config.md](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md) and [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto) 
 * Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
 #### Asciipb (Proto Plain Text)
 ```asciipb
