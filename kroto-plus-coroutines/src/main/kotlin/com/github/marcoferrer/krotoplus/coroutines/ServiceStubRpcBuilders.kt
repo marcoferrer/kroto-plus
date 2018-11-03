@@ -17,9 +17,9 @@ suspend inline fun <T : AbstractStub<T>, reified R> T.suspendingUnaryCallObserve
 }
 
 /**
-* Marked as [ObsoleteCoroutinesApi] due to usage of [CoroutineScope.actor]
-* Marked as [ExperimentalCoroutinesApi] due to usage of [Dispatchers.Unconfined]
-*/
+ * Marked as [ObsoleteCoroutinesApi] due to usage of [CoroutineScope.actor]
+ * Marked as [ExperimentalCoroutinesApi] due to usage of [Dispatchers.Unconfined]
+ */
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 @ExperimentalKrotoPlusCoroutinesApi

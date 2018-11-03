@@ -16,7 +16,7 @@ class KrotoPlusGradlePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         this.project = project
-        project.pluginManager.withPlugin(PROTOBUF_PLUGIN_ID){
+        project.pluginManager.withPlugin(PROTOBUF_PLUGIN_ID) {
             if (wasApplied) {
 //                project.logger.warn("The com.google.protobuf plugin was already applied to the project: ' + project.path
 //                        + ' and will not be applied again after plugin: ' + prerequisitePlugin.id)
@@ -27,17 +27,17 @@ class KrotoPlusGradlePlugin : Plugin<Project> {
         }
     }
 
-    private fun doApply(){
+    private fun doApply() {
 
         project.afterEvaluate {
             project.extensions.create(
-                    "krotoPlus",
-                    KrotoPlusPluginExtension::class.java,
-                    project.objects
+                "krotoPlus",
+                KrotoPlusPluginExtension::class.java,
+                project.objects
             )
             project.tasks.create(
-                    "generateKrotoPlus",
-                    GenerateKrotoTask::class.java
+                "generateKrotoPlus",
+                GenerateKrotoTask::class.java
             )
         }
 

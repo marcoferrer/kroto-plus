@@ -4,7 +4,7 @@ import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import javax.inject.Inject
 
-open class KrotoPlusGeneratorsConfig @Inject constructor(objectFactory: ObjectFactory){
+open class KrotoPlusGeneratorsConfig @Inject constructor(objectFactory: ObjectFactory) {
 
     private val stubOverloadsConfig = objectFactory.newInstance(StubOverloadGeneratorConfig::class.java)
     private val mockServicesConfig = objectFactory.newInstance(MockServicesGeneratorConfig::class.java)
@@ -27,28 +27,28 @@ open class KrotoPlusGeneratorsConfig @Inject constructor(objectFactory: ObjectFa
             generatorModules.add(it)
         }
 
-    fun protoTypeBuilders(action: Action<in ProtoTypeBuildersGeneratorConfig>){
+    fun protoTypeBuilders(action: Action<in ProtoTypeBuildersGeneratorConfig>) {
         action.execute(protoTypeBuilders)
         generatorModules.add(protoTypeBuilders)
     }
 
     fun protoTypeBuilders(block: ProtoTypeBuildersGeneratorConfig.() -> Unit) =
-            protoTypeBuilders(Action(block))
+        protoTypeBuilders(Action(block))
 
-    fun stubOverloads(action: Action<in StubOverloadGeneratorConfig>){
+    fun stubOverloads(action: Action<in StubOverloadGeneratorConfig>) {
         action.execute(stubOverloadsConfig)
         generatorModules.add(stubOverloadsConfig)
     }
 
     fun stubOverloads(block: StubOverloadGeneratorConfig.() -> Unit) =
-            stubOverloads(Action(block))
+        stubOverloads(Action(block))
 
-    fun mockServices(action: Action<in MockServicesGeneratorConfig>){
+    fun mockServices(action: Action<in MockServicesGeneratorConfig>) {
         action.execute(mockServicesConfig)
         generatorModules.add(mockServicesConfig)
     }
 
     fun mockServices(block: MockServicesGeneratorConfig.() -> Unit) =
-            mockServices(Action(block))
+        mockServices(Action(block))
 
 }

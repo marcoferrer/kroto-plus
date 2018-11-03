@@ -4,16 +4,16 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.*
 
-@Deprecated("Deprecated in favor of ThreadLocalElement",ReplaceWith("GrpcContextElement"))
+@Deprecated("Deprecated in favor of ThreadLocalElement", ReplaceWith("GrpcContextElement"))
 class GrpcContextContinuationInterceptor(
-        val grpcContext: io.grpc.Context = io.grpc.Context.current(),
-        private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    val grpcContext: io.grpc.Context = io.grpc.Context.current(),
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AbstractCoroutineContextElement(ContinuationInterceptor), ContinuationInterceptor {
 
     override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> =
-            dispatcher.interceptContinuation(Wrapper(continuation))
+        dispatcher.interceptContinuation(Wrapper(continuation))
 
-    inner class Wrapper<T>(private val continuation: Continuation<T>): Continuation<T> {
+    inner class Wrapper<T>(private val continuation: Continuation<T>) : Continuation<T> {
 
         override val context: CoroutineContext get() = continuation.context
 
@@ -33,11 +33,11 @@ class GrpcContextContinuationInterceptor(
     }
 }
 
-@Deprecated("Deprecated in favor of ThreadLocalElement",ReplaceWith("asContextElement"))
+@Deprecated("Deprecated in favor of ThreadLocalElement", ReplaceWith("asContextElement"))
 fun io.grpc.Context.asContinuationInterceptor(
-        dispatcher: CoroutineDispatcher = Dispatchers.Default
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) = GrpcContextContinuationInterceptor(
-        grpcContext = this,
-        dispatcher = dispatcher
+    grpcContext = this,
+    dispatcher = dispatcher
 )
 

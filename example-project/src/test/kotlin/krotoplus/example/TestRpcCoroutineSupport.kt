@@ -17,7 +17,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.fail
 
-class TestSuspendingRpcCalls{
+class TestSuspendingRpcCalls {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
@@ -33,7 +33,8 @@ class TestSuspendingRpcCalls{
     val channel: ManagedChannel
         get() = grpcServerRule.channel
 
-    @Test fun `Test Suspending Unary Rpc Calls`() = runBlocking {
+    @Test
+    fun `Test Suspending Unary Rpc Calls`() = runBlocking {
 
         val standServiceStub = StandServiceGrpc.newStub(channel)
 
@@ -43,7 +44,8 @@ class TestSuspendingRpcCalls{
 
         val suspendingCallResponse = standServiceStub.getStandByCharacter(characters["Jotaro Kujo"]!!)
 
-        assertEquals("""name: "Star Platinum"
+        assertEquals(
+            """name: "Star Platinum"
         |attacks {
         |  name: "ZA WARUDO"
         |  range: MEDIUM
@@ -55,9 +57,11 @@ class TestSuspendingRpcCalls{
         |}
         |power_level: 500
         |speed: 550
-        |""".trimMargin(), suspendingCallResponse.toString())
+        |""".trimMargin(), suspendingCallResponse.toString()
+        )
 
-        assertEquals("""name: "The World"
+        assertEquals(
+            """name: "The World"
         |attacks {
         |  name: "ZA WARUDO"
         |  range: MEDIUM
@@ -69,20 +73,23 @@ class TestSuspendingRpcCalls{
         |}
         |power_level: 490
         |speed: 550
-        |""".trimMargin(),deferredCallResponse.await().toString())
+        |""".trimMargin(), deferredCallResponse.await().toString()
+        )
     }
 
-    @Test fun `Test Suspending Unary Call`() = runBlocking {
+    @Test
+    fun `Test Suspending Unary Call`() = runBlocking {
 
         val stub = StandServiceGrpc.newStub(channel)
 
         val request = GetStandByNameRequest { name = "Star Platinum" }
 
         val stand: StandProto.Stand = stub.suspendingUnaryCallObserver { observer ->
-            getStandByName(request,observer)
+            getStandByName(request, observer)
         }
 
-        assertEquals("""name: "Star Platinum"
+        assertEquals(
+            """name: "Star Platinum"
         |attacks {
         |  name: "ZA WARUDO"
         |  range: MEDIUM
@@ -94,25 +101,28 @@ class TestSuspendingRpcCalls{
         |}
         |power_level: 500
         |speed: 550
-        |""".trimMargin(), stand.toString())
+        |""".trimMargin(), stand.toString()
+        )
     }
 
-    @Test fun `Test Response Stream Observer Channel`() = runBlocking {
+    @Test
+    fun `Test Response Stream Observer Channel`() = runBlocking {
 
         val stub = StandServiceGrpc.newStub(channel)
 
         val respChannel = stub.getAllStandsStream()
 
-        for((_,expected) in stands){
+        for ((_, expected) in stands) {
             assertEquals(expected, respChannel.receive())
         }
 
-        assertNull(respChannel.receiveOrNull(),"Response quantity was greater than expected")
+        assertNull(respChannel.receiveOrNull(), "Response quantity was greater than expected")
     }
 
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
-    @Test fun `Test Bidirectional Rpc Channel`(): Unit = runBlocking {
+    @Test
+    fun `Test Bidirectional Rpc Channel`(): Unit = runBlocking {
 
         val stub = StandServiceGrpc.newStub(grpcServerRule.channel)
 
@@ -122,23 +132,23 @@ class TestSuspendingRpcCalls{
 
         rpcChannel.send(characters["Dio Brando"]!!)
         stands["The World"].let {
-            assertEquals(it,rpcChannel.receive())
-            assertEquals(it,rpcChannel.receive())
-            assertEquals(it,rpcChannel.receive())
+            assertEquals(it, rpcChannel.receive())
+            assertEquals(it, rpcChannel.receive())
+            assertEquals(it, rpcChannel.receive())
         }
 
         rpcChannel.send(characters["Jotaro Kujo"]!!)
         stands["Star Platinum"].let {
-            assertEquals(it,rpcChannel.receive())
-            assertEquals(it,rpcChannel.receive())
-            assertEquals(it,rpcChannel.receive())
+            assertEquals(it, rpcChannel.receive())
+            assertEquals(it, rpcChannel.receive())
+            assertEquals(it, rpcChannel.receive())
         }
 
         rpcChannel.close()
-        try{
+        try {
             rpcChannel.receive()
             fail("Response quantity was greater than expected")
-        }catch (e: Throwable){
+        } catch (e: Throwable) {
             assert(e is ClosedReceiveChannelException)
         }
     }

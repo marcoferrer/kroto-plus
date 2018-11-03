@@ -13,7 +13,7 @@ import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.coroutineScope
 
 
-class SomeRandomClass(val managedChannel: ManagedChannel){
+class SomeRandomClass(val managedChannel: ManagedChannel) {
 
     suspend fun findStrongestAttack(): StandProto.Attack = coroutineScope {
 
@@ -21,14 +21,14 @@ class SomeRandomClass(val managedChannel: ManagedChannel){
         val characterService = CharacterServiceGrpc.newStub(managedChannel)
 
         val deferredStands = characterService.getAllCharactersStream()
-                .map { character ->
-                    async { standService.getStandByCharacter(character) }
-                }
-                .toList()
+            .map { character ->
+                async { standService.getStandByCharacter(character) }
+            }
+            .toList()
 
         val strongestAttack = deferredStands
-                .flatMap { it.await().attacksList }
-                .maxBy { it.damage }
+            .flatMap { it.await().attacksList }
+            .maxBy { it.damage }
 
         strongestAttack ?: StandProto.Attack.getDefaultInstance()
     }
@@ -39,14 +39,14 @@ class SomeRandomClass(val managedChannel: ManagedChannel){
         val characterService = CharacterServiceGrpc.newStub(managedChannel)
 
         val deferredStands = characterService.getAllCharactersUnary()
-                .characterList
-                .map { character ->
-                    async { standService.getStandByCharacter(character) }
-                }
+            .characterList
+            .map { character ->
+                async { standService.getStandByCharacter(character) }
+            }
 
         val strongestAttack = deferredStands
-                .flatMap { it.await().attacksList }
-                .maxBy { it.damage }
+            .flatMap { it.await().attacksList }
+            .maxBy { it.damage }
 
         strongestAttack ?: StandProto.Attack.getDefaultInstance()
     }

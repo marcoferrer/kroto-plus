@@ -185,7 +185,12 @@ object GrpcStubExtsGenerator : Generator {
             .receiver(method.protoService.asyncStubClassName)
             .addAnnotation(ClassName("kotlinx.coroutines", "ObsoleteCoroutinesApi"))
             .addAnnotation(ClassName("kotlinx.coroutines", "ExperimentalCoroutinesApi"))
-            .addAnnotation(ClassName("com.github.marcoferrer.krotoplus.coroutines", "ExperimentalKrotoPlusCoroutinesApi"))
+            .addAnnotation(
+                ClassName(
+                    "com.github.marcoferrer.krotoplus.coroutines",
+                    "ExperimentalKrotoPlusCoroutinesApi"
+                )
+            )
             .returns(
                 ParameterizedTypeName.get(
                     ClassName("com.github.marcoferrer.krotoplus.coroutines", "ClientBidiCallChannel"),

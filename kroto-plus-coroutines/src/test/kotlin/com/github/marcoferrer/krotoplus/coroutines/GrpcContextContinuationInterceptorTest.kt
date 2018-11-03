@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
-class GrpcContextContinuationInterceptorTest{
+class GrpcContextContinuationInterceptorTest {
 
     data class Person(val name: String)
 

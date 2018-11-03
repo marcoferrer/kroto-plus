@@ -10,10 +10,10 @@ import java.util.*
 
 
 sealed class QueueEntry<out T>
-data class QueueMessage<out T> (val value: T) : QueueEntry<T>()
-data class QueueError(val status: Status, val metadata: Metadata? = null) : QueueEntry<Nothing>(){
+data class QueueMessage<out T>(val value: T) : QueueEntry<T>()
+data class QueueError(val status: Status, val metadata: Metadata? = null) : QueueEntry<Nothing>() {
 
-    fun asException() = StatusRuntimeException(status,metadata)
+    fun asException() = StatusRuntimeException(status, metadata)
 }
 
 class ResponseQueue<E> : Deque<QueueEntry<E>> by ArrayDeque() {
@@ -23,11 +23,11 @@ class ResponseQueue<E> : Deque<QueueEntry<E>> by ArrayDeque() {
 
     @JvmOverloads
     fun addError(statusError: Status, metadata: Metadata? = null) =
-            add(QueueError(statusError, metadata))
+        add(QueueError(statusError, metadata))
 
     @JvmOverloads
     fun pushError(statusError: Status, metadata: Metadata? = null) =
-            push(QueueError(statusError, metadata))
+        push(QueueError(statusError, metadata))
 }
 
 inline fun <reified M, B> ResponseQueue<M>.addMessage(block: B.() -> Unit): Boolean

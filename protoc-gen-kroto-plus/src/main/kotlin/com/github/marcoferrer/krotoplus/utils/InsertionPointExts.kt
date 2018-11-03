@@ -10,11 +10,11 @@ val InsertionPoint.funcName: String
     get() = insertionScriptFuncNames[this] ?: this.name
 
 val insertionScriptFuncNames = mapOf(
-        InsertionPoint.INTERFACE_EXTENDS to "interfaceExtends",
-        InsertionPoint.MESSAGE_IMPLEMENTS to "messageImplements",
-        InsertionPoint.BUILDER_IMPLEMENTS to "builderImplements",
-        InsertionPoint.BUILDER_SCOPE to "builderScope",
-        InsertionPoint.CLASS_SCOPE to "classScope",
-        InsertionPoint.ENUM_SCOPE to "enumScope",
-        InsertionPoint.OUTER_CLASS_SCOPE to "outerClassScope"
+    InsertionPoint.INTERFACE_EXTENDS to "interfaceExtends",
+    InsertionPoint.MESSAGE_IMPLEMENTS to "messageImplements",
+    InsertionPoint.BUILDER_IMPLEMENTS to "builderImplements",
+    InsertionPoint.BUILDER_SCOPE to "builderScope",
+    InsertionPoint.CLASS_SCOPE to "classScope",
+    InsertionPoint.ENUM_SCOPE to "enumScope",
+    InsertionPoint.OUTER_CLASS_SCOPE to "outerClassScope"
 )

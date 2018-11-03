@@ -5,9 +5,13 @@ import io.grpc.stub.StreamObserver
 import io.grpc.util.MutableHandlerRegistry
 import org.junit.rules.ExternalResource
 
-@Deprecated("removed due to change in 'io.grpc:grpc-testing' api", ReplaceWith("GrpcServerRule()"),DeprecationLevel.HIDDEN)
+@Deprecated(
+    "removed due to change in 'io.grpc:grpc-testing' api",
+    ReplaceWith("GrpcServerRule()"),
+    DeprecationLevel.HIDDEN
+)
 class ServiceBindingServerRule(
-        private val services: List<BindableService>
+    private val services: List<BindableService>
 ) : ExternalResource() {
     constructor(vararg services: BindableService) : this(services.toList())
 }

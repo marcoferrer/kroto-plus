@@ -4,7 +4,7 @@ import com.google.protobuf.GeneratedMessageV3
 import com.google.protobuf.compiler.PluginProtos
 
 
-class Schema(generatorRequest: PluginProtos.CodeGeneratorRequest){
+class Schema(generatorRequest: PluginProtos.CodeGeneratorRequest) {
 
     val protoFiles: List<ProtoFile> = generatorRequest.protoFileList.map { fileDescriptor ->
         ProtoFile(fileDescriptor, this)
@@ -13,11 +13,11 @@ class Schema(generatorRequest: PluginProtos.CodeGeneratorRequest){
     //Key by TypeName which is prefixed with a '.'
     val protoTypes: Map<String, ProtoType> = protoFiles.asSequence().flatMap { protoFile ->
         val protoMessages = protoFile.protoMessages
-                .asSequence()
-                .flattenProtoTypes()
+            .asSequence()
+            .flattenProtoTypes()
         val protoEnums = protoFile.protoEnums
-                .asSequence()
-                .flattenProtoTypes()
+            .asSequence()
+            .flattenProtoTypes()
 
         protoMessages + protoEnums
     }.associateBy { ".${it.canonicalProtoName}" }
