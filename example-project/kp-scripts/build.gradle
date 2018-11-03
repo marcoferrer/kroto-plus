@@ -3,4 +3,7 @@ dependencies{
     implementation "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${versions.krotoplus}"
     implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
     implementation "org.jetbrains.kotlin:kotlin-script-util"
+    implementation ("com.squareup:kotlinpoet:0.7.0") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
 }
