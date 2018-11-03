@@ -1,22 +1,18 @@
-import com.github.marcoferrer.krotoplus.coroutines.GrpcContextContinuationInterceptor
-import com.github.marcoferrer.krotoplus.coroutines.asContinuationInterceptor
+package com.github.marcoferrer.krotoplus.coroutines
+
 import io.grpc.Context
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.withTestContext
-import java.util.concurrent.TimeUnit
-import kotlin.coroutines.ContinuationInterceptor
-import kotlin.coroutines.coroutineContext
-import kotlin.test.Test
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
-class GrpcContextContinuationInterceptorTest{
+class GrpcContextElementTest {
 
     data class Person(val name: String)
 
     @Test
-    fun `Test Grpc Context Continuation Interceptor Attach`() = runBlocking<Unit> {
+    fun `Test Grpc Context Element Attach`() = runBlocking<Unit> {
 
         val KEY_PERSON = Context.key<Person>("person")
         val bill = Person("Bill")
@@ -29,14 +25,14 @@ class GrpcContextContinuationInterceptorTest{
             assertNull(KEY_PERSON.get())
         }
 
-        val grpcContextInterceptor = ctx.asContinuationInterceptor()
+        val grpcContextElement = ctx.asContextElement()
 
-        launch(grpcContextInterceptor) {
+        launch(grpcContextElement) {
             delay(1L)
 
             val expectedGrpcContext =
-                (coroutineContext[ContinuationInterceptor] as GrpcContextContinuationInterceptor)
-                    .grpcContext
+                (coroutineContext[GrpcContextElement] as GrpcContextElement)
+                    .context
 
             assertEquals(bill, KEY_PERSON.get())
             assertEquals(bill, KEY_PERSON.get(expectedGrpcContext))

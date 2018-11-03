@@ -3,8 +3,8 @@ buildscript {
         versions = [
                 "protobuf":   '3.6.1',
                 "grpc":       '1.15.1',
-                "kotlin":     '1.3.0-rc-190',
-                "coroutines": '1.0.0-RC1',
+                "kotlin":     '1.3.0',
+                "coroutines": '1.0.0',
                 "bintray":    '1.7.3',
                 'artifactory':'4.7.1',
                 "springBoot": '2.0.3.RELEASE'
@@ -19,7 +19,6 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
-        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
     }
 }
 

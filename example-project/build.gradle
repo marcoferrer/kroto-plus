@@ -2,9 +2,9 @@ buildscript {
     ext {
         versions = [
                 "protobuf":   '3.6.1',
-                "grpc":       '1.14.0',
-                "kotlin":     '1.3.0-rc-190',
-                "coroutines": '1.0.0-RC1',
+                "grpc":       '1.15.1',
+                "kotlin":     '1.3.0',
+                "coroutines": '1.0.0',
                 "krotoplus":  '0.2.0-SNAPSHOT'
         ]
     }
@@ -19,7 +19,7 @@ buildscript {
 plugins{
     id 'idea'
     id 'com.google.protobuf' version '0.8.6'
-    id "org.jetbrains.kotlin.jvm" version "1.3.0-rc-116"
+    id "org.jetbrains.kotlin.jvm" version "1.3.0"
 }
 
 group = 'com.github.marcoferrer.krotoplus'
@@ -93,7 +93,7 @@ protobuf {
     }
 
     generateProtoTasks {
-        def krotoConfig = file("krotoPlusConfig.json")
+        def krotoConfig = file("krotoPlusConfig.asciipb")
 
         all().each{ task ->
             // Adding the config file to the task inputs lets UP-TO-DATE checks

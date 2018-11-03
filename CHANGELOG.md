@@ -1,10 +1,13 @@
 ## Version 0.2.0
-_2018-10-03_
+_2018-11-02_
 * New: Added doc generation for configuration api
-* New: Updated to Kotlin ```1.3.0```
-* New: Updated to Coroutines ```1.0```
-* New: Updated [grpc-java](https://github.com/grpc/grpc-java/releases/tag/v1.15.1) to ```1.15.1```  
+* New: Updated to Kotlin ```1.3.0``` 
+* New: Updated [grpc-java](https://github.com/grpc/grpc-java/releases/tag/v1.15.1) to ```1.15.1```
 * Deprecated: Legacy CLI Compiler in favor of protoc compiler plugin
+
+#### Coroutines
+* New: Updated to stable Coroutines ```1.0```
+* New: Added ```GrpcContextElement``` as a replacement to ```GrpcContextContinuationInterceptor``` 
 
 #### Proto Builders (DSL)
 * New: [GH-7](https://github.com/marcoferrer/kroto-plus/issues/7) Support kotlin ```@DslMarker``` annotation for proto builders

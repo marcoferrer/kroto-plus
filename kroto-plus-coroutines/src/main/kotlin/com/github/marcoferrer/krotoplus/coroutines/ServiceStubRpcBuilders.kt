@@ -16,21 +16,31 @@ suspend inline fun <T : AbstractStub<T>, reified R> T.suspendingUnaryCallObserve
     block(SuspendingUnaryObserver(cont))
 }
 
-@ObsoleteCoroutinesApi
+/**
+* Marked as [ObsoleteCoroutinesApi] due to usage of [CoroutineScope.actor]
+* Marked as [ExperimentalCoroutinesApi] due to usage of [Dispatchers.Unconfined]
+*/
 @ExperimentalCoroutinesApi
+@ObsoleteCoroutinesApi
+@ExperimentalKrotoPlusCoroutinesApi
 inline fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
     crossinline block: T.(StreamObserver<RespT>) -> StreamObserver<ReqT>
 ): ClientBidiCallChannel<ReqT, RespT> {
 
     val responseObserverChannel = InboundStreamChannel<RespT>()
     val requestObserver = block(responseObserverChannel)
-    val requestObserverChannel = requestObserver.toSendChannel(coroutineContext[Job])
+    val requestObserverChannel = requestObserver.toSendChannel(coroutineContext?.get(Job))
 
     return ClientBidiCallChannel(requestObserverChannel, responseObserverChannel)
 }
 
-@ObsoleteCoroutinesApi
+
+/**
+ * Marked as [ObsoleteCoroutinesApi] due to usage of [CoroutineScope.actor]
+ * Marked as [ExperimentalCoroutinesApi] due to usage of [Dispatchers.Unconfined]
+ */
 @ExperimentalCoroutinesApi
+@ObsoleteCoroutinesApi
 fun <T> StreamObserver<T>.toSendChannel(parent: Job? = null): SendChannel<T> {
 
     val streamObserver = this@toSendChannel
@@ -49,15 +59,19 @@ fun <T> StreamObserver<T>.toSendChannel(parent: Job? = null): SendChannel<T> {
     }
 }
 
-val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext> =
+@ExperimentalKrotoPlusCoroutinesApi
+val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext?> =
     CallOptions.Key.create<CoroutineContext>("coroutineContext")
 
-val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext
+@ExperimentalKrotoPlusCoroutinesApi
+val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext?
     get() = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
 
+@ExperimentalKrotoPlusCoroutinesApi
 fun <T : AbstractStub<T>> T.withCoroutineContext(coroutineContext: CoroutineContext): T =
-        this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
+    this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
 
+@ExperimentalKrotoPlusCoroutinesApi
 suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T =
-        this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
+    this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
 
