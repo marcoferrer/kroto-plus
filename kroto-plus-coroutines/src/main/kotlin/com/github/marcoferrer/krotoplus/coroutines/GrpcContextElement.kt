@@ -19,7 +19,7 @@ public class GrpcContextElement(
         this@GrpcContextElement.context.attach()
 
     override fun restoreThreadContext(context: CoroutineContext, oldState: io.grpc.Context) {
-        io.grpc.Context.current().detach(oldState)
+        this@GrpcContextElement.context.detach(oldState)
     }
 
 }
