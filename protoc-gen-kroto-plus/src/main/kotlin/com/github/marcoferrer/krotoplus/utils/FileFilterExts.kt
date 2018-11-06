@@ -7,7 +7,7 @@ data class RegexFilter(val include: List<Regex>, val exclude: List<Regex>) {
     fun isEmpty() = include.isEmpty() && exclude.isEmpty()
 
     fun matches(value: String) =
-        isEmpty() || (include.any { it.matches(value) } || exclude.any { !it.matches(value) })
+        isEmpty() || (include.any { it.matches(value) } || exclude.all { !it.matches(value) })
 }
 
 fun globPatternToRegexString(globPattern: String): String = globPattern
