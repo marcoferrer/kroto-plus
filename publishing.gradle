@@ -1,0 +1,106 @@
+
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.jfrog.artifactory'
+
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id "marcoferrer"
+            name "Marco Ferrer"
+            email "marrferr.cdx@gmail.com"
+        }
+    }
+    scm {
+        url "https://github.com/marcoferrer/kroto-plus"
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+bintray {
+    user = bintrayUser
+    key = bintrayApiKey
+
+    publications = ['mavenPublication']
+
+    pkg {
+        repo = 'kroto-plus'
+        name = project.name
+        userOrg = 'marcoferrer'
+        issueTrackerUrl = 'https://github.com/marcoferrer/kroto-plus/issues'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/marcoferrer/kroto-plus.git'
+        githubRepo = 'marcoferrer/kroto-plus'
+        version {
+            name = project.version
+            desc = project.version
+            released = new Date()
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            from components.java
+            artifact sourcesJar {
+                classifier "sources"
+            }
+            artifact javadocJar {
+                classifier "javadoc"
+            }
+            groupId project.group
+            artifactId project.name
+            version project.version
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('name', project.name)
+                root.appendNode('description', project.description)
+                root.appendNode('url', 'https://github.com/marcoferrer/kroto-plus.git')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
+
+artifactoryPublish.skip = !(System.getenv('TRAVIS') == "true" && version.endsWith("SNAPSHOT"))
+
+artifactory {
+
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = bintrayUser
+            password = bintrayApiKey
+            maven = true
+        }
+
+        defaults {
+            publications('mavenPublication')
+            publishArtifacts = true
+        }
+    }
+}

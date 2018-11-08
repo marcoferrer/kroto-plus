@@ -19,8 +19,8 @@ import java.security.MessageDigest
 
 object ScriptManager {
 
-    private val cacheDirPath = System.getProperty("krotoplus.script.cache.dir") ?:
-        ("${System.getProperty("user.home") ?: System.getProperty("HOME")}/.kroto/cache/${Manifest.implVersion}")
+    private val cacheDirPath = System.getProperty("krotoplus.script.cache.dir") ?: ("${System.getProperty("user.home")
+        ?: System.getProperty("HOME")}/.kroto/cache/${Manifest.implVersion}")
 
     private val compileCacheDir = File(cacheDirPath).apply { mkdirs() }
 
@@ -34,18 +34,21 @@ object ScriptManager {
     private val scriptBundleClassLoaders = mutableMapOf<String, ClassLoader>()
 
     private fun loadScriptClass(scriptPath: String, bundle: File): Class<*>? {
+
+        require(bundle.exists()){ "Bundle not found: ${bundle.absolutePath}" }
+
         //Convert script path to java package
         val scriptPackage = scriptPath
-                .takeIf { !it.startsWith("/") && "/" in it }
-                ?.substringBeforeLast("/")
-                ?.replace("/", ".")
-                ?.let { "$it." }
-                .orEmpty()
+            .takeIf { !it.startsWith("/") && "/" in it }
+            ?.substringBeforeLast("/")
+            ?.replace("/", ".")
+            ?.let { "$it." }
+            .orEmpty()
         //Convert script name to valid java classname
         val scriptName = scriptPath
-                .substringAfterLast("/").substringBeforeLast(".")
-                .replace(Regex("[.-]"), "_")
-                .capitalize()
+            .substringAfterLast("/").substringBeforeLast(".")
+            .replace(Regex("[.-]"), "_")
+            .capitalize()
 
         val classLoader = getClassLoaderForBundle(bundle)
 
@@ -53,28 +56,28 @@ object ScriptManager {
     }
 
     private fun getClassLoaderForBundle(bundle: File) =
-            scriptBundleClassLoaders.getOrPut(bundle.absolutePath) {
-                URLClassLoader(arrayOf(bundle.toURI().toURL()), this.javaClass.classLoader)
-            }
+        scriptBundleClassLoaders.getOrPut(bundle.absolutePath) {
+            URLClassLoader(arrayOf(bundle.toURI().toURL()), this.javaClass.classLoader)
+        }
 
     private fun getScriptFromBundle(scriptPath: String, bundle: File): RenderScript =
-            scriptCache.getOrPut("${bundle.absolutePath}/$scriptPath") {
-                loadScriptClass(scriptPath, bundle)?.let { clazz ->
-                    val instance = clazz.getConstructor(Array<String>::class.java).newInstance(emptyArray<String>())
-                    RenderScript(instance::class, instance = instance)
-                }
-                        ?: throw IllegalArgumentException("Script: '$scriptPath' was not found in bundle '${bundle.absolutePath}'")
+        scriptCache.getOrPut("${bundle.absolutePath}/$scriptPath") {
+            loadScriptClass(scriptPath, bundle)?.let { clazz ->
+                val instance = clazz.getConstructor(Array<String>::class.java).newInstance(emptyArray<String>())
+                RenderScript(instance::class, instance = instance)
             }
+                ?: throw IllegalArgumentException("Script: '$scriptPath' was not found in bundle '${bundle.absolutePath}'")
+        }
 
     internal fun getScript(scriptFile: File): RenderScript =
-            scriptCache.getOrPut(scriptFile.absolutePath) {
-                getOrLoadCompiledClasses(scriptFile).toRenderScript(scriptEngine)
-            }
+        scriptCache.getOrPut(scriptFile.absolutePath) {
+            getOrLoadCompiledClasses(scriptFile).toRenderScript(scriptEngine)
+        }
 
     internal fun getScript(scriptPath: String, bundlePath: String? = null): RenderScript =
-            if (bundlePath.orEmpty().isNotEmpty())
-                getScriptFromBundle(scriptPath, File(context.currentWorkingDir,bundlePath)) else
-                getScript(File(context.currentWorkingDir,scriptPath))
+        if (bundlePath.orEmpty().isNotEmpty())
+            getScriptFromBundle(scriptPath, File(context.currentWorkingDir, bundlePath)) else
+            getScript(File(context.currentWorkingDir, scriptPath))
 
     private val getFileContentToHash = { scriptFile: File ->
         val md = MessageDigest.getInstance("MD5")
@@ -92,16 +95,16 @@ object ScriptManager {
             cachedFile.inputStream().use { fis ->
                 ObjectInputStream(fis).use { it.readObject() } as ReplCompileResult.CompiledClasses
             }
-        } catch (e: EOFException){
+        } catch (e: EOFException) {
             // Corrupted compiled file found try recompiling it
-            compileAndWriteToFs(cachedFile,fileContent)
+            compileAndWriteToFs(cachedFile, fileContent)
         } else {
-            compileAndWriteToFs(cachedFile,fileContent)
+            compileAndWriteToFs(cachedFile, fileContent)
         }
     }
 
-    private fun compileAndWriteToFs(cacheFile:File, scriptContents: String): ReplCompileResult.CompiledClasses{
-        if(cacheFile.exists()) cacheFile.delete()
+    private fun compileAndWriteToFs(cacheFile: File, scriptContents: String): ReplCompileResult.CompiledClasses {
+        if (cacheFile.exists()) cacheFile.delete()
 
         cacheFile.createNewFile()
         val compiledScript = scriptEngine.compile(scriptContents)
@@ -123,7 +126,7 @@ private fun ReplCompileResult.CompiledClasses.toRenderScript(scriptEngine: Kotli
     scriptEngine.context = cleanScriptContext
 
     val compiledScript = KotlinJsr223JvmScriptEngineBase
-            .CompiledKotlinScript(scriptEngine, cleanCodeLine, this)
+        .CompiledKotlinScript(scriptEngine, cleanCodeLine, this)
 
     scriptEngine.eval(compiledScript, cleanScriptContext)
 
@@ -133,11 +136,11 @@ private fun ReplCompileResult.CompiledClasses.toRenderScript(scriptEngine: Kotli
 private fun KotlinJsr223JvmInvocableScriptEngine.buildRenderScript(): RenderScript {
 
     val prioritizedCallOrder = state
-            .asState(GenericReplEvaluatorState::class.java)
-            .history
-            .map { it.item }
-            .filter { it.instance != null }
-            .reversed()
+        .asState(GenericReplEvaluatorState::class.java)
+        .history
+        .map { it.item }
+        .filter { it.instance != null }
+        .reversed()
 
     return prioritizedCallOrder.first().let { (klass, instance, _, _) ->
         RenderScript(klass, instance = instance)

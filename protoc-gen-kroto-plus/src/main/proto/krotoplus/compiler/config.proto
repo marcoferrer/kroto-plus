@@ -42,7 +42,7 @@ message CompilerConfig {
 message FileFilter {
 
     // List of file paths to include as inputs for a code generator.
-    // a valid value start from the root package directory of the source file. Globs are supported
+    // A valid value starts from the root package directory of the source file. Globs are supported
     // ie.
     // krotoplus/compiler/config.proto
     // krotoplus/**
@@ -51,8 +51,7 @@ message FileFilter {
 
     // List of file paths to exclude as inputs for a code generator.
     // a valid value start from the root package directory of the source file. Globs are supported
-    // ie.
-    // google/*
+    // ie. google/*
     repeated string exclude_path = 2;
 
 }
@@ -83,6 +82,12 @@ message ProtoBuildersGenOptions {
     // builders can be unwrapped and generated at the root scope of
     // the output file.
     bool unwrap_builders = 2;
+
+    // Tag java builder classes with a kotlin interface annotated
+    // with @DslMarker. This requires the kroto-plus output directory to
+    // match the generated java classes directory. Using @DslMarker
+    // provides safer and predictable dsl usage.
+    bool use_dsl_markers = 3;
 }
 
 // Configuration used by the 'Generator Scripts' code generator.
@@ -95,10 +100,8 @@ message GeneratorScriptsGenOptions {
     // List of paths to kotlin script files to execute for this configuration.
     // The scripts are compile at runtime by an embedded kotlin compiler.
     // This comes at the cost of performance.
-    //
     // Paths for scripts compiled at run time must be relative to the path of the configuration file.
     // ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
-    //
     // For a more performant option for script execution, precompiled scripts are supported.
     // Paths for precompile scripts need to match their location in the supplied jar.
     // ie. 'sampleInsertionScript.kts'
@@ -165,11 +168,8 @@ message InsertionsGenOptions {
 
         // List of paths to kotlin script files to execute for this configuration.
         // The scripts are compile at runtime by an embedded kotlin compiler.
-        // This comes at the cost of performance.
-        //
-        // Paths for scripts compiled at run time must be relative to the path of the configuration file.
+        // This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
         // ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
-        //
         // For a more performant option for script execution, precompiled scripts are supported.
         // Paths for precompile scripts need to match their location in the supplied jar.
         // ie. 'sampleInsertionScript.kts'

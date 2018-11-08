@@ -14,7 +14,7 @@ object MockServicesGenerator : Generator {
         get() = context.config.mockServicesCount > 0
 
     private val responseQueueClassName =
-            ClassName("com.github.marcoferrer.krotoplus.test", "ResponseQueue")
+        ClassName("com.github.marcoferrer.krotoplus.test", "ResponseQueue")
 
     private val responseQueueExts = mutableSetOf<ResponseQueueExtSpecs>()
 
@@ -34,7 +34,7 @@ object MockServicesGenerator : Generator {
                         if (options.generateServiceList) {
                             val key = options.serviceListPackage to options.serviceListName
                             mockServiceListMap.getOrPut(key) { mutableListOf() }
-                                    .add(getMockServiceInstanceTemplate(fileSpec))
+                                .add(getMockServiceInstanceTemplate(fileSpec))
                         }
 
                         responseBuilder.addFile(fileSpec.toResponseFileProto())
@@ -44,18 +44,19 @@ object MockServicesGenerator : Generator {
         }
 
         responseQueueExts.groupBy { it.protoType.protoFile }
-                .forEach{ protoFile, extsList ->
-                    val fileSpecBuilder = FileSpec.builder(protoFile.javaPackage,protoFile.javaOuterClassname+"RespQueueExts")
-                    for((_, addFunSpec, pushFunSpec) in extsList){
-                        fileSpecBuilder.addFunction(addFunSpec)
-                        fileSpecBuilder.addFunction(pushFunSpec)
-                    }
-                    responseBuilder.addFile(fileSpecBuilder.build().toResponseFileProto())
+            .forEach { protoFile, extsList ->
+                val fileSpecBuilder =
+                    FileSpec.builder(protoFile.javaPackage, protoFile.javaOuterClassname + "RespQueueExts")
+                for ((_, addFunSpec, pushFunSpec) in extsList) {
+                    fileSpecBuilder.addFunction(addFunSpec)
+                    fileSpecBuilder.addFunction(pushFunSpec)
                 }
+                responseBuilder.addFile(fileSpecBuilder.build().toResponseFileProto())
+            }
 
         return responseBuilder
-                .addAllFile(buildMockServiceList(mockServiceListMap))
-                .build()
+            .addAllFile(buildMockServiceList(mockServiceListMap))
+            .build()
     }
 
     private fun buildMockServiceList(mockServiceListMap: Map<Pair<String, String>, List<String>>)
@@ -66,14 +67,16 @@ object MockServicesGenerator : Generator {
         mockServiceListMap.forEach { (outputPackage, propertyName), mockServiceList ->
 
             val initializerTemplate = mockServiceList
-                    .joinToString(separator = ",\n", prefix = "listOf(\n", postfix = "\n)")
+                .joinToString(separator = ",\n", prefix = "listOf(\n", postfix = "\n)")
 
             val name = propertyName.takeIf { it.isNotEmpty() } ?: "MockServiceList"
 
-            val propSpec = PropertySpec.builder(name, ParameterizedTypeName
-                    .get(List::class.asClassName(), BindableService::class.asClassName()))
-                    .initializer(initializerTemplate)
-                    .build()
+            val propSpec = PropertySpec.builder(
+                name, ParameterizedTypeName
+                    .get(List::class.asClassName(), BindableService::class.asClassName())
+            )
+                .initializer(initializerTemplate)
+                .build()
 
             builderMap.getOrPut(outputPackage) {
                 FileSpec.builder(outputPackage, "MockServices")
@@ -84,19 +87,19 @@ object MockServicesGenerator : Generator {
     }
 
     private fun getMockServiceInstanceTemplate(fileSpec: FileSpec): String = fileSpec.members
-            .filterIsInstance<TypeSpec>()
-            .first {
-                it.name.orEmpty().startsWith("Mock") &&
-                        (it.kind == TypeSpec.Kind.CLASS || it.kind == TypeSpec.Kind.OBJECT)
-            }
-            .let {
-                val filePackage = fileSpec.packageName
-                        .takeIf { it.isNotEmpty() }
-                        ?.let { "$it." }
-                        .orEmpty()
+        .filterIsInstance<TypeSpec>()
+        .first {
+            it.name.orEmpty().startsWith("Mock") &&
+                    (it.kind == TypeSpec.Kind.CLASS || it.kind == TypeSpec.Kind.OBJECT)
+        }
+        .let {
+            val filePackage = fileSpec.packageName
+                .takeIf { it.isNotEmpty() }
+                ?.let { "$it." }
+                .orEmpty()
 
-                filePackage + it.name + if (it.kind == TypeSpec.Kind.CLASS) "()" else ""
-            }
+            filePackage + it.name + if (it.kind == TypeSpec.Kind.CLASS) "()" else ""
+        }
 
 
     private fun ProtoService.buildFileSpec(options: MockServicesGenOptions): FileSpec.Builder? {
@@ -111,18 +114,20 @@ object MockServicesGenerator : Generator {
         val objectBuilder = if (options.implementAsObject)
             classBuilder else TypeSpec.companionObjectBuilder()
 
-        objectBuilder.addSuperinterface(ClassName(
+        objectBuilder.addSuperinterface(
+            ClassName(
                 "com.github.marcoferrer.krotoplus.test",
                 "MockServiceHelper"
-        ))
+            )
+        )
 
         //TODO Add Support for mocking streaming calls
         val propToFunSpecsMap = methodDefinitions.asSequence()
-                .filterNot { it.descriptorProto.clientStreaming || it.descriptorProto.serverStreaming }
-                .associate { method ->
-                    val methodTypes = method.getMethodTypes()
-                    propSpecFrom(methodTypes) to method.toFunSpec(methodTypes, isOpen = !options.implementAsObject)
-                }
+            .filterNot { it.descriptorProto.clientStreaming || it.descriptorProto.serverStreaming }
+            .associate { method ->
+                val methodTypes = method.getMethodTypes()
+                propSpecFrom(methodTypes) to method.toFunSpec(methodTypes, isOpen = !options.implementAsObject)
+            }
 
         classBuilder.addFunctions(propToFunSpecsMap.values)
         objectBuilder.apply {
@@ -132,46 +137,46 @@ object MockServicesGenerator : Generator {
 
         if (!options.implementAsObject) {
             objectBuilder
-                    .build()
-                    .takeIf { it.propertySpecs.isNotEmpty() }
-                    ?.let { classBuilder.companionObject(it) }
+                .build()
+                .takeIf { it.propertySpecs.isNotEmpty() }
+                ?.let { classBuilder.companionObject(it) }
         }
 
         return classBuilder
-                .addAnnotation(protoFile.getGeneratedAnnotationSpec()).build()
-                .takeIf { it.funSpecs.isNotEmpty() }
-                ?.let { typeSpec ->
+            .addAnnotation(protoFile.getGeneratedAnnotationSpec()).build()
+            .takeIf { it.funSpecs.isNotEmpty() }
+            ?.let { typeSpec ->
 
-                    FileSpec.builder(protoFile.javaPackage, mockClassNameString)
-                            .addComment(AutoGenerationDisclaimer)
-                            .addStaticImport(
-                                    "com.github.marcoferrer.krotoplus.test",
-                                    "handleUnaryCall"
-                            )
-                            .addType(typeSpec)
-                }
+                FileSpec.builder(protoFile.javaPackage, mockClassNameString)
+                    .addComment(AutoGenerationDisclaimer)
+                    .addStaticImport(
+                        "com.github.marcoferrer.krotoplus.test",
+                        "handleUnaryCall"
+                    )
+                    .addType(typeSpec)
+            }
     }
 
     private data class MethodTypes(
-            val queuePropertyName: String,
-            val queueTypeName: ParameterizedTypeName,
-            val observerTypeName: ParameterizedTypeName
+        val queuePropertyName: String,
+        val queueTypeName: ParameterizedTypeName,
+        val observerTypeName: ParameterizedTypeName
     )
 
     private fun ProtoMethod.getMethodTypes() =
-            MethodTypes(
-                    queuePropertyName = "${functionName}ResponseQueue",
-                    queueTypeName = ParameterizedTypeName.get(responseQueueClassName, responseClassName),
-                    observerTypeName = ParameterizedTypeName.get(ClassName("io.grpc.stub", "StreamObserver"), responseClassName)
-            )
+        MethodTypes(
+            queuePropertyName = "${functionName}ResponseQueue",
+            queueTypeName = ParameterizedTypeName.get(responseQueueClassName, responseClassName),
+            observerTypeName = ParameterizedTypeName.get(ClassName("io.grpc.stub", "StreamObserver"), responseClassName)
+        )
 
     private fun propSpecFrom(methodTypes: MethodTypes): PropertySpec {
         val (queuePropertyName, queueTypeName, _) = methodTypes
 
         return PropertySpec.builder(queuePropertyName, queueTypeName)
-                .initializer("%T()", responseQueueClassName)
-                .addAnnotation(kotlin.jvm.JvmStatic::class.asClassName())
-                .build()
+            .initializer("%T()", responseQueueClassName)
+            .addAnnotation(kotlin.jvm.JvmStatic::class.asClassName())
+            .build()
     }
 
     private fun ProtoMethod.toFunSpec(methodTypes: MethodTypes, isOpen: Boolean): FunSpec {
@@ -179,70 +184,75 @@ object MockServicesGenerator : Generator {
         val (queuePropertyName, _, observerTypeName) = methodTypes
 
         return FunSpec.builder(functionName)
-                .addModifiers(KModifier.OVERRIDE)
-                .apply { if(isOpen) addModifiers(KModifier.OPEN) }
-                .addParameter("request", requestClassName )
-                .addParameter("responseObserver", observerTypeName )
-                .addStatement(
-                        "handleUnaryCall(responseObserver, %N, %T.getDefaultInstance())",
-                        queuePropertyName,
-                        responseClassName
-                )
-                .build()
+            .addModifiers(KModifier.OVERRIDE)
+            .apply { if (isOpen) addModifiers(KModifier.OPEN) }
+            .addParameter("request", requestClassName)
+            .addParameter("responseObserver", observerTypeName)
+            .addStatement(
+                "handleUnaryCall(responseObserver, %N, %T.getDefaultInstance())",
+                queuePropertyName,
+                responseClassName
+            )
+            .build()
     }
 
     fun TypeSpec.Builder.implementMockServiceHelper(propSpecList: Set<PropertySpec>) {
         if (propSpecList.isNotEmpty())
             addFunction(FunSpec.builder("clearQueues")
-                    .addModifiers(KModifier.OVERRIDE)
-                    .apply {
-                        for (propSpec in propSpecList)
-                            addStatement("${propSpec.name}.clear()")
-                    }
-                    .build())
+                .addModifiers(KModifier.OVERRIDE)
+                .apply {
+                    for (propSpec in propSpecList)
+                        addStatement("${propSpec.name}.clear()")
+                }
+                .build())
     }
 
     private fun FileSpec.Builder.buildResponseQueueOverloads(service: ProtoService): FileSpec.Builder {
 
         service.methodDefinitions
-                .asSequence().map { it.responseType }.distinct().filterIsInstance<ProtoMessage>()
-                .forEach { protoType ->
+            .asSequence().map { it.responseType }.distinct().filterIsInstance<ProtoMessage>()
+            .forEach { protoType ->
 
-                    val queueClassName = ParameterizedTypeName.get(responseQueueClassName, protoType.className)
-                    val builderLambdaTypeName = LambdaTypeName.get(
-                            receiver = protoType.builderClassName,
-                            returnType = UNIT)
+                val queueClassName = ParameterizedTypeName.get(responseQueueClassName, protoType.className)
+                val builderLambdaTypeName = LambdaTypeName.get(
+                    receiver = protoType.builderClassName,
+                    returnType = UNIT
+                )
 
-                    val methodBodyTemplate = "return %T.newBuilder().apply(block).build().let{ this.%NMessage(it) }"
+                val methodBodyTemplate = "return %T.newBuilder().apply(block).build().let{ this.%NMessage(it) }"
 
-                    /** Add Message w/ Builder Lambda */
-                    val addFunSpec = FunSpec.builder("addMessage")
-                            .addModifiers(KModifier.INLINE)
-                            .receiver(queueClassName)
-                            .addParameter("block", builderLambdaTypeName)
-                            .addStatement(methodBodyTemplate, protoType.className, "add")
-                            .returns(BOOLEAN)
-                            .addAnnotation(AnnotationSpec
-                                    .builder(JvmName::class.asClassName())
-                                    .addMember("%S", "add${protoType.name}")
-                                    .build())
+                /** Add Message w/ Builder Lambda */
+                val addFunSpec = FunSpec.builder("addMessage")
+                    .addModifiers(KModifier.INLINE)
+                    .receiver(queueClassName)
+                    .addParameter("block", builderLambdaTypeName)
+                    .addStatement(methodBodyTemplate, protoType.className, "add")
+                    .returns(BOOLEAN)
+                    .addAnnotation(
+                        AnnotationSpec
+                            .builder(JvmName::class.asClassName())
+                            .addMember("%S", "add${protoType.name}")
                             .build()
+                    )
+                    .build()
 
-                    /** Push Message w/ Builder Lambda */
-                    val pushFunSpec = FunSpec.builder("pushMessage")
-                            .addModifiers(KModifier.INLINE)
-                            .receiver(queueClassName)
-                            .addParameter("block", builderLambdaTypeName)
-                            .addStatement(methodBodyTemplate, protoType.className, "push")
-                            .returns(UNIT)
-                            .addAnnotation(AnnotationSpec
-                                    .builder(JvmName::class.asClassName())
-                                    .addMember("%S", "push${protoType.name}")
-                                    .build())
+                /** Push Message w/ Builder Lambda */
+                val pushFunSpec = FunSpec.builder("pushMessage")
+                    .addModifiers(KModifier.INLINE)
+                    .receiver(queueClassName)
+                    .addParameter("block", builderLambdaTypeName)
+                    .addStatement(methodBodyTemplate, protoType.className, "push")
+                    .returns(UNIT)
+                    .addAnnotation(
+                        AnnotationSpec
+                            .builder(JvmName::class.asClassName())
+                            .addMember("%S", "push${protoType.name}")
                             .build()
+                    )
+                    .build()
 
-                    responseQueueExts.add(ResponseQueueExtSpecs(protoType,addFunSpec,pushFunSpec))
-                }
+                responseQueueExts.add(ResponseQueueExtSpecs(protoType, addFunSpec, pushFunSpec))
+            }
 
         return this@buildResponseQueueOverloads
     }

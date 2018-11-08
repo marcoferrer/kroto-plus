@@ -13,13 +13,13 @@ object GeneratorScriptsGenerator : Generator {
 
         for (options in context.config.generatorScriptsList) {
             options.scriptPathList
-                    .flatMap { ScriptManager.getScript(it,options.scriptBundle).generators }
-                    .also {
-                        assert(it.isNotEmpty())
-                    }
-                    .forEach { generator ->
-                        responseBuilder.mergeFrom(generator())
-                    }
+                .flatMap { ScriptManager.getScript(it, options.scriptBundle).generators }
+                .also {
+                    assert(it.isNotEmpty())
+                }
+                .forEach { generator ->
+                    responseBuilder.mergeFrom(generator())
+                }
         }
 
         return responseBuilder.build()

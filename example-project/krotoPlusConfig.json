@@ -17,7 +17,8 @@
     "protoBuilders": [
         {
             "filter": { "excludePath": ["google/*"] },
-            "unwrapBuilders": true
+            "unwrapBuilders": true,
+            "useDslMarkers": true
         }
     ],
     "grpcStubExts": [

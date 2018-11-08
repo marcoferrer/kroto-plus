@@ -2,9 +2,9 @@ buildscript {
     ext {
         versions = [
                 "protobuf":   '3.6.1',
-                "grpc":       '1.14.0',
-                "kotlin":     '1.2.60',
-                "coroutines": '0.24.0',
+                "grpc":       '1.15.1',
+                "kotlin":     '1.3.0',
+                "coroutines": '1.0.0',
                 "bintray":    '1.7.3',
                 'artifactory':'4.7.1',
                 "springBoot": '2.0.3.RELEASE'
@@ -24,9 +24,9 @@ buildscript {
 
 plugins{
     id 'com.google.protobuf' version '0.8.6' apply false
-    id "org.jetbrains.kotlin.jvm" version "1.2.60" apply false
-    id "com.jfrog.bintray" version "1.7.3" apply false
-    id "com.jfrog.artifactory" version "4.7.1" apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.3.0-rc-116' apply false
+    id "com.jfrog.bintray" version "1.8.4" apply false
+    id "com.jfrog.artifactory" version "4.8.1" apply false
     id "org.springframework.boot" version "2.0.3.RELEASE" apply false
     id 'com.gradle.plugin-publish' version '0.9.7' apply false
 }
@@ -37,40 +37,14 @@ subprojects{ subproject ->
         jcenter()
         mavenCentral()
         maven { url "https://dl.bintray.com/marcoferrer/kroto-plus/" }
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
     }
 
     apply plugin: 'idea'
     apply plugin: 'kotlin'
-    apply plugin: 'maven-publish'
-    apply plugin: 'com.jfrog.bintray'
-    apply plugin: 'com.jfrog.artifactory'
-
-    def pomConfig = {
-        licenses {
-            license {
-                name "The Apache Software License, Version 2.0"
-                url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                distribution "repo"
-            }
-        }
-        developers {
-            developer {
-                id "marcoferrer"
-                name "Marco Ferrer"
-                email "marrferr.cdx@gmail.com"
-            }
-        }
-        scm {
-            url "https://github.com/marcoferrer/kroto-plus"
-        }
-    }
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.1.3'
-
-    kotlin {
-        experimental { coroutines 'enable' }
-    }
+    version = '0.2.0'
 
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -88,87 +62,4 @@ subprojects{ subproject ->
         testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
     }
 
-    if(!subproject.hasProperty('skip_publish') || subproject.property('skip_publish') == false) {
-        task sourcesJar(type: Jar, dependsOn: classes) {
-            classifier = 'sources'
-            from sourceSets.main.allSource
-        }
-
-        javadoc.failOnError = false
-        task javadocJar(type: Jar, dependsOn: javadoc) {
-            classifier = 'javadoc'
-            from javadoc.destinationDir
-        }
-
-        artifacts {
-            archives sourcesJar
-            archives javadocJar
-        }
-
-        bintray {
-            user = bintrayUser
-            key = bintrayApiKey
-
-            publications = ['mavenPublication']
-
-            pkg {
-                repo = 'kroto-plus'
-                name = subproject.name
-                userOrg = 'marcoferrer'
-                issueTrackerUrl = 'https://github.com/marcoferrer/kroto-plus/issues'
-                licenses = ['Apache-2.0']
-                vcsUrl = 'https://github.com/marcoferrer/kroto-plus.git'
-                githubRepo = 'marcoferrer/kroto-plus'
-                version {
-                    name = subproject.version
-                    desc = subproject.version
-                    released = new Date()
-                }
-            }
-        }
-
-        publishing {
-            publications {
-                mavenPublication(MavenPublication) {
-                    from components.java
-                    artifact sourcesJar {
-                        classifier "sources"
-                    }
-                    artifact javadocJar {
-                        classifier "javadoc"
-                    }
-                    groupId subproject.group
-                    artifactId subproject.name
-                    version subproject.version
-                    pom.withXml {
-                        def root = asNode()
-                        root.appendNode('name', subproject.name)
-                        root.appendNode('description', subproject.description)
-                        root.appendNode('url', 'https://github.com/marcoferrer/kroto-plus.git')
-                        root.children().last() + pomConfig
-                    }
-                }
-            }
-        }
-
-        artifactoryPublish.skip = !(System.getenv('TRAVIS') == "true" && version.endsWith("SNAPSHOT"))
-
-        artifactory {
-
-            contextUrl = 'https://oss.jfrog.org/artifactory'
-            publish {
-                repository {
-                    repoKey = 'oss-snapshot-local'
-                    username = bintrayUser
-                    password = bintrayApiKey
-                    maven = true
-                }
-
-                defaults {
-                    publications('mavenPublication')
-                    publishArtifacts = true
-                }
-            }
-        }
-    }
 }

@@ -1,5 +1,13 @@
 description = "Kroto+ Coroutine Support"
 
+apply from: "$rootDir/publishing.gradle"
+
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs += ["-Xuse-experimental=kotlin.Experimental"]
+    }
+}
+
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
     implementation "io.grpc:grpc-protobuf:${versions.grpc}",

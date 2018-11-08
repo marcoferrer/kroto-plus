@@ -178,8 +178,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -194,8 +193,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -209,8 +207,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -224,8 +221,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -459,8 +455,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -477,8 +472,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -494,8 +488,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -511,8 +504,7 @@ private static final long serialVersionUID = 0L;
      * <pre>
      * List of paths to kotlin script files to execute for this configuration.
      * The scripts are compile at runtime by an embedded kotlin compiler.
-     * This comes at the cost of performance.
-     * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+     * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
      * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
      * For a more performant option for script execution, precompiled scripts are supported.
      * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1196,8 +1188,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1214,8 +1205,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1231,8 +1221,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1248,8 +1237,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1266,8 +1254,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1290,8 +1277,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1314,8 +1300,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1336,8 +1321,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.
@@ -1356,8 +1340,7 @@ private static final long serialVersionUID = 0L;
        * <pre>
        * List of paths to kotlin script files to execute for this configuration.
        * The scripts are compile at runtime by an embedded kotlin compiler.
-       * This comes at the cost of performance.
-       * Paths for scripts compiled at run time must be relative to the path of the configuration file.
+       * This comes at the cost of performance.Paths for scripts compiled at run time must be relative to the path of the configuration file.
        * ie. 'kp-scripts/src/main/kotlin/sampleInsertionScript.kts'
        * For a more performant option for script execution, precompiled scripts are supported.
        * Paths for precompile scripts need to match their location in the supplied jar.

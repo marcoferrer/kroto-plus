@@ -1,13 +1,16 @@
 pluginManagement{
     repositories {
         gradlePluginPortal()
+        jcenter()
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+        maven { url 'https://plugins.gradle.org/m2/' }
     }
 }
 
 include 'protoc-gen-kroto-plus'
+include 'protoc-gen-kroto-plus:docs'
 include 'kroto-plus-message'
-include 'kroto-plus-compiler'
 include 'kroto-plus-coroutines'
 include 'kroto-plus-gradle-plugin'
-//include 'kroto-plus-gradle-plugin:config-gen-scripts'
+include 'kroto-plus-gradle-plugin:gen-config-dsl'
 include 'kroto-plus-test'

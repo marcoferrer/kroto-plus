@@ -10,38 +10,38 @@ import jojo.bizarre.adventure.stand.StandServiceProto
 
 class DummyStandService : StandServiceGrpc.StandServiceImplBase() {
 
-    fun getStandByName(name:String): StandProto.Stand? =
-            when(name){
-                "Jotaro Kujo" -> stands["Star Platinum"]
-                "Dio Brando" -> stands["The World"]
-                else -> null
-            }
+    fun getStandByName(name: String): StandProto.Stand? =
+        when (name) {
+            "Jotaro Kujo" -> stands["Star Platinum"]
+            "Dio Brando" -> stands["The World"]
+            else -> null
+        }
 
 
     override fun getStandByCharacterName(
-            request: StandServiceProto.GetStandByCharacterNameRequest,
-            responseObserver: StreamObserver<StandProto.Stand>
+        request: StandServiceProto.GetStandByCharacterNameRequest,
+        responseObserver: StreamObserver<StandProto.Stand>
     ) {
         getStandByName(request.name)
-                ?.let { responseObserver.onNext(it) }
-        ?: run {
-            responseObserver.onError(Status.NOT_FOUND.asException())
-            return
-        }
+            ?.let { responseObserver.onNext(it) }
+            ?: run {
+                responseObserver.onError(Status.NOT_FOUND.asException())
+                return
+            }
 
         responseObserver.onCompleted()
     }
 
     override fun getStandByCharacter(
-            request: CharacterProto.Character,
-            responseObserver: StreamObserver<StandProto.Stand>
+        request: CharacterProto.Character,
+        responseObserver: StreamObserver<StandProto.Stand>
     ) {
         getStandByName(request.name)
-                ?.let { responseObserver.onNext(it) }
-        ?: run {
-            responseObserver.onError(Status.NOT_FOUND.asException())
-            return
-        }
+            ?.let { responseObserver.onNext(it) }
+            ?: run {
+                responseObserver.onError(Status.NOT_FOUND.asException())
+                return
+            }
 
         responseObserver.onCompleted()
     }
@@ -56,10 +56,10 @@ class DummyStandService : StandServiceGrpc.StandServiceImplBase() {
                     responseObserver.onNext(it)
                     responseObserver.onNext(it)
                 }
-                ?: run {
-                    responseObserver.onError(Status.NOT_FOUND.asException())
-                    return
-                }
+                    ?: run {
+                        responseObserver.onError(Status.NOT_FOUND.asException())
+                        return
+                    }
             }
 
             override fun onError(t: Throwable?) {
@@ -74,15 +74,15 @@ class DummyStandService : StandServiceGrpc.StandServiceImplBase() {
     }
 
     override fun getAllStandsStream(request: Empty?, responseObserver: StreamObserver<StandProto.Stand>) {
-        for((_,stand) in stands)
+        for ((_, stand) in stands)
             responseObserver.onNext(stand)
 
         responseObserver.onCompleted()
     }
 
     override fun getStandByName(
-            request: StandServiceProto.GetStandByNameRequest,
-            responseObserver: StreamObserver<StandProto.Stand>
+        request: StandServiceProto.GetStandByNameRequest,
+        responseObserver: StreamObserver<StandProto.Stand>
     ) {
         stands[request.name]?.let {
             responseObserver.onNext(it)

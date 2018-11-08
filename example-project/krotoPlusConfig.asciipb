@@ -14,6 +14,7 @@ mock_services {
 proto_builders {
     filter { exclude_path: "google/*" }
     unwrap_builders: true
+    use_dsl_markers: true
 }
 grpc_stub_exts {
     support_coroutines: true
@@ -23,6 +24,10 @@ extendable_messages {
 }
 generator_scripts {
     script_path: "helloThere.kts"
+    script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
+}
+generator_scripts {
+    script_path: "varArgExtensionGenerator.kts"
     script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
 }
 insertions {

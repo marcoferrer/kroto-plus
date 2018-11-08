@@ -5,8 +5,8 @@ import com.squareup.kotlinpoet.ClassName
 
 
 data class ProtoService(
-        override val descriptorProto: DescriptorProtos.ServiceDescriptorProto,
-        val protoFile: ProtoFile
+    override val descriptorProto: DescriptorProtos.ServiceDescriptorProto,
+    val protoFile: ProtoFile
 ) : Schema.DescriptorWrapper {
 
     val name: String get() = descriptorProto.name

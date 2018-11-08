@@ -9,6 +9,7 @@
  */
 apply plugin: 'org.springframework.boot'
 apply plugin: 'com.google.protobuf'
+apply from: "$rootDir/publishing.gradle"
 
 description 'Kroto+ Proto-c Plugin'
 
@@ -59,6 +60,7 @@ bootJar {
     // Eventually we will want to an alternative the to embedded
     // kotlin compiler and possibly use the daemon instead.
     requiresUnpack '**/kotlin-*.jar'
+    requiresUnpack '**/kotlinpoet*.jar'
     requiresUnpack '**/protoc-gen-kroto-*.jar'
     requiresUnpack '**/protobuf-*.jar'
 
@@ -73,12 +75,6 @@ bootJar {
         attributes 'Implementation-Version': project.version
     }
 }
-task copyJar(type: Copy) {
-    from jar // here it automatically reads jar file produced from jar task
-    into 'destination-folder'
-}
-
-build.dependsOn copyJar
 
 jar.enabled = true
 

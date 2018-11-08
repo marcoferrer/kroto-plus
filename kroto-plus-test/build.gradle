@@ -1,5 +1,7 @@
 description = "Kroto+ Test Support"
 
+apply from: "$rootDir/publishing.gradle"
+
 dependencies {
     implementation "io.grpc:grpc-testing:${versions.grpc}"
     implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"

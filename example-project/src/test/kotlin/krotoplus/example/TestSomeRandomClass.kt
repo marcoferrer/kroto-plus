@@ -12,13 +12,13 @@ import jojo.bizarre.adventure.stand.MockStandService
 import jojo.bizarre.adventure.stand.StandProto
 import jojo.bizarre.adventure.stand.addAttacks
 import jojo.bizarre.adventure.stand.addMessage
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
-class TestSomeRandomClass{
+class TestSomeRandomClass {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
@@ -30,12 +30,13 @@ class TestSomeRandomClass{
 
     @BeforeTest
     fun clearResponseQueues() = MockJojoServices
-            .forEach { (it as? MockServiceHelper)?.clearQueues() }
+        .forEach { (it as? MockServiceHelper)?.clearQueues() }
 
-    @Test fun `Test Finding Strongest Attack`() = runBlocking {
+    @Test
+    fun `Test Finding Strongest Attack`() = runBlocking {
 
         MockCharacterService.getAllCharactersUnaryResponseQueue.apply {
-            addMessage{
+            addMessage {
                 addCharacter(characters["Jotaro Kujo"])
                 addCharacter {
                     name = "Dio Brando"
@@ -62,9 +63,9 @@ class TestSomeRandomClass{
 
         val someRandomClass = SomeRandomClass(grpcServerRule.channel)
 
-        someRandomClass.findStrongestAttackUnary().let{ attack ->
-            assertEquals("THE WORLD OVER HEAVEN",attack.name)
-            assertEquals(900,attack.damage)
+        someRandomClass.findStrongestAttackUnary().let { attack ->
+            assertEquals("THE WORLD OVER HEAVEN", attack.name)
+            assertEquals(900, attack.damage)
         }
     }
 
