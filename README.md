@@ -118,11 +118,9 @@ This allows blocking style rpc calls without the use of the blocking stub, preve
         
     suspend inline fun ServiceStub.myRpcMethod(block: Request.Builder.() -> Unit): Response
 ```
-* #__(TODO:FIXME: Update to next context element)__ 
-If using rpc interceptors or other code that relies on ```io.grpc.Context``` then you need to be sure to add a ```GrpcContextElement``` to your ```CoroutineContext``` when launching a coroutine.
+* If using rpc interceptors or other code that relies on ```io.grpc.Context``` then you need to be sure to add a ```GrpcContextElement``` to your ```CoroutineContext``` when launching a coroutine.
 Child coroutines will inherit this ```ThreadContextElement``` and the dispatcher will ensure that your grpc context is present on the executing thread.   
 
-#__(TODO:FIXME: Change to cooperative cancellation)__
 ```kotlin
 
     Context.current().withValue(MY_KEY, myValue).attach()
