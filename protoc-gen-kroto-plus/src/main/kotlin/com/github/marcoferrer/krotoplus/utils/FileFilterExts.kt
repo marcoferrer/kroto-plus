@@ -6,8 +6,11 @@ data class RegexFilter(val include: List<Regex>, val exclude: List<Regex>) {
 
     fun isEmpty() = include.isEmpty() && exclude.isEmpty()
 
-    fun matches(value: String) =
-        isEmpty() || (include.any { it.matches(value) } || exclude.all { !it.matches(value) })
+    fun matches(value: String) = when{
+        include.isNotEmpty() -> include.any { it.matches(value) } && exclude.none { it.matches(value) }
+        exclude.isNotEmpty() -> exclude.none { it.matches(value) }
+        else -> true
+    }
 }
 
 fun globPatternToRegexString(globPattern: String): String = globPattern

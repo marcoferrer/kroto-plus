@@ -1,3 +1,7 @@
+## Version 0.2.1
+_2018-11-02_
+* Fix: Address regression in file filter matching
+
 ## Version 0.2.0
 _2018-11-02_
 * New: Added doc generation for configuration api
