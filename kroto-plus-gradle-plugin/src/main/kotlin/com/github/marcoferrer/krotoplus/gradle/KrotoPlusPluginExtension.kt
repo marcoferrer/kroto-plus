@@ -1,20 +1,19 @@
 package com.github.marcoferrer.krotoplus.gradle
 
+import com.github.marcoferrer.krotoplus.config.CompilerConfig
 import org.gradle.api.Action
-import org.gradle.api.model.ObjectFactory
 import java.io.File
 import javax.inject.Inject
 
-open class KrotoPlusPluginExtension @Inject constructor(objectFactory: ObjectFactory) {
+open class KrotoPlusPluginExtension @Inject constructor(
+    var outputDir: File
+) {
+    public val configs = mutableMapOf<String, CompilerConfig>()
 
-    open val generatorsConfig: KrotoPlusGeneratorsConfig =
-        objectFactory.newInstance(KrotoPlusGeneratorsConfig::class.java, objectFactory)
-
-    open fun generators(action: Action<in KrotoPlusGeneratorsConfig>) {
-        action.execute(generatorsConfig)
+    open fun createConfig(name:String, action: Action<in CompilerConfig.Builder>) {
+        val compilerConfig = CompilerConfig.newBuilder()
+            .also { action.execute(it) }
+            .build()
+        configs[name] = compilerConfig
     }
-
-    open fun generators(block: KrotoPlusGeneratorsConfig.() -> Unit) =
-        generators(Action(block))
-
 }

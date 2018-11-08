@@ -130,7 +130,7 @@ object ProtoBuildersGenerator : Generator {
         protoType.descriptorProto.fieldList.asSequence()
             .filter { it.type == DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE }
             .map {
-                it to (context.schema.protoTypes[it.typeName] as ProtoMessage).sure {
+                it to requireNotNull(context.schema.protoTypes[it.typeName] as? ProtoMessage){
                     "${it.typeName} was not found in schema type map."
                 }
             }

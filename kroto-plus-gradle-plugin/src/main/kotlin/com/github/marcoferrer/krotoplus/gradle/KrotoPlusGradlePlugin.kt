@@ -6,12 +6,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskAction
+import java.io.File
+import javax.inject.Inject
 
 private const val PROTOBUF_PLUGIN_ID = "com.google.protobuf"
 
 class KrotoPlusGradlePlugin : Plugin<Project> {
 
-    lateinit var project: Project
+    private lateinit var project: Project
     private var wasApplied = false
 
     override fun apply(project: Project) {
@@ -28,26 +30,32 @@ class KrotoPlusGradlePlugin : Plugin<Project> {
     }
 
     private fun doApply() {
-
+        project.extensions.create(
+            "krotoPlus",
+            KrotoPlusPluginExtension::class.java,
+            project.projectDir
+        )
+        val createConfigTask = project.tasks.create(
+            "generateKrotoPlusConfig",
+            GenerateKrotoPlusConfigTask::class.java
+        )
         project.afterEvaluate {
-            project.extensions.create(
-                "krotoPlus",
-                KrotoPlusPluginExtension::class.java,
-                project.objects
-            )
-            project.tasks.create(
-                "generateKrotoPlus",
-                GenerateKrotoTask::class.java
-            )
+            it.tasks.getByName("generateProto").dependsOn.add(createConfigTask)
         }
-
     }
 }
 
-open class GenerateKrotoTask : DefaultTask() {
+open class GenerateKrotoPlusConfigTask : DefaultTask() {
 
     @TaskAction
     open fun generate() {
+        val krotoPlusExt = project.extensions
+            .findByType(KrotoPlusPluginExtension::class.java)!!
 
+        krotoPlusExt.outputDir.mkdirs()
+        krotoPlusExt.configs.forEach { name, config ->
+            File(krotoPlusExt.outputDir, "$name.asciipb").apply { createNewFile() }
+                .writeText(config.toString())
+        }
     }
 }

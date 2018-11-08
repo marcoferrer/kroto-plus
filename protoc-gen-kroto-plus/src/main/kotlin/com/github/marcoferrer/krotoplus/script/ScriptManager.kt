@@ -34,6 +34,9 @@ object ScriptManager {
     private val scriptBundleClassLoaders = mutableMapOf<String, ClassLoader>()
 
     private fun loadScriptClass(scriptPath: String, bundle: File): Class<*>? {
+
+        require(bundle.exists()){ "Bundle not found: ${bundle.absolutePath}" }
+
         //Convert script path to java package
         val scriptPackage = scriptPath
             .takeIf { !it.startsWith("/") && "/" in it }

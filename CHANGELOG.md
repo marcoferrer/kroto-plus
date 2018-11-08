@@ -4,6 +4,7 @@ _2018-11-02_
 * New: Updated to Kotlin ```1.3.0``` 
 * New: Updated [grpc-java](https://github.com/grpc/grpc-java/releases/tag/v1.15.1) to ```1.15.1```
 * Deprecated: Legacy CLI Compiler in favor of protoc compiler plugin
+* Fix: Multiple excludes in file filter regex 
 
 #### Coroutines
 * New: Updated to stable Coroutines ```1.0```
