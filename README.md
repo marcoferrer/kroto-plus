@@ -364,6 +364,7 @@ protobuf {
 proto_builders {
     filter { exclude_path: "google/*" }
     unwrap_builders: true
+    use_dsl_markers: true
 }
 grpc_stub_exts {
     support_coroutines: true
@@ -399,7 +400,8 @@ insertions {
     "protoBuilders": [
         {
             "filter": { "excludePath": ["google/*"] },
-            "unwrapBuilders": true
+            "unwrapBuilders": true,
+            "useDslMarkers": true
         }
     ],
     "grpcStubExts": [
