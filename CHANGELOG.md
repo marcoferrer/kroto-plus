@@ -1,3 +1,6 @@
+## Version 0.2.2
+_2018-12-3_
+
 ## Version 0.2.1
 _2018-11-02_
 * Fix: Address regression in file filter matching
