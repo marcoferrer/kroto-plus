@@ -5,5 +5,13 @@ pluginManagement{
         maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url 'https://plugins.gradle.org/m2/' }
     }
+
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "kotlinx-serialization") {
+                useModule("org.jetbrains.kotlin:kotlin-serialization:${requested.version}")
+            }
+        }
+    }
 }
 include 'kp-scripts'

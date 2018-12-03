@@ -18,6 +18,7 @@ fun main(args: Array<String>) = runBlocking {
         GrpcStubExtsGenerator,
         ProtoBuildersGenerator,
         ExtendableMessagesGenerator,
+        MPProtobufMessageGenerator,
         MockServicesGenerator,
         InsertionsGenerator,
         GeneratorScriptsGenerator

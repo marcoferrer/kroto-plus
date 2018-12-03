@@ -59,6 +59,11 @@ public final class Config {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_krotoplus_compiler_MockServicesGenOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_krotoplus_compiler_MPProtobufMessagesGenOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_krotoplus_compiler_MPProtobufMessagesGenOptions_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -70,7 +75,7 @@ public final class Config {
     java.lang.String[] descriptorData = {
       "\n\037krotoplus/compiler/config.proto\022\022kroto" +
       "plus.compiler\032 google/protobuf/descripto" +
-      "r.proto\"\263\003\n\016CompilerConfig\022B\n\016grpc_stub_" +
+      "r.proto\"\203\004\n\016CompilerConfig\022B\n\016grpc_stub_" +
       "exts\030\024 \003(\0132*.krotoplus.compiler.GrpcStub" +
       "ExtsGenOptions\022A\n\rmock_services\030\025 \003(\0132*." +
       "krotoplus.compiler.MockServicesGenOption" +
@@ -81,6 +86,8 @@ public final class Config {
       "ns\030\030 \003(\0132(.krotoplus.compiler.Insertions" +
       "GenOptions\022I\n\021generator_scripts\030\031 \003(\0132.." +
       "krotoplus.compiler.GeneratorScriptsGenOp" +
+      "tions\022N\n\024mp_protobuf_messages\030\032 \003(\01320.kr" +
+      "otoplus.compiler.MPProtobufMessagesGenOp" +
       "tions\"8\n\nFileFilter\022\024\n\014include_path\030\001 \003(" +
       "\t\022\024\n\014exclude_path\030\002 \003(\t\"d\n\026GrpcStubExtsG" +
       "enOptions\022.\n\006filter\030\001 \001(\0132\036.krotoplus.co" +
@@ -107,7 +114,9 @@ public final class Config {
       "s.compiler.FileFilter\022\033\n\023implement_as_ob" +
       "ject\030\002 \001(\010\022\035\n\025generate_service_list\030\003 \001(" +
       "\010\022\034\n\024service_list_package\030\004 \001(\t\022\031\n\021servi" +
-      "ce_list_name\030\005 \001(\t*\257\001\n\016InsertionPoint\022\013\n" +
+      "ce_list_name\030\005 \001(\t\"N\n\034MPProtobufMessages" +
+      "GenOptions\022.\n\006filter\030\001 \001(\0132\036.krotoplus.c" +
+      "ompiler.FileFilter*\257\001\n\016InsertionPoint\022\013\n" +
       "\007UNKNOWN\020\000\022\025\n\021INTERFACE_EXTENDS\020\001\022\026\n\022MES" +
       "SAGE_IMPLEMENTS\020\002\022\026\n\022BUILDER_IMPLEMENTS\020" +
       "\003\022\021\n\rBUILDER_SCOPE\020\004\022\017\n\013CLASS_SCOPE\020\005\022\016\n" +
@@ -133,7 +142,7 @@ public final class Config {
     internal_static_krotoplus_compiler_CompilerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_CompilerConfig_descriptor,
-        new java.lang.String[] { "GrpcStubExts", "MockServices", "ProtoBuilders", "ExtendableMessages", "Insertions", "GeneratorScripts", });
+        new java.lang.String[] { "GrpcStubExts", "MockServices", "ProtoBuilders", "ExtendableMessages", "Insertions", "GeneratorScripts", "MpProtobufMessages", });
     internal_static_krotoplus_compiler_FileFilter_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_krotoplus_compiler_FileFilter_fieldAccessorTable = new
@@ -182,6 +191,12 @@ public final class Config {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_krotoplus_compiler_MockServicesGenOptions_descriptor,
         new java.lang.String[] { "Filter", "ImplementAsObject", "GenerateServiceList", "ServiceListPackage", "ServiceListName", });
+    internal_static_krotoplus_compiler_MPProtobufMessagesGenOptions_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static_krotoplus_compiler_MPProtobufMessagesGenOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_krotoplus_compiler_MPProtobufMessagesGenOptions_descriptor,
+        new java.lang.String[] { "Filter", });
     com.google.protobuf.DescriptorProtos.getDescriptor();
   }
 
