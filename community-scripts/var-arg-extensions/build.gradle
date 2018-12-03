@@ -1,4 +1,4 @@
-def krotoPlusVersion = '0.2.1'
+def krotoPlusVersion = '0.2.2.-SNAPSHOT'
 
 plugins {
     id "org.jetbrains.kotlin.jvm" version "1.3.0"
