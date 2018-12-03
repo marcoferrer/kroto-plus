@@ -1,0 +1,16 @@
+def krotoPlusVersion = '0.2.2-SNAPSHOT'
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.3.0"
+}
+
+repositories {
+    jcenter()
+    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+}
+
+dependencies{
+    implementation "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:$krotoPlusVersion"
+    implementation "com.google.protobuf:protobuf-java:3.6.1"
+    implementation "org.jetbrains.kotlin:kotlin-script-util"
+}
