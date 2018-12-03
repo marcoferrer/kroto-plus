@@ -13,13 +13,53 @@ buildscript {
         jcenter()
         mavenCentral()
         maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+        flatDir dirs: "${rootDir}/../kroto-plus-gradle-plugin/build/libs/"
+//        flatDir dirs: "${rootDir}/../kroto-plus-coroutines/build/libs/"
+//        flatDir dirs: "${rootDir}/../kroto-plus-test/build/libs/"
+//        flatDir dirs: "${rootDir}/../protoc-gen-kroto-plus/build/libs/"
     }
+
+    dependencies{
+        classpath "com.github.marcoferrer.krotoplus:kroto-plus-gradle-plugin:${versions.krotoplus}"
+        classpath "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    }
+
 }
+
 
 plugins{
     id 'idea'
     id 'com.google.protobuf' version '0.8.6'
     id "org.jetbrains.kotlin.jvm" version "1.3.0"
+}
+
+apply plugin: "com.github.marcoferrer.kroto-plus"
+
+krotoPlus {
+    createConfig("testing"){
+        protoBuilders {
+            filter {
+                addAllIncludePath(["test","asdasd"])
+            }
+            unwrapBuilders = true
+        }
+        generatorScripts {
+            addAllScriptPath("varArgExtensionGenerator.kts")
+            scriptBundle = "kp-scripts/build/libs/kp-scripts.jar"
+        }
+    }
+    
+    //add overloads for file path 
+    //add logic to check if filepath exists
+    //add logic to check if script exists if no bundle exists
+    //add logic to check it script exists inside bundle??
+    //add logic to make sure there is no file set for script is bundle is set
+    //add function to generate bytestring for plugin option
+    //setup seperate subproject for mpproto
+    //set project dir path to perserve relative paths
+    
+
+    println(configs["testing"])
 }
 
 group = 'com.github.marcoferrer.krotoplus'

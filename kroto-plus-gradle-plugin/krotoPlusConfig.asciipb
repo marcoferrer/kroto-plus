@@ -1,0 +1,13 @@
+generator_scripts {
+    script_path: "varArgExtensionGenerator.kts"
+    script_bundle: "gen-config-dsl/build/libs/bundle.jar"
+}
+insertions {
+    filter {
+        include_path: "krotoplus/*"
+    }
+    entry { point: BUILDER_SCOPE
+        script_path: "builderInsertion.kts"
+        script_bundle: "gen-config-dsl/build/libs/bundle.jar"
+    }
+}

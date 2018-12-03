@@ -1,0 +1,13 @@
+
+dependencies{
+    implementation project(":protoc-gen-kroto-plus")
+    implementation "com.google.protobuf:protobuf-java:3.6.1"
+    implementation "org.jetbrains.kotlin:kotlin-script-util"
+    implementation ("com.squareup:kotlinpoet:0.7.0") {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+}
+
+jar {
+    archiveName = 'bundle.jar'
+}
