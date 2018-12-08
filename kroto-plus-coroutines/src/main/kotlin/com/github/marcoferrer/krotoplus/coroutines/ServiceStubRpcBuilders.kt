@@ -51,10 +51,8 @@ fun <T> StreamObserver<T>.toSendChannel(parent: Job? = null): SendChannel<T> {
         try {
             channel.consumeEach { streamObserver.onNext(it) }
             streamObserver.onCompleted()
-            println("completed")
         } catch (e: Throwable) {
             streamObserver.onError(e)
-            println("error: ${e.message} ")
         }
     }
 }
