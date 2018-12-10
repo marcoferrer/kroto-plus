@@ -19,8 +19,10 @@
  * New gradle configuration dsl
  * Windows executable
  
-## Roadmap
+#### In Progress
  * Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
+
+---
 ---
 
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
