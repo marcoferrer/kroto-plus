@@ -47,7 +47,7 @@ fun <T> StreamObserver<T>.toSendChannel(parent: Job? = null): SendChannel<T> {
     val context = parent
         ?.let { it + Dispatchers.Unconfined } ?: Dispatchers.Unconfined
 
-    return GlobalScope.actor(context, start = CoroutineStart.LAZY) {
+    return CoroutineScope(context).actor(context, start = CoroutineStart.LAZY) {
         try {
             channel.consumeEach { streamObserver.onNext(it) }
             streamObserver.onCompleted()

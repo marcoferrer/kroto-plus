@@ -26,6 +26,7 @@ private static final long serialVersionUID = 0L;
     extendableMessages_ = java.util.Collections.emptyList();
     insertions_ = java.util.Collections.emptyList();
     generatorScripts_ = java.util.Collections.emptyList();
+    grpcCoroutines_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -106,6 +107,15 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.parser(), extensionRegistry));
             break;
           }
+          case 210: {
+            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+              grpcCoroutines_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions>();
+              mutable_bitField0_ |= 0x00000040;
+            }
+            grpcCoroutines_.add(
+                input.readMessage(com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.parser(), extensionRegistry));
+            break;
+          }
           default: {
             if (!parseUnknownFieldProto3(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -138,6 +148,9 @@ private static final long serialVersionUID = 0L;
       }
       if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
         generatorScripts_ = java.util.Collections.unmodifiableList(generatorScripts_);
+      }
+      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+        grpcCoroutines_ = java.util.Collections.unmodifiableList(grpcCoroutines_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -486,6 +499,61 @@ private static final long serialVersionUID = 0L;
     return generatorScripts_.get(index);
   }
 
+  public static final int GRPC_COROUTINES_FIELD_NUMBER = 26;
+  private java.util.List<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions> grpcCoroutines_;
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  public java.util.List<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions> getGrpcCoroutinesList() {
+    return grpcCoroutines_;
+  }
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  public java.util.List<? extends com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder> 
+      getGrpcCoroutinesOrBuilderList() {
+    return grpcCoroutines_;
+  }
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  public int getGrpcCoroutinesCount() {
+    return grpcCoroutines_.size();
+  }
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  public com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions getGrpcCoroutines(int index) {
+    return grpcCoroutines_.get(index);
+  }
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  public com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder getGrpcCoroutinesOrBuilder(
+      int index) {
+    return grpcCoroutines_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -517,6 +585,9 @@ private static final long serialVersionUID = 0L;
     }
     for (int i = 0; i < generatorScripts_.size(); i++) {
       output.writeMessage(25, generatorScripts_.get(i));
+    }
+    for (int i = 0; i < grpcCoroutines_.size(); i++) {
+      output.writeMessage(26, grpcCoroutines_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -551,6 +622,10 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(25, generatorScripts_.get(i));
     }
+    for (int i = 0; i < grpcCoroutines_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(26, grpcCoroutines_.get(i));
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -579,6 +654,8 @@ private static final long serialVersionUID = 0L;
         .equals(other.getInsertionsList());
     result = result && getGeneratorScriptsList()
         .equals(other.getGeneratorScriptsList());
+    result = result && getGrpcCoroutinesList()
+        .equals(other.getGrpcCoroutinesList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -613,6 +690,10 @@ private static final long serialVersionUID = 0L;
     if (getGeneratorScriptsCount() > 0) {
       hash = (37 * hash) + GENERATOR_SCRIPTS_FIELD_NUMBER;
       hash = (53 * hash) + getGeneratorScriptsList().hashCode();
+    }
+    if (getGrpcCoroutinesCount() > 0) {
+      hash = (37 * hash) + GRPC_COROUTINES_FIELD_NUMBER;
+      hash = (53 * hash) + getGrpcCoroutinesList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -752,6 +833,7 @@ private static final long serialVersionUID = 0L;
         getExtendableMessagesFieldBuilder();
         getInsertionsFieldBuilder();
         getGeneratorScriptsFieldBuilder();
+        getGrpcCoroutinesFieldBuilder();
       }
     }
     @java.lang.Override
@@ -792,6 +874,12 @@ private static final long serialVersionUID = 0L;
         bitField0_ = (bitField0_ & ~0x00000020);
       } else {
         generatorScriptsBuilder_.clear();
+      }
+      if (grpcCoroutinesBuilder_ == null) {
+        grpcCoroutines_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000040);
+      } else {
+        grpcCoroutinesBuilder_.clear();
       }
       return this;
     }
@@ -873,6 +961,15 @@ private static final long serialVersionUID = 0L;
         result.generatorScripts_ = generatorScripts_;
       } else {
         result.generatorScripts_ = generatorScriptsBuilder_.build();
+      }
+      if (grpcCoroutinesBuilder_ == null) {
+        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+          grpcCoroutines_ = java.util.Collections.unmodifiableList(grpcCoroutines_);
+          bitField0_ = (bitField0_ & ~0x00000040);
+        }
+        result.grpcCoroutines_ = grpcCoroutines_;
+      } else {
+        result.grpcCoroutines_ = grpcCoroutinesBuilder_.build();
       }
       onBuilt();
       return result;
@@ -1075,6 +1172,32 @@ private static final long serialVersionUID = 0L;
                  getGeneratorScriptsFieldBuilder() : null;
           } else {
             generatorScriptsBuilder_.addAllMessages(other.generatorScripts_);
+          }
+        }
+      }
+      if (grpcCoroutinesBuilder_ == null) {
+        if (!other.grpcCoroutines_.isEmpty()) {
+          if (grpcCoroutines_.isEmpty()) {
+            grpcCoroutines_ = other.grpcCoroutines_;
+            bitField0_ = (bitField0_ & ~0x00000040);
+          } else {
+            ensureGrpcCoroutinesIsMutable();
+            grpcCoroutines_.addAll(other.grpcCoroutines_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.grpcCoroutines_.isEmpty()) {
+          if (grpcCoroutinesBuilder_.isEmpty()) {
+            grpcCoroutinesBuilder_.dispose();
+            grpcCoroutinesBuilder_ = null;
+            grpcCoroutines_ = other.grpcCoroutines_;
+            bitField0_ = (bitField0_ & ~0x00000040);
+            grpcCoroutinesBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getGrpcCoroutinesFieldBuilder() : null;
+          } else {
+            grpcCoroutinesBuilder_.addAllMessages(other.grpcCoroutines_);
           }
         }
       }
@@ -2978,6 +3101,318 @@ private static final long serialVersionUID = 0L;
         generatorScripts_ = null;
       }
       return generatorScriptsBuilder_;
+    }
+
+    private java.util.List<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions> grpcCoroutines_ =
+      java.util.Collections.emptyList();
+    private void ensureGrpcCoroutinesIsMutable() {
+      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+        grpcCoroutines_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions>(grpcCoroutines_);
+        bitField0_ |= 0x00000040;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder> grpcCoroutinesBuilder_;
+
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public java.util.List<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions> getGrpcCoroutinesList() {
+      if (grpcCoroutinesBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(grpcCoroutines_);
+      } else {
+        return grpcCoroutinesBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public int getGrpcCoroutinesCount() {
+      if (grpcCoroutinesBuilder_ == null) {
+        return grpcCoroutines_.size();
+      } else {
+        return grpcCoroutinesBuilder_.getCount();
+      }
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions getGrpcCoroutines(int index) {
+      if (grpcCoroutinesBuilder_ == null) {
+        return grpcCoroutines_.get(index);
+      } else {
+        return grpcCoroutinesBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder setGrpcCoroutines(
+        int index, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions value) {
+      if (grpcCoroutinesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureGrpcCoroutinesIsMutable();
+        grpcCoroutines_.set(index, value);
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder setGrpcCoroutines(
+        int index, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder builderForValue) {
+      if (grpcCoroutinesBuilder_ == null) {
+        ensureGrpcCoroutinesIsMutable();
+        grpcCoroutines_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder addGrpcCoroutines(com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions value) {
+      if (grpcCoroutinesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureGrpcCoroutinesIsMutable();
+        grpcCoroutines_.add(value);
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder addGrpcCoroutines(
+        int index, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions value) {
+      if (grpcCoroutinesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureGrpcCoroutinesIsMutable();
+        grpcCoroutines_.add(index, value);
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder addGrpcCoroutines(
+        com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder builderForValue) {
+      if (grpcCoroutinesBuilder_ == null) {
+        ensureGrpcCoroutinesIsMutable();
+        grpcCoroutines_.add(builderForValue.build());
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder addGrpcCoroutines(
+        int index, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder builderForValue) {
+      if (grpcCoroutinesBuilder_ == null) {
+        ensureGrpcCoroutinesIsMutable();
+        grpcCoroutines_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder addAllGrpcCoroutines(
+        java.lang.Iterable<? extends com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions> values) {
+      if (grpcCoroutinesBuilder_ == null) {
+        ensureGrpcCoroutinesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, grpcCoroutines_);
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder clearGrpcCoroutines() {
+      if (grpcCoroutinesBuilder_ == null) {
+        grpcCoroutines_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public Builder removeGrpcCoroutines(int index) {
+      if (grpcCoroutinesBuilder_ == null) {
+        ensureGrpcCoroutinesIsMutable();
+        grpcCoroutines_.remove(index);
+        onChanged();
+      } else {
+        grpcCoroutinesBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder getGrpcCoroutinesBuilder(
+        int index) {
+      return getGrpcCoroutinesFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder getGrpcCoroutinesOrBuilder(
+        int index) {
+      if (grpcCoroutinesBuilder_ == null) {
+        return grpcCoroutines_.get(index);  } else {
+        return grpcCoroutinesBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public java.util.List<? extends com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder> 
+         getGrpcCoroutinesOrBuilderList() {
+      if (grpcCoroutinesBuilder_ != null) {
+        return grpcCoroutinesBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(grpcCoroutines_);
+      }
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder addGrpcCoroutinesBuilder() {
+      return getGrpcCoroutinesFieldBuilder().addBuilder(
+          com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder addGrpcCoroutinesBuilder(
+        int index) {
+      return getGrpcCoroutinesFieldBuilder().addBuilder(
+          index, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * Configuration entries for the 'Grpc Coroutines' code generator.
+     * </pre>
+     *
+     * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+     */
+    public java.util.List<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder> 
+         getGrpcCoroutinesBuilderList() {
+      return getGrpcCoroutinesFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder> 
+        getGrpcCoroutinesFieldBuilder() {
+      if (grpcCoroutinesBuilder_ == null) {
+        grpcCoroutinesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder>(
+                grpcCoroutines_,
+                ((bitField0_ & 0x00000040) == 0x00000040),
+                getParentForChildren(),
+                isClean());
+        grpcCoroutines_ = null;
+      }
+      return grpcCoroutinesBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

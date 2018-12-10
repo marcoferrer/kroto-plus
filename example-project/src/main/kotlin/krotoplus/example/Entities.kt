@@ -29,6 +29,11 @@ val attacks: Map<String, StandProto.Attack> =
             name = "EMERALD SPLASH"
             damage = 70
             range = StandProto.Attack.Range.MEDIUM
+        },
+        Attack {
+            name = "Gold Experience"
+            damage = 150
+            range = StandProto.Attack.Range.CLOSE
         }
     ).associateBy { it.name }
 

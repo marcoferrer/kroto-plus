@@ -9,6 +9,8 @@ class ProtoMethod(
 
     val functionName = descriptorProto.name.decapitalize()
 
+    val methodDefinitionGetterName = "get${descriptorProto.name}Method"
+
     val requestType = protoService.protoFile.schema.protoTypes[descriptorProto.inputType]
         ?: throw IllegalStateException("${descriptorProto.inputType} was not found in schema type map.")
 

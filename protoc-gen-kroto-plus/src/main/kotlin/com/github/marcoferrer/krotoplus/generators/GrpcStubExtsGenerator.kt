@@ -4,6 +4,7 @@ import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
+import com.github.marcoferrer.krotoplus.utils.CommonClassNames
 import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
@@ -183,8 +184,8 @@ object GrpcStubExtsGenerator : Generator {
 
         FunSpec.builder(method.functionName)
             .receiver(method.protoService.asyncStubClassName)
-            .addAnnotation(ClassName("kotlinx.coroutines", "ObsoleteCoroutinesApi"))
-            .addAnnotation(ClassName("kotlinx.coroutines", "ExperimentalCoroutinesApi"))
+            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
+            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .addAnnotation(
                 ClassName(
                     "com.github.marcoferrer.krotoplus.coroutines",

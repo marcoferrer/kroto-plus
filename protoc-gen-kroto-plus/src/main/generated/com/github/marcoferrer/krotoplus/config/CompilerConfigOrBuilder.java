@@ -270,4 +270,48 @@ public interface CompilerConfigOrBuilder extends
    */
   com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder getGeneratorScriptsOrBuilder(
       int index);
+
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  java.util.List<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions> 
+      getGrpcCoroutinesList();
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions getGrpcCoroutines(int index);
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  int getGrpcCoroutinesCount();
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  java.util.List<? extends com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder> 
+      getGrpcCoroutinesOrBuilderList();
+  /**
+   * <pre>
+   * Configuration entries for the 'Grpc Coroutines' code generator.
+   * </pre>
+   *
+   * <code>repeated .krotoplus.compiler.GrpcCoroutinesGenOptions grpc_coroutines = 26;</code>
+   */
+  com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder getGrpcCoroutinesOrBuilder(
+      int index);
 }
