@@ -5,6 +5,8 @@
 [ ![JCenter](https://api.bintray.com/packages/marcoferrer/kroto-plus/protoc-gen-kroto-plus/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/protoc-gen-kroto-plus/_latestVersion)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.marcoferrer.krotoplus/protoc-gen-kroto-plus.svg?label=Maven%20Central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.github.marcoferrer.krotoplus%22%20a%3A%22protoc-gen-kroto-plus%22)
 
+### Community Contributions are Welcomed
+
 ## Version 0.2.1
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
@@ -13,8 +15,12 @@
   * Builder DSL support and safety via Kotlin's ```@DslMarker``` annotation
 
 ## Coming Soon
+ * Full Client & Server Stub Generation 🎉
  * New gradle configuration dsl
  * Windows executable
+ 
+## Roadmap
+ * Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 ---
 
 * **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
