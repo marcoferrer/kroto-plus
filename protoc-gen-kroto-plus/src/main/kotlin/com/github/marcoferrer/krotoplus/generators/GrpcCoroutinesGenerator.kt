@@ -113,6 +113,10 @@ object GrpcCoroutinesGenerator : Generator {
         val receiverClassName = ParameterizedTypeName
             .get(CommonClassNames.completableDeferred,responseClassName)
 
+        val jvmNameSuffix = responseType.canonicalJavaName
+            .replace(responseType.javaPackage.orEmpty(),"")
+            .replace(".","")
+
         return FunSpec.builder("complete")
             .addModifiers(KModifier.INLINE)
             .receiver(receiverClassName)
@@ -124,7 +128,7 @@ object GrpcCoroutinesGenerator : Generator {
             .addAnnotation(
                 AnnotationSpec
                     .builder(JvmName::class.asClassName())
-                    .addMember("\"complete${responseType.canonicalJavaName.replace(".","")}\"")
+                    .addMember("\"complete$jvmNameSuffix\"")
                     .build()
             )
             .addCode(CodeBlock.builder()
@@ -140,15 +144,32 @@ object GrpcCoroutinesGenerator : Generator {
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter(ParameterSpec.builder("request", requestClassName)
                 .build())
-            .addParameter(ParameterSpec.builder("deferredResponse", ParameterizedTypeName
+            .addParameter(ParameterSpec.builder("completableResponse", ParameterizedTypeName
                 .get(CommonClassNames.completableDeferred,responseClassName))
                 .build())
             .addCode(CodeBlock.builder()
-                .addStatement("%T.suspendingUnimplementedUnaryCall(%T.%N(),deferredResponse)",
-                CommonClassNames.serverCalls,
+                .addStatement("%T(%T.%N(),completableResponse)",
+                CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
                 protoService.enclosingServiceClassName,
                 methodDefinitionGetterName
             ).build())
+            .build()
+
+    fun ProtoMethod.buildClientStreamingBaseImpl(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
+            .addParameter(ParameterSpec.builder("requestChannel", ParameterizedTypeName
+                .get(CommonClassNames.receiveChannel, requestClassName))
+                .build())
+            .addParameter(ParameterSpec.builder("completableResponse", ParameterizedTypeName
+                .get(CommonClassNames.completableDeferred,responseClassName))
+                .build())
+            .addCode(CodeBlock.builder()
+                .addStatement("%T(%T.%N(),completableResponse)",
+                    CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
+                    protoService.enclosingServiceClassName,
+                    methodDefinitionGetterName
+                ).build())
             .build()
 
     fun ProtoMethod.buildUnaryMethodBaseImplDelegate(): FunSpec =
@@ -158,19 +179,31 @@ object GrpcCoroutinesGenerator : Generator {
             .addParameter("responseObserver", ParameterizedTypeName
                 .get( CommonClassNames.streamObserver, responseClassName))
             .addCode(CodeBlock.builder()
-                .addStatement("%T(%T()) {",
-                    CommonClassNames.launch,
-                    CommonClassNames.grpcContextElement)
+                .addStatement("%T(responseObserver) { completableResponse ->",
+                    CommonClassNames.ServerCalls.serverCallUnary)
                 .indent()
-                .addStatement("responseObserver.%T().%T { deferredObserver ->",
-                    ClassName(CommonPackages.krotoCoroutineLib,"toCompletableDeferred"),
-                    ClassName(CommonPackages.krotoCoroutineLib,"handleRequest"))
-                .indent()
-                .addStatement("%N(request, deferredObserver)",functionName)
+                .addStatement("%N(request, completableResponse)",functionName)
                 .unindent()
                 .addStatement("}")
+                .build()
+            )
+            .build()
+
+    fun ProtoMethod.buildClientStreamingMethodBaseImplDelegate(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.OVERRIDE)
+            .returns(ParameterizedTypeName.get(CommonClassNames.streamObserver,requestClassName))
+            .addParameter("responseObserver", ParameterizedTypeName
+                .get( CommonClassNames.streamObserver, responseClassName))
+            .addCode(CodeBlock.builder()
+                .addStatement("val requestObserver = %T(responseObserver) { requestChannel: %T, completableResponse ->",
+                    CommonClassNames.ServerCalls.serverCallClientStreaming,
+                    ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName))
+                .indent()
+                .addStatement("%N(requestChannel, completableResponse)",functionName)
                 .unindent()
                 .addStatement("}")
+                .addStatement("return requestObserver")
                 .build()
             )
             .build()
@@ -187,6 +220,8 @@ object GrpcCoroutinesGenerator : Generator {
             when {
                 //Unary
                 method.isUnary -> method.buildUnaryBaseImpl()
+
+                method.isClientStream -> method.buildClientStreamingBaseImpl()
 
                 // TODO
                 // Server Streaming
@@ -206,6 +241,8 @@ object GrpcCoroutinesGenerator : Generator {
                 //Unary
                 method.isUnary -> method.buildUnaryMethodBaseImplDelegate()
 
+                method.isClientStream -> method.buildClientStreamingMethodBaseImplDelegate()
+
                 // TODO
                 // Server Streaming
                 // method.isServerStream -> null
@@ -219,13 +256,13 @@ object GrpcCoroutinesGenerator : Generator {
         }
 
     fun ProtoService.buildResponseLambdaOverloads(): List<FunSpec> =
-        methodDefinitions.partition { it.isUnary }
-            .let { (unaryMethods, streamingMethods) ->
+        methodDefinitions.partition { it.isUnary || it.isClientStream }
+            .let { (completableResponseMethods, streamingMethods) ->
 
                 // TODO
                 // Process streamingMethods
 
-                unaryMethods.distinctBy { it.responseType }.map {
+                completableResponseMethods.distinctBy { it.responseType }.map {
                     it.buildCompletableDeferredLambdaExt()
                 }
             }
