@@ -49,7 +49,7 @@ fun <RespT> CoroutineScope.serverCallServerStreaming(
     launch(GrpcContextElement()){
         val responseChannel = actor<RespT>(start = CoroutineStart.LAZY) {
             try {
-                channel.consumeEach { responseObserver.onNext(it) }
+                consumeEach { responseObserver.onNext(it) }
                 responseObserver.onCompleted()
             } catch (e: Throwable) {
                 responseObserver.onError(e)
