@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.actor
 import io.grpc.stub.AbstractStub
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ActorScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlin.coroutines.CoroutineContext
@@ -29,32 +30,14 @@ inline fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
 
     val responseObserverChannel = InboundStreamChannel<RespT>()
     val requestObserver = block(responseObserverChannel)
-    val requestObserverChannel = requestObserver.toSendChannel(coroutineContext?.get(Job))
 
-    return ClientBidiCallChannel(requestObserverChannel, responseObserverChannel)
-}
-
-
-/**
- * Marked as [ObsoleteCoroutinesApi] due to usage of [CoroutineScope.actor]
- * Marked as [ExperimentalCoroutinesApi] due to usage of [Dispatchers.Unconfined]
- */
-@ExperimentalCoroutinesApi
-@ObsoleteCoroutinesApi
-fun <T> StreamObserver<T>.toSendChannel(parent: Job? = null): SendChannel<T> {
-
-    val streamObserver = this@toSendChannel
-    val context = parent
+    val context = coroutineContext
         ?.let { it + Dispatchers.Unconfined } ?: Dispatchers.Unconfined
 
-    return CoroutineScope(context).actor(context, start = CoroutineStart.LAZY) {
-        try {
-            channel.consumeEach { streamObserver.onNext(it) }
-            streamObserver.onCompleted()
-        } catch (e: Throwable) {
-            streamObserver.onError(e)
-        }
-    }
+    val requestObserverChannel = CoroutineScope(context)
+        .newSendChannelFromObserver(requestObserver)
+
+    return ClientBidiCallChannel(requestObserverChannel, responseObserverChannel)
 }
 
 @ExperimentalKrotoPlusCoroutinesApi

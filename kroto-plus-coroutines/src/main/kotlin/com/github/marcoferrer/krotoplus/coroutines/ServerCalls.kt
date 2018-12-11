@@ -47,17 +47,21 @@ fun <RespT> CoroutineScope.serverCallServerStreaming(
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
     launch(GrpcContextElement()){
-        val responseChannel = actor<RespT>(start = CoroutineStart.LAZY) {
-            try {
-                consumeEach { responseObserver.onNext(it) }
-                responseObserver.onCompleted()
-            } catch (e: Throwable) {
-                responseObserver.onError(e)
-            }
-        }
-
-        block(responseChannel)
+        block(newSendChannelFromObserver(responseObserver))
     }
+}
+
+@ObsoleteCoroutinesApi
+fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
+    responseObserver: StreamObserver<RespT>,
+    block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
+): StreamObserver<ReqT> {
+    val requestChannel = InboundStreamChannel<ReqT>()
+    launch(GrpcContextElement()){
+        val responseChannel = newSendChannelFromObserver(responseObserver)
+        block(requestChannel, responseChannel)
+    }
+    return requestChannel
 }
 
 fun <RespT> CoroutineScope.serverCallUnary(
@@ -65,8 +69,22 @@ fun <RespT> CoroutineScope.serverCallUnary(
     block: suspend (CompletableDeferred<RespT>)-> Unit
 ) {
     launch(GrpcContextElement()) {
-        responseObserver.toCompletableDeferred().handleRequest { completableResponse ->
+        val completableResponse = responseObserver.toCompletableDeferred()
+        try{
             block(completableResponse)
+        }catch (e: Throwable){
+            completableResponse.completeExceptionally(e)
         }
     }
 }
+
+@ObsoleteCoroutinesApi
+fun <RespT> CoroutineScope.newSendChannelFromObserver(responseObserver: StreamObserver<RespT>): SendChannel<RespT> =
+    actor(start = CoroutineStart.LAZY) {
+        try {
+            consumeEach { responseObserver.onNext(it) }
+            responseObserver.onCompleted()
+        } catch (e: Throwable) {
+            responseObserver.onError(e)
+        }
+    }

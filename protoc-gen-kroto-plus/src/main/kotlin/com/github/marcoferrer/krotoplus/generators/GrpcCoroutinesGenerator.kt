@@ -9,6 +9,7 @@ import com.github.marcoferrer.krotoplus.utils.CommonPackages
 import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
+import java.lang.IllegalStateException
 
 
 object GrpcCoroutinesGenerator : Generator {
@@ -100,10 +101,256 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .addFunctions(buildBaseImplRpcMethods())
             .addFunctions(buildResponseLambdaOverloads())
-            .addType(buildBaseImplDelegate())
+            .addType(buildServiceBaseImplDelegate())
 
         return baseImplBuilder.build()
     }
+
+
+    fun ProtoService.buildServiceBaseImplDelegate(): TypeSpec =
+        TypeSpec.classBuilder(serviceDelegateName)
+            .addModifiers(KModifier.PRIVATE, KModifier.INNER)
+            .superclass(serviceJavaBaseImplClassName)
+            .addFunctions(buildBaseImplRpcMethodDelegates())
+            .build()
+
+    fun ProtoMethod.buildUnaryBaseImpl(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
+            .addParameter(
+                ParameterSpec.builder("request", requestClassName)
+                    .build()
+            )
+            .addParameter(
+                ParameterSpec.builder(
+                    "completableResponse", ParameterizedTypeName
+                        .get(CommonClassNames.completableDeferred, responseClassName)
+                )
+                    .build()
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "%T(%T.%N(),completableResponse)",
+                        CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName
+                    ).build()
+            )
+            .build()
+
+
+    fun ProtoMethod.buildUnaryBaseImplDelegate(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameter("request", requestClassName)
+            .addParameter(
+                "responseObserver", ParameterizedTypeName
+                    .get(CommonClassNames.streamObserver, responseClassName)
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "%T(responseObserver) { completableResponse ->",
+                        CommonClassNames.ServerCalls.serverCallUnary
+                    )
+                    .indent()
+                    .addStatement("%N(request, completableResponse)", functionName)
+                    .unindent()
+                    .addStatement("}")
+                    .build()
+            )
+            .build()
+
+    fun ProtoMethod.buildClientStreamingBaseImpl(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
+            .addParameter(
+                ParameterSpec.builder(
+                    "requestChannel", ParameterizedTypeName
+                        .get(CommonClassNames.receiveChannel, requestClassName)
+                )
+                    .build()
+            )
+            .addParameter(
+                ParameterSpec.builder(
+                    "completableResponse", ParameterizedTypeName
+                        .get(CommonClassNames.completableDeferred, responseClassName)
+                )
+                    .build()
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "%T(%T.%N(),completableResponse)",
+                        CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName
+                    ).build()
+            )
+            .build()
+
+    fun ProtoMethod.buildClientStreamingMethodBaseImplDelegate(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.OVERRIDE)
+            .returns(ParameterizedTypeName.get(CommonClassNames.streamObserver, requestClassName))
+            .addParameter(
+                "responseObserver", ParameterizedTypeName
+                    .get(CommonClassNames.streamObserver, responseClassName)
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "val requestObserver = %T(responseObserver) { requestChannel: %T, completableResponse ->",
+                        CommonClassNames.ServerCalls.serverCallClientStreaming,
+                        ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName)
+                    )
+                    .indent()
+                    .addStatement("%N(requestChannel, completableResponse)", functionName)
+                    .unindent()
+                    .addStatement("}")
+                    .addStatement("return requestObserver")
+                    .build()
+            )
+            .build()
+
+    fun ProtoMethod.buildServerStreamingBaseImpl(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
+            .addParameter(
+                ParameterSpec.builder("request", requestClassName)
+                    .build()
+            )
+            .addParameter(
+                ParameterSpec.builder(
+                    "responseChannel", ParameterizedTypeName
+                        .get(CommonClassNames.sendChannel, responseClassName)
+                ).build()
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "%T(%T.%N(),responseChannel)",
+                        CommonClassNames.ServerCalls.serverCallUnimplementedStream,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName
+                    ).build()
+            )
+            .build()
+
+
+    fun ProtoMethod.buildServerStreamingMethodBaseImplDelegate(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.OVERRIDE)
+            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
+            .addParameter("request", requestClassName)
+            .addParameter(
+                "responseObserver", ParameterizedTypeName
+                    .get(CommonClassNames.streamObserver, responseClassName)
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "%T(responseObserver) { responseChannel: %T ->",
+                        CommonClassNames.ServerCalls.serverCallServerStreaming,
+                        ParameterizedTypeName.get(CommonClassNames.sendChannel, responseClassName)
+                    )
+                    .indent()
+                    .addStatement("%N(request, responseChannel)", functionName)
+                    .unindent()
+                    .addStatement("}")
+                    .build()
+            )
+            .build()
+
+    fun ProtoMethod.buildBidiBaseImpl(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
+            .addParameter(
+                ParameterSpec.builder("requestChannel", ParameterizedTypeName
+                    .get(CommonClassNames.receiveChannel, requestClassName))
+                    .build()
+            )
+            .addParameter(
+                ParameterSpec.builder(
+                    "responseChannel", ParameterizedTypeName
+                        .get(CommonClassNames.sendChannel, responseClassName)
+                ).build()
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "%T(%T.%N(),responseChannel)",
+                        CommonClassNames.ServerCalls.serverCallUnimplementedStream,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName
+                    ).build()
+            )
+            .build()
+
+
+    fun ProtoMethod.buildBidiMethodBaseImplDelegate(): FunSpec =
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.OVERRIDE)
+            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
+            .returns(ParameterizedTypeName.get(CommonClassNames.streamObserver, requestClassName))
+            .addParameter(
+                "responseObserver", ParameterizedTypeName
+                    .get(CommonClassNames.streamObserver, responseClassName)
+            )
+            .addCode(
+                CodeBlock.builder()
+                    .addStatement(
+                        "val requestChannel = %T(responseObserver) { requestChannel: %T, responseChannel: %T ->",
+                        CommonClassNames.ServerCalls.serverCallBidiStreaming,
+                        ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName),
+                        ParameterizedTypeName.get(CommonClassNames.sendChannel, responseClassName)
+                    )
+                    .indent()
+                    .addStatement("%N(requestChannel, responseChannel)", functionName)
+                    .unindent()
+                    .addStatement("}")
+                    .addStatement("return requestChannel")
+                    .build()
+            )
+            .build()
+
+    fun ProtoService.buildBaseImplRpcMethods(): List<FunSpec> =
+        methodDefinitions.map { method ->
+            when {
+                method.isUnary -> method.buildUnaryBaseImpl()
+                method.isClientStream -> method.buildClientStreamingBaseImpl()
+                method.isServerStream -> method.buildServerStreamingBaseImpl()
+                method.isBidi -> method.buildBidiBaseImpl()
+                else -> throw IllegalStateException("Unknown method type")
+            }
+        }
+
+    fun ProtoService.buildBaseImplRpcMethodDelegates(): List<FunSpec> =
+        methodDefinitions.map { method ->
+            when {
+                method.isUnary -> method.buildUnaryBaseImplDelegate()
+                method.isClientStream -> method.buildClientStreamingMethodBaseImplDelegate()
+                method.isServerStream -> method.buildServerStreamingMethodBaseImplDelegate()
+                method.isBidi -> method.buildBidiMethodBaseImplDelegate()
+                else -> throw IllegalStateException("Unknown method type")
+            }
+        }
+
+    fun ProtoService.buildResponseLambdaOverloads(): List<FunSpec> =
+        methodDefinitions.partition { it.isUnary || it.isClientStream }
+            .let { (completableResponseMethods, streamingResponseMethods) ->
+
+                mutableListOf<FunSpec>().apply {
+                    streamingResponseMethods
+                        .distinctBy { it.responseType }
+                        .mapTo(this) { it.buildChannelLambdaExt() }
+
+                    completableResponseMethods
+                        .distinctBy { it.responseType }
+                        .mapTo(this) { it.buildCompletableDeferredLambdaExt() }
+                }
+            }
 
     fun ProtoMethod.buildCompletableDeferredLambdaExt(): FunSpec {
 
@@ -139,216 +386,38 @@ object GrpcCoroutinesGenerator : Generator {
             .build()
     }
 
-    fun ProtoMethod.buildUnaryBaseImpl(): FunSpec =
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
+    fun ProtoMethod.buildChannelLambdaExt(): FunSpec {
+
+        val receiverClassName = ParameterizedTypeName
+            .get(CommonClassNames.sendChannel, responseClassName)
+
+        val jvmNameSuffix = responseType.canonicalJavaName
+            .replace(responseType.javaPackage.orEmpty(), "")
+            .replace(".", "")
+
+        return FunSpec.builder("send")
+            .addModifiers(KModifier.INLINE, KModifier.SUSPEND)
+            .receiver(receiverClassName)
             .addParameter(
-                ParameterSpec.builder("request", requestClassName)
-                    .build()
-            )
-            .addParameter(
-                ParameterSpec.builder(
-                    "completableResponse", ParameterizedTypeName
-                        .get(CommonClassNames.completableDeferred, responseClassName)
+                "block", LambdaTypeName.get(
+                    receiver = (responseType as ProtoMessage).builderClassName,
+                    returnType = UNIT
                 )
+            )
+            .addAnnotation(
+                AnnotationSpec
+                    .builder(JvmName::class.asClassName())
+                    .addMember("\"send$jvmNameSuffix\"")
                     .build()
             )
             .addCode(
                 CodeBlock.builder()
-                    .addStatement(
-                        "%T(%T.%N(),completableResponse)",
-                        CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
-                        protoService.enclosingServiceClassName,
-                        methodDefinitionGetterName
-                    ).build()
-            )
-            .build()
-
-    fun ProtoMethod.buildClientStreamingBaseImpl(): FunSpec =
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
-            .addParameter(
-                ParameterSpec.builder(
-                    "requestChannel", ParameterizedTypeName
-                        .get(CommonClassNames.receiveChannel, requestClassName)
-                )
-                    .build()
-            )
-            .addParameter(
-                ParameterSpec.builder(
-                    "completableResponse", ParameterizedTypeName
-                        .get(CommonClassNames.completableDeferred, responseClassName)
-                )
-                    .build()
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement(
-                        "%T(%T.%N(),completableResponse)",
-                        CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
-                        protoService.enclosingServiceClassName,
-                        methodDefinitionGetterName
-                    ).build()
-            )
-            .build()
-
-
-    fun ProtoMethod.buildServerStreamingBaseImpl(): FunSpec =
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
-            .addParameter(
-                ParameterSpec.builder("request", requestClassName)
-                    .build()
-            )
-            .addParameter(
-                ParameterSpec.builder(
-                    "responseChannel", ParameterizedTypeName
-                        .get(CommonClassNames.sendChannel, responseClassName)
-                ).build()
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement(
-                        "%T(%T.%N(),responseChannel)",
-                        CommonClassNames.ServerCalls.serverCallUnimplementedStream,
-                        protoService.enclosingServiceClassName,
-                        methodDefinitionGetterName
-                    ).build()
-            )
-            .build()
-
-    fun ProtoMethod.buildUnaryMethodBaseImplDelegate(): FunSpec =
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter("request", requestClassName)
-            .addParameter(
-                "responseObserver", ParameterizedTypeName
-                    .get(CommonClassNames.streamObserver, responseClassName)
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement(
-                        "%T(responseObserver) { completableResponse ->",
-                        CommonClassNames.ServerCalls.serverCallUnary
-                    )
-                    .indent()
-                    .addStatement("%N(request, completableResponse)", functionName)
-                    .unindent()
-                    .addStatement("}")
+                    .addStatement("val response = %T.newBuilder().apply(block).build()", responseClassName)
+                    .addStatement("send(response)")
                     .build()
             )
             .build()
-
-    fun ProtoMethod.buildClientStreamingMethodBaseImplDelegate(): FunSpec =
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.OVERRIDE)
-            .returns(ParameterizedTypeName.get(CommonClassNames.streamObserver, requestClassName))
-            .addParameter(
-                "responseObserver", ParameterizedTypeName
-                    .get(CommonClassNames.streamObserver, responseClassName)
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement(
-                        "val requestObserver = %T(responseObserver) { requestChannel: %T, completableResponse ->",
-                        CommonClassNames.ServerCalls.serverCallClientStreaming,
-                        ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName)
-                    )
-                    .indent()
-                    .addStatement("%N(requestChannel, completableResponse)", functionName)
-                    .unindent()
-                    .addStatement("}")
-                    .addStatement("return requestObserver")
-                    .build()
-            )
-            .build()
-
-    fun ProtoMethod.buildServerStreamingMethodBaseImplDelegate(): FunSpec =
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .addParameter("request", requestClassName)
-            .addParameter(
-                "responseObserver", ParameterizedTypeName
-                    .get(CommonClassNames.streamObserver, responseClassName)
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement(
-                        "%T(responseObserver) { responseChannel: %T ->",
-                        CommonClassNames.ServerCalls.serverCallServerStreaming,
-                        ParameterizedTypeName.get(CommonClassNames.sendChannel, responseClassName)
-                    )
-                    .indent()
-                    .addStatement("%N(request, responseChannel)", functionName)
-                    .unindent()
-                    .addStatement("}")
-                    .build()
-            )
-            .build()
-
-
-    fun ProtoService.buildBaseImplDelegate(): TypeSpec =
-        TypeSpec.classBuilder(serviceDelegateName)
-            .addModifiers(KModifier.PRIVATE, KModifier.INNER)
-            .superclass(serviceJavaBaseImplClassName)
-            .addFunctions(buildBaseImplRpcMethodDelegates())
-            .build()
-
-    fun ProtoService.buildBaseImplRpcMethods(): List<FunSpec> =
-        methodDefinitions.mapNotNull { method ->
-            when {
-                //Unary
-                method.isUnary -> method.buildUnaryBaseImpl()
-
-                method.isClientStream -> method.buildClientStreamingBaseImpl()
-
-                method.isServerStream -> method.buildServerStreamingBaseImpl()
-                // TODO
-                // Server Streaming
-                // method.isServerStream -> null
-
-                // TODO
-                // Bidi && Client Streaming
-                // (method.isBidi || method.isClientStream) -> null
-
-                else -> null
-            }
-        }
-
-    fun ProtoService.buildBaseImplRpcMethodDelegates(): List<FunSpec> =
-        methodDefinitions.mapNotNull { method ->
-            when {
-                //Unary
-                method.isUnary -> method.buildUnaryMethodBaseImplDelegate()
-
-                method.isClientStream -> method.buildClientStreamingMethodBaseImplDelegate()
-
-                method.isServerStream -> method.buildServerStreamingMethodBaseImplDelegate()
-                // TODO
-                // Server Streaming
-                // method.isServerStream -> null
-
-                // TODO
-                // Bidi && Client Streaming
-                // (method.isBidi || method.isClientStream) -> null
-
-                else -> null
-            }
-        }
-
-    fun ProtoService.buildResponseLambdaOverloads(): List<FunSpec> =
-        methodDefinitions.partition { it.isUnary || it.isClientStream }
-            .let { (completableResponseMethods, streamingMethods) ->
-
-                // TODO
-                // Process streamingMethods
-
-                completableResponseMethods.distinctBy { it.responseType }.map {
-                    it.buildCompletableDeferredLambdaExt()
-                }
-            }
-
+    }
 }
 
 

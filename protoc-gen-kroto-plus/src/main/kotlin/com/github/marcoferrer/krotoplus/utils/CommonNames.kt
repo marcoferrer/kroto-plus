@@ -34,6 +34,7 @@ object CommonClassNames{
         val serverCallUnary = ClassName(krotoCoroutineLib,"serverCallUnary")
         val serverCallClientStreaming = ClassName(krotoCoroutineLib,"serverCallClientStreaming")
         val serverCallServerStreaming = ClassName(krotoCoroutineLib,"serverCallServerStreaming")
+        val serverCallBidiStreaming = ClassName(krotoCoroutineLib,"serverCallBidiStreaming")
         val serverCallUnimplementedUnary = ClassName(krotoCoroutineLib,"serverCallUnimplementedUnary")
         val serverCallUnimplementedStream = ClassName(krotoCoroutineLib,"serverCallUnimplementedStream")
     }
