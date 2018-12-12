@@ -1,12 +1,12 @@
 package com.github.marcoferrer.krotoplus.coroutines
 
-import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
+import io.grpc.stub.*
+import kotlinx.coroutines.channels.*
 
+@Deprecated("Use ")
 class InboundStreamChannel<T>(
-    capacity: Int = Channel.UNLIMITED,
-    private val channel: Channel<T> = Channel(capacity)
+        capacity: Int = Channel.UNLIMITED,
+        val channel: Channel<T> = Channel(capacity)
 ) : StreamObserver<T>, ReceiveChannel<T> by channel {
 
     override fun onNext(value: T) {

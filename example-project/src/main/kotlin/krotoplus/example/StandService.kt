@@ -1,18 +1,16 @@
 package krotoplus.example
 
 import io.grpc.Status
-import jojo.bizarre.adventure.stand.Attack
-import jojo.bizarre.adventure.stand.StandProto
-import jojo.bizarre.adventure.stand.StandServiceCoroutineGrpc
-import jojo.bizarre.adventure.stand.StandServiceProto
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.async
+import jojo.bizarre.adventure.character.CharacterProto
+import jojo.bizarre.adventure.stand.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 
-class StandService : StandServiceCoroutineGrpc.StandServiceCoroutineImplBase(){
+class StandService : StandServiceCoroutineGrpc.StandServiceImplBase(){
 
     override suspend fun getStandByName(
         request: StandServiceProto.GetStandByNameRequest,
-        deferredResponse: CompletableDeferred<StandProto.Stand>
+        completableResponse: CompletableDeferred<StandProto.Stand>
     ) {
         val asyncAttack = async {
             Attack {
@@ -23,17 +21,39 @@ class StandService : StandServiceCoroutineGrpc.StandServiceCoroutineImplBase(){
         }
 
         if(request.name == "Gold Experience"){
-            deferredResponse.complete {
+            completableResponse.complete {
                 name = "Gold Experience"
                 powerLevel = 575
                 speed = 500
                 addAttacks(asyncAttack.await())
             }
         }else{
-            deferredResponse.completeExceptionally(Status.NOT_FOUND.asException())
+            completableResponse.completeExceptionally(Status.NOT_FOUND.asException())
         }
     }
 
+    @ExperimentalCoroutinesApi
+    override suspend fun getStandsForCharacters(
+        requestChannel: ReceiveChannel<CharacterProto.Character>,
+        responseChannel: SendChannel<StandProto.Stand>
+    ) {
 
+        val requestIter = requestChannel.iterator()
 
+        while (requestIter.hasNext()){
+
+            val requestValues = listOf(
+                requestIter.next(),
+                requestIter.next(),
+                requestIter.next()
+            )
+
+            responseChannel.send {
+                name = requestValues.joinToString()
+            }
+        }
+
+        responseChannel.close()
+        println("Server Finished")
+    }
 }

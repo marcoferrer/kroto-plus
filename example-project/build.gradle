@@ -63,7 +63,8 @@ dependencies {
     implementation "com.github.marcoferrer.krotoplus:kroto-plus-message:${versions.krotoplus}"
 
     implementation "io.grpc:grpc-protobuf:${versions.grpc}",
-                   "io.grpc:grpc-stub:${versions.grpc}"
+                   "io.grpc:grpc-stub:${versions.grpc}",
+                   "io.grpc:grpc-netty:${versions.grpc}"
 
     testImplementation "io.grpc:grpc-testing:${versions.grpc}"
 

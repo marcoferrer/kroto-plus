@@ -1,16 +1,18 @@
 package krotoplus.example
 
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
+import com.github.marcoferrer.krotoplus.coroutines.*
+import io.grpc.*
 import io.grpc.testing.GrpcServerRule
 import jojo.bizarre.adventure.stand.*
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.BeforeTest
 import kotlin.test.assertNotNull
 import kotlin.test.fail
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.consumeEachIndexed
+
 
 class TestStandService {
 
@@ -19,7 +21,7 @@ class TestStandService {
 
     @BeforeTest
     fun bindService() {
-        grpcServerRule?.serviceRegistry?.addService(StandService())
+        grpcServerRule.serviceRegistry?.addService(StandService())
     }
 
     @Test
@@ -38,13 +40,50 @@ class TestStandService {
             }
         }
 
-        try{
+        try {
             standStub.getStandByName { name = "Silver Chariot" }
             fail("Exception was expected with status code: ${Status.NOT_FOUND.code}")
         } catch (e: Throwable) {
             val exception = e as? StatusRuntimeException
             assertNotNull(exception)
             assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        }
+    }
+
+    @Test
+    fun `Test Bidi Service Call`() {
+        runBlocking {
+
+            val standStub = StandServiceCoroutineGrpc
+                .newStub(grpcServerRule.channel!!)
+                .withCoroutineContext()
+
+            val (requestChannel, responseChannel) = standStub.getStandsForCharacters()
+
+            launch {
+
+                repeat(300) {
+                    val value = it + 1
+                    requestChannel.send {
+                        name = "test $value"
+                    }
+                    println("-> Client Sent '$value'")
+
+                }
+
+                requestChannel.close()
+            }
+
+            launch {
+                var responseQty = 0
+
+                responseChannel.consumeEachIndexed { (index, response) ->
+                    responseQty = index
+                    println("<- Resp#: $index, Client Received '${response.toString().trim()}' ")
+                }
+
+                assertEquals(99, responseQty)
+            }
         }
     }
 

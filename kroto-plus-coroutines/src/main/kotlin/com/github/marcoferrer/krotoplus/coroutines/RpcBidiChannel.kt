@@ -1,5 +1,6 @@
 package com.github.marcoferrer.krotoplus.coroutines
 
+import com.github.marcoferrer.krotoplus.coroutines.client.ClientBidiCallChannel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 
@@ -10,14 +11,16 @@ import kotlinx.coroutines.channels.SendChannel
 )
 typealias RpcBidiChannel<ReqT, RespT> = ClientBidiCallChannel<ReqT, RespT>
 
-data class ClientBidiCallChannel<ReqT, RespT>(
-    val requestChannel: SendChannel<ReqT>,
-    val responseChannel: ReceiveChannel<RespT>
-) : SendChannel<ReqT> by requestChannel,
-    ReceiveChannel<RespT> by responseChannel
+@Deprecated(
+    "ClientBidiCallChannel has been moved",
+    ReplaceWith("com.github.marcoferrer.krotoplus.coroutines.client.ClientBidiCallChannel<ReqT,RespT>")
+)
+typealias ClientBidiCallChannel<ReqT, RespT> = com.github.marcoferrer.krotoplus.coroutines.client.ClientBidiCallChannel<ReqT, RespT>
 
+@Deprecated("Deprecated in favor of using kroto generated base impl.")
 data class ServerBidiCallChannel<ReqT, RespT>(
     val requestChannel: ReceiveChannel<ReqT>,
     val responseChannel: SendChannel<RespT>
 ) : SendChannel<RespT> by responseChannel,
     ReceiveChannel<ReqT> by requestChannel
+
