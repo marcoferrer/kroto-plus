@@ -66,7 +66,11 @@ fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
     )
 
     launch(GrpcContextElement()) {
-        block(requestChannel, completableResponse)
+        try {
+            block(requestChannel, completableResponse)
+        }catch (e: Throwable){
+            completableResponse.completeExceptionally(e)
+        }
     }
 
     return requestChannel
