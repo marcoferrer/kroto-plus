@@ -29,6 +29,7 @@ plugins{
     id "com.jfrog.artifactory" version "4.8.1" apply false
     id "org.springframework.boot" version "2.0.3.RELEASE" apply false
     id 'com.gradle.plugin-publish' version '0.9.7' apply false
+    id "com.google.osdetector" version "1.4.0"
 }
 
 subprojects{ subproject ->

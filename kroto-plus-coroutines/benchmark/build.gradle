@@ -1,0 +1,55 @@
+apply plugin: 'com.google.protobuf'
+apply plugin: 'idea'
+apply plugin: 'kotlin'
+
+compileKotlin {
+    kotlinOptions{
+        jvmTarget = "1.8"
+        freeCompilerArgs += ["-Xuse-experimental=kotlin.Experimental"]
+    }
+}
+
+dependencies {
+    implementation project(':kroto-plus-coroutines')
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
+
+    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    implementation "io.grpc:grpc-protobuf:${versions.grpc}"
+    implementation "io.grpc:grpc-stub:${versions.grpc}"
+    implementation "io.grpc:grpc-netty:${versions.grpc}"
+
+    implementation "io.grpc:grpc-benchmarks:${versions.grpc}"
+    protobuf "io.grpc:grpc-benchmarks:${versions.grpc}"
+}
+
+compileJava.enabled = false
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}"}
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        kroto {
+            path = "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-jvm8.jar"
+        }
+    }
+
+    generateProtoTasks {
+        def krotoConfig = file("krotoPlusConfig.asciipb")
+
+        all().each{ task ->
+            task.inputs.files krotoConfig
+
+            task.builtins {
+                remove java
+            }
+            task.plugins {
+                kroto {
+                    option "ConfigPath=$krotoConfig"
+                }
+            }
+        }
+    }
+}
