@@ -9,6 +9,11 @@
 
 ### Community Contributions are Welcomed
 
+## Quick Start: 
+You can clone the _[kotlin-coroutines-gRPC-template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_ project to get started. 
+
+```git clone https://github.com/marcoferrer/kotlin-coroutines-gRPC-template.git```
+
 ## Version 0.2.1
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
