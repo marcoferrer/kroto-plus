@@ -10,9 +10,12 @@
 ### Community Contributions are Welcomed
 
 ## Quick Start: 
-You can clone the _[kotlin-coroutines-gRPC-template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_ project to get started. 
-
-```git clone https://github.com/marcoferrer/kotlin-coroutines-gRPC-template.git```
+Run the following command to get started with a preconfigured template project. (_[kotlin-coroutines-gRPC-template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_)
+```bash
+git clone https://github.com/marcoferrer/kotlin-coroutines-gRPC-template && \
+cd kotlin-coroutines-gRPC-template && \
+./gradlew run 
+```
 
 ## Version 0.2.1
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
