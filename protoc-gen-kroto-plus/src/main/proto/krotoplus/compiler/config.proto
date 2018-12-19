@@ -33,6 +33,9 @@ message CompilerConfig {
     // Configuration entries for the 'Generator Scripts' code generator.
     repeated GeneratorScriptsGenOptions generator_scripts = 25;
 
+    // Configuration entries for the 'Multi-Platform Protobuf Messages' code generator.
+    repeated MPProtobufMessagesGenOptions mp_protobuf_messages = 26;
+
 }
 
 // Represent a filter used for including and excluding source files from
@@ -213,5 +216,14 @@ message MockServicesGenOptions {
     // The name of the property at which the mock server list will be initialized at.
     string service_list_name = 5;
 
+}
+
+
+// Configuration used by the 'Mock Services' code generator.
+message MPProtobufMessagesGenOptions {
+
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
+    FileFilter filter = 1;
 }
 

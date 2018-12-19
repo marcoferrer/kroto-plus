@@ -1,0 +1,7 @@
+proto_builders {
+  filter {
+    include_path: "test"
+    include_path: "asdasd"
+  }
+  unwrap_builders: true
+}

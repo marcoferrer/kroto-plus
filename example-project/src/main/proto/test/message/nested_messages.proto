@@ -79,3 +79,26 @@ message TestRepeated {
     repeated bytes bytes_field = 16;
     repeated L1Message1 message_field = 17;
 }
+
+message SimpleTest {
+    string a = 1;
+    string b = 2;
+}
+
+message OneOfMessage{
+
+    oneof value1 {
+        string value1_string = 1;
+        SimpleTest value1_message = 2;
+        int32 value1_int32 = 3;
+        TestEnum value1_enum = 4;
+    }
+
+    oneof value2 {
+        string value2_string = 5;
+        SimpleTest value2_message = 6;
+        int32 value2_int32 = 7;
+        TestEnum value2_enum = 8;
+    }
+
+}
