@@ -9,7 +9,8 @@ compileKotlin {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
-    implementation "io.grpc:grpc-protobuf:${versions.grpc}",
-                   "io.grpc:grpc-stub:${versions.grpc}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
+    implementation "io.grpc:grpc-protobuf:${Versions.grpc}",
+                   "io.grpc:grpc-stub:${Versions.grpc}"
+    testImplementation "io.mockk:mockk:1.8.13.kotlin13"
 }

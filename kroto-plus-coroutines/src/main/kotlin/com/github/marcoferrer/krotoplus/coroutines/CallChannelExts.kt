@@ -16,15 +16,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @ObsoleteCoroutinesApi
 fun <RespT> CoroutineScope.newSendChannelFromObserver(
-    responseObserver: StreamObserver<RespT>,
+    observer: StreamObserver<RespT>,
     capacity: Int = 1
 ): SendChannel<RespT> =
     actor(capacity = capacity, start = CoroutineStart.LAZY) {
         try {
-            consumeEach { responseObserver.onNext(it) }
-            responseObserver.onCompleted()
+            consumeEach { observer.onNext(it) }
+            observer.onCompleted()
         } catch (e: Throwable) {
-            responseObserver.onError(e)
+            observer.onError(e)
         }
     }
 

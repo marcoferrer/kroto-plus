@@ -19,9 +19,9 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies{
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
-    implementation "io.grpc:grpc-protobuf:${versions.grpc}"
-    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
+    implementation "io.grpc:grpc-protobuf:${Versions.grpc}"
+    implementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation ("com.squareup:kotlinpoet:0.7.0") {
         exclude group: 'org.jetbrains.kotlin'
@@ -31,12 +31,12 @@ dependencies{
     implementation "org.jetbrains.kotlin:kotlin-script-util"
     implementation "org.jetbrains.kotlin:kotlin-script-runtime"
     implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable"
-    implementation "com.google.protobuf:protobuf-java-util:${versions.protobuf}"
+    implementation "com.google.protobuf:protobuf-java-util:${Versions.protobuf}"
 
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}" }
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}" }
 
     generateProtoTasks {
         all().each { task ->
