@@ -1,7 +1,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
+import com.github.marcoferrer.krotoplus.coroutines.FlowControlledObserver
 import com.github.marcoferrer.krotoplus.coroutines.enableManualFlowControl
-import com.github.marcoferrer.krotoplus.coroutines.observerHandleNextValue
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.CoroutineScope
@@ -10,7 +10,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -32,6 +31,7 @@ class ClientResponseObserverChannel<ReqT, RespT>(
     override val coroutineContext: CoroutineContext,
     private val responseChannelDelegate: Channel<RespT> = Channel()
 ) : ClientResponseObserver<ReqT, RespT>,
+    FlowControlledObserver,
     ReceiveChannel<RespT> by responseChannelDelegate,
     CoroutineScope {
 
@@ -47,14 +47,12 @@ class ClientResponseObserverChannel<ReqT, RespT>(
     }
 
     @ExperimentalCoroutinesApi
-    override fun onNext(value: RespT) {
-        observerHandleNextValue(
-            value = value,
-            channel = responseChannelDelegate,
-            callStreamObserver = requestStream,
-            isMessagePreloaded = isMessagePreloaded
-        )
-    }
+    override fun onNext(value: RespT) = nextValueWithBackPressure(
+        value = value,
+        channel = responseChannelDelegate,
+        callStreamObserver = requestStream,
+        isMessagePreloaded = isMessagePreloaded
+    )
 
     override fun onError(t: Throwable) {
         responseChannelDelegate.close(t)

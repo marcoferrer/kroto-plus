@@ -158,8 +158,10 @@ object GrpcCoroutinesGenerator : Generator {
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "%T(responseObserver) { completableResponse ->",
-                        CommonClassNames.ServerCalls.serverCallUnary
+                        "%T(%T.%N(),responseObserver) { completableResponse ->",
+                        CommonClassNames.ServerCalls.serverCallUnary,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName
                     )
                     .indent()
                     .addStatement("%N(request, completableResponse)", functionName)
@@ -209,8 +211,10 @@ object GrpcCoroutinesGenerator : Generator {
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "val requestObserver = %T(responseObserver) { requestChannel: %T, completableResponse ->",
+                        "val requestObserver = %T(%T.%N(),responseObserver) { requestChannel: %T, completableResponse ->",
                         CommonClassNames.ServerCalls.serverCallClientStreaming,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName,
                         ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName)
                     )
                     .indent()
@@ -259,8 +263,10 @@ object GrpcCoroutinesGenerator : Generator {
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "%T(responseObserver) { responseChannel: %T ->",
+                        "%T(%T.%N(),responseObserver) { responseChannel: %T ->",
                         CommonClassNames.ServerCalls.serverCallServerStreaming,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName,
                         ParameterizedTypeName.get(CommonClassNames.sendChannel, responseClassName)
                     )
                     .indent()
@@ -310,8 +316,10 @@ object GrpcCoroutinesGenerator : Generator {
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "val requestChannel = %T(responseObserver) { requestChannel: %T, responseChannel: %T ->",
+                        "val requestChannel = %T(%T.%N(),responseObserver) { requestChannel: %T, responseChannel: %T ->",
                         CommonClassNames.ServerCalls.serverCallBidiStreaming,
+                        protoService.enclosingServiceClassName,
+                        methodDefinitionGetterName,
                         ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName),
                         ParameterizedTypeName.get(CommonClassNames.sendChannel, responseClassName)
                     )

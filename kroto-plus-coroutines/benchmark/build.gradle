@@ -13,21 +13,21 @@ dependencies {
     implementation project(':kroto-plus-coroutines')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
 
-    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
-    implementation "io.grpc:grpc-protobuf:${versions.grpc}"
-    implementation "io.grpc:grpc-stub:${versions.grpc}"
-    implementation "io.grpc:grpc-netty:${versions.grpc}"
+    implementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
+    implementation "io.grpc:grpc-protobuf:${Versions.grpc}"
+    implementation "io.grpc:grpc-stub:${Versions.grpc}"
+    implementation "io.grpc:grpc-netty:${Versions.grpc}"
 
-    implementation "io.grpc:grpc-benchmarks:${versions.grpc}"
-    protobuf "io.grpc:grpc-benchmarks:${versions.grpc}"
+    implementation "io.grpc:grpc-benchmarks:${Versions.grpc}"
+    protobuf "io.grpc:grpc-benchmarks:${Versions.grpc}"
 }
 
 compileJava.enabled = false
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}"}
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}"}
 
     //noinspection GroovyAssignabilityCheck
     plugins {

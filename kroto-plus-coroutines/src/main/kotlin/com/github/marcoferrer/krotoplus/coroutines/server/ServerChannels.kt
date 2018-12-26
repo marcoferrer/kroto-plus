@@ -1,6 +1,6 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
-import com.github.marcoferrer.krotoplus.coroutines.observerHandleNextValue
+import com.github.marcoferrer.krotoplus.coroutines.FlowControlledObserver
 import io.grpc.stub.CallStreamObserver
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
@@ -18,18 +18,17 @@ class ServerRequestStreamChannel<ReqT, RespT>(
     private val callStreamObserver: CallStreamObserver<RespT>,
     private val onErrorHandler: ((Throwable) -> Unit)? = null
 ) : ReceiveChannel<ReqT> by delegateChannel,
+    FlowControlledObserver,
     StreamObserver<ReqT>,
     CoroutineScope {
 
     @ExperimentalCoroutinesApi
-    override fun onNext(value: ReqT) {
-        observerHandleNextValue(
-            value,
-            delegateChannel,
-            callStreamObserver,
-            isMessagePreloaded
-        )
-    }
+    override fun onNext(value: ReqT) = nextValueWithBackPressure(
+        value,
+        delegateChannel,
+        callStreamObserver,
+        isMessagePreloaded
+    )
 
     override fun onError(t: Throwable) {
         delegateChannel.close(t)

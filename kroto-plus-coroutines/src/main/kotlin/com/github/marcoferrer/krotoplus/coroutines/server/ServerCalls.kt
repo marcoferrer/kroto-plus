@@ -11,11 +11,12 @@ import kotlinx.coroutines.channels.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-public fun <RespT> CoroutineScope.serverCallUnary(
+public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
+    methodDescriptor: MethodDescriptor<ReqT,RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (CompletableDeferred<RespT>) -> Unit
 ) {
-    launch(GrpcContextElement()) {
+    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
         val completableResponse = responseObserver.toCompletableDeferred()
         try {
             block(completableResponse)
@@ -26,11 +27,12 @@ public fun <RespT> CoroutineScope.serverCallUnary(
 }
 
 @ObsoleteCoroutinesApi
-public fun <RespT> CoroutineScope.serverCallServerStreaming(
+public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
+    methodDescriptor: MethodDescriptor<ReqT,RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
-    launch(GrpcContextElement()) {
+    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
         val responseChannel = newSendChannelFromObserver(responseObserver)
         try {
             block(responseChannel)
@@ -42,6 +44,7 @@ public fun <RespT> CoroutineScope.serverCallServerStreaming(
 
 @ExperimentalCoroutinesApi
 fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
+    methodDescriptor: MethodDescriptor<ReqT,RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>, CompletableDeferred<RespT>) -> Unit
 ): StreamObserver<ReqT> {
@@ -65,7 +68,7 @@ fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
         }
     )
 
-    launch(GrpcContextElement()) {
+    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
         try {
             block(requestChannel, completableResponse)
         }catch (e: Throwable){
@@ -79,6 +82,7 @@ fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
+    methodDescriptor: MethodDescriptor<ReqT,RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ): StreamObserver<ReqT> {
@@ -105,7 +109,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
         }
     )
 
-    launch(GrpcContextElement()) {
+    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
         try {
             block(requestChannel, responseChannel)
         } catch (e: Throwable) {
@@ -116,6 +120,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
     return requestChannel
 }
 
+private fun MethodDescriptor<*, *>.getCoroutineName(): CoroutineName = CoroutineName(fullMethodName)
 
 private fun MethodDescriptor<*, *>.getUnimplementedException(): StatusRuntimeException =
     Status.UNIMPLEMENTED

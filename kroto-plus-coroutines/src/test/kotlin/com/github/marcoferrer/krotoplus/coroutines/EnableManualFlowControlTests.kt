@@ -6,6 +6,7 @@ import kotlinx.coroutines.channels.Channel
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
 
+
 class EnableManualFlowControlTests {
 
     @Test
@@ -19,7 +20,7 @@ class EnableManualFlowControlTests {
             every { disableAutoInboundFlowControl() } just Runs
         }
 
-        observer.enableManualFlowControl(targetChannel,AtomicBoolean())
+        observer.enableManualFlowControl(targetChannel, AtomicBoolean())
 
         onReadyHandler.captured.run()
 
@@ -42,7 +43,7 @@ class EnableManualFlowControlTests {
             every { disableAutoInboundFlowControl() } just Runs
         }
 
-        observer.enableManualFlowControl(targetChannel,AtomicBoolean())
+        observer.enableManualFlowControl(targetChannel, AtomicBoolean())
 
         onReadyHandler.captured.run()
 
@@ -151,18 +152,5 @@ class EnableManualFlowControlTests {
         verify(exactly = 1) { targetChannel.isClosedForSend }
 
         verify(exactly = 1) { isMessagePreloaded.compareAndSet(false,true) }
-    }
-}
-
-class ObserverHandleNextValueTests {
-
-    @Test
-    fun `Test channel is closed for send`(){
-
-        val channel = mockk<Channel<String>>().apply {
-            every { isClosedForSend } returns false
-        }
-
-        
     }
 }

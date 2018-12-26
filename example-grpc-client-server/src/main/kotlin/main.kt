@@ -1,15 +1,23 @@
+import com.github.marcoferrer.krotoplus.coroutines.Grpc
+import com.github.marcoferrer.krotoplus.coroutines.coroutineDispatcher
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
+import com.google.common.util.concurrent.MoreExecutors
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
+import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.examples.helloworld.send
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.channels.toChannel
 
 val server = InProcessServerBuilder
     .forName("helloworld")
     .addService(Greeter())
     .directExecutor()
+//    .coroutineDispatcher(Dispatchers.Unconfined)
     .build()
     .start()
 
