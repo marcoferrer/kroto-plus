@@ -14,70 +14,62 @@ import java.util.concurrent.atomic.AtomicBoolean
 public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
     methodDescriptor: MethodDescriptor<ReqT,RespT>,
     responseObserver: StreamObserver<RespT>,
-    block: suspend (CompletableDeferred<RespT>) -> Unit
+    block: suspend () -> RespT
 ) {
-    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
-        val completableResponse = responseObserver.toCompletableDeferred()
-        try {
-            block(completableResponse)
-        } catch (e: Throwable) {
-            completableResponse.completeExceptionally(e)
-        }
-    }
+    newRpcScope(methodDescriptor,io.grpc.Context.current())
+        .launch { responseObserver.onNext(block()) }
+        .invokeOnCompletion(responseObserver.completionHandler)
 }
 
+@ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
     methodDescriptor: MethodDescriptor<ReqT,RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
-    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
-        val responseChannel = newSendChannelFromObserver(responseObserver)
-        try {
-            block(responseChannel)
-        } catch (e: Throwable) {
-            responseChannel.close(e)
+    val rpcScope = newRpcScope(methodDescriptor)
+
+    val responseChannel = newSendChannelFromObserver(responseObserver)
+
+    rpcScope.launch { block(responseChannel) }
+        .invokeOnCompletion {
+            responseChannel.close(it?.toRpcException())
         }
-    }
 }
 
 @ExperimentalCoroutinesApi
 fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
     methodDescriptor: MethodDescriptor<ReqT,RespT>,
     responseObserver: StreamObserver<RespT>,
-    block: suspend (ReceiveChannel<ReqT>, CompletableDeferred<RespT>) -> Unit
+    block: suspend (ReceiveChannel<ReqT>) -> RespT
 ): StreamObserver<ReqT> {
 
+    val rpcScope = newRpcScope(methodDescriptor, io.grpc.Context.current())
+
     val isMessagePreloaded = AtomicBoolean(false)
-
     val requestChannelDelegate = Channel<ReqT>(capacity = 1)
-
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
         .apply { enableManualFlowControl(requestChannelDelegate, isMessagePreloaded) }
 
-    val completableResponse = responseObserver.toCompletableDeferred()
-
     val requestChannel = ServerRequestStreamChannel(
-        coroutineContext = coroutineContext,
+        coroutineContext = rpcScope.coroutineContext,
         delegateChannel = requestChannelDelegate,
         callStreamObserver = serverCallObserver,
         isMessagePreloaded = isMessagePreloaded,
         onErrorHandler = {
-            completableResponse.completeExceptionally(it)
+            rpcScope.cancel()
+            responseObserver.onError(it.toRpcException())
         }
     )
 
-    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
-        try {
-            block(requestChannel, completableResponse)
-        }catch (e: Throwable){
-            completableResponse.completeExceptionally(e)
-        }
-    }
+    rpcScope
+        .launch { responseObserver.onNext(block(requestChannel)) }
+        .invokeOnCompletion(responseObserver.completionHandler)
 
     return requestChannel
 }
+
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -87,51 +79,47 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ): StreamObserver<ReqT> {
 
+    val rpcScope = newRpcScope(methodDescriptor, io.grpc.Context.current())
+
     val isMessagePreloaded = AtomicBoolean(false)
-
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
-
     val requestChannelDelegate = Channel<ReqT>(capacity = 1)
-
-    val responseChannel = newManagedServerResponseChannel(
-        responseObserver = serverCallObserver,
-        requestChannel = requestChannelDelegate,
-        isMessagePreloaded = isMessagePreloaded
-    )
-
+    val responseChannel = rpcScope.newManagedServerResponseChannel(
+            responseObserver = serverCallObserver,
+            requestChannel = requestChannelDelegate,
+            isMessagePreloaded = isMessagePreloaded
+        )
     val requestChannel = ServerRequestStreamChannel(
-        coroutineContext = coroutineContext,
+        coroutineContext = rpcScope.coroutineContext,
         delegateChannel = requestChannelDelegate,
         callStreamObserver = serverCallObserver,
         isMessagePreloaded = isMessagePreloaded,
         onErrorHandler = {
+            // In the event of a request error, we
+            // need to close the responseChannel before
+            // cancelling the rpcScope.
             responseChannel.close(it)
+            rpcScope.cancel()
         }
     )
 
-    launch(GrpcContextElement() + methodDescriptor.getCoroutineName()) {
-        try {
-            block(requestChannel, responseChannel)
-        } catch (e: Throwable) {
-            responseChannel.close(e)
-        }
-    }
+    rpcScope
+        .launch { block(requestChannel, responseChannel) }
+        .invokeOnCompletion(responseChannel.completionHandler)
 
     return requestChannel
 }
 
-private fun MethodDescriptor<*, *>.getCoroutineName(): CoroutineName = CoroutineName(fullMethodName)
 
 private fun MethodDescriptor<*, *>.getUnimplementedException(): StatusRuntimeException =
     Status.UNIMPLEMENTED
         .withDescription("Method $fullMethodName is unimplemented")
         .asRuntimeException()
 
-public fun serverCallUnimplementedUnary(
-    methodDescriptor: MethodDescriptor<*, *>,
-    completableResponse: CompletableDeferred<*>
-) {
-    completableResponse.completeExceptionally(methodDescriptor.getUnimplementedException())
+public fun <T> serverCallUnimplementedUnary(
+    methodDescriptor: MethodDescriptor<*, *>
+): T {
+    throw methodDescriptor.getUnimplementedException()
 }
 
 public fun serverCallUnimplementedStream(methodDescriptor: MethodDescriptor<*, *>, responseChannel: SendChannel<*>) {

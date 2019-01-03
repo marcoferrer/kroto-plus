@@ -13,7 +13,7 @@ internal interface FlowControlledObserver {
         channel: Channel<T>,
         callStreamObserver: CallStreamObserver<T2>,
         isMessagePreloaded: AtomicBoolean
-    ){
+    ) {
         try {
             when {
                 !channel.isClosedForSend && channel.offer(value) -> callStreamObserver.request(1)
@@ -42,7 +42,7 @@ internal interface FlowControlledObserver {
 internal fun <T, T2> CallStreamObserver<T>.enableManualFlowControl(
     targetChannel: Channel<T2>,
     isMessagePreloaded: AtomicBoolean
-){
+) {
     disableAutoInboundFlowControl()
     setOnReadyHandler {
         if (

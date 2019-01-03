@@ -15,3 +15,6 @@ fun <T : AbstractStub<T>> T.withCoroutineContext(coroutineContext: CoroutineCont
 
 suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
+
+fun CallOptions.withCoroutineContext(coroutineContext: CoroutineContext): CallOptions =
+    this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)

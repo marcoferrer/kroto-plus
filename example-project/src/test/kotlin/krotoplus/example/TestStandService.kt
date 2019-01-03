@@ -51,6 +51,7 @@ class TestStandService {
     }
 
     @Test
+    @ExperimentalCoroutinesApi
     fun `Test Bidi Service Call`() {
         runBlocking {
 
@@ -60,21 +61,16 @@ class TestStandService {
 
             val (requestChannel, responseChannel) = standStub.getStandsForCharacters()
 
-            launch {
-
+            launchProducerJob(requestChannel) {
                 repeat(300) {
                     val value = it + 1
-                    requestChannel.send {
-                        name = "test $value"
-                    }
+                    send { name = "test $value" }
                     println("-> Client Sent '$value'")
-
+                    delay(2L)
                 }
-
-                requestChannel.close()
             }
 
-            launch {
+            launch(Dispatchers.Default) {
                 var responseQty = 0
 
                 responseChannel.consumeEachIndexed { (index, response) ->

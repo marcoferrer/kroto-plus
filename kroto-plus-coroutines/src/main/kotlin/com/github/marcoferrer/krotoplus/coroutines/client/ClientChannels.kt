@@ -29,7 +29,7 @@ data class ClientStreamingCallChannel<ReqT, RespT>(
 
 class ClientResponseObserverChannel<ReqT, RespT>(
     override val coroutineContext: CoroutineContext,
-    private val responseChannelDelegate: Channel<RespT> = Channel()
+    private val responseChannelDelegate: Channel<RespT> = Channel(capacity = 1)
 ) : ClientResponseObserver<ReqT, RespT>,
     FlowControlledObserver,
     ReceiveChannel<RespT> by responseChannelDelegate,

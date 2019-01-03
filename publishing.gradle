@@ -85,7 +85,7 @@ publishing {
     }
 }
 
-artifactoryPublish.skip = !(System.getenv('TRAVIS') == "true" && version.endsWith("SNAPSHOT"))
+//artifactoryPublish.skip = !(System.getenv('TRAVIS') == "true" && version.endsWith("SNAPSHOT"))
 
 artifactory {
 

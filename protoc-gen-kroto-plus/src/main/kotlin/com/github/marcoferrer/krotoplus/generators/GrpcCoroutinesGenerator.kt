@@ -38,16 +38,28 @@ object GrpcCoroutinesGenerator : Generator {
     override fun invoke(): PluginProtos.CodeGeneratorResponse {
         val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
 
+        val sendChannelMessageTypes = mutableListOf<ProtoMessage>()
+
         for (service in context.schema.protoServices) {
+
             for (options in context.config.grpcCoroutinesList) {
 
                 if (options.filter.matches(service.protoFile.name)) {
                     service.buildGrpcFileSpec()?.let {
                         responseBuilder.addFile(it.toResponseFileProto())
                     }
+
+
+                    sendChannelMessageTypes += service.getSendChannelMessageTypes()
                 }
             }
         }
+
+        sendChannelMessageTypes
+            .buildSendChannelExtFiles()
+            .forEach {
+                responseBuilder.addFile(it.toResponseFileProto())
+            }
 
         return responseBuilder.build()
     }
@@ -58,7 +70,6 @@ object GrpcCoroutinesGenerator : Generator {
             .builder(protoFile.javaPackage, outerObjectName)
             .addComment(AutoGenerationDisclaimer)
             .addType(buildOuterObject())
-            .addFunctions(buildSendChannelOverloads())
 
         return fileSpecBuilder.build()
             .takeIf { it.members.isNotEmpty() }
@@ -87,7 +98,7 @@ object GrpcCoroutinesGenerator : Generator {
                     .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
                     .getter(
                         FunSpec.getterBuilder()
-                            .addCode("return %T.Unconfined", CommonClassNames.dispatchers)
+                            .addCode("return %T.Default", CommonClassNames.dispatchers)
                             .build()
                     )
                     .build()
@@ -128,17 +139,11 @@ object GrpcCoroutinesGenerator : Generator {
                 ParameterSpec.builder("request", requestClassName)
                     .build()
             )
-            .addParameter(
-                ParameterSpec.builder(
-                    "completableResponse", ParameterizedTypeName
-                        .get(CommonClassNames.completableDeferred, responseClassName)
-                )
-                    .build()
-            )
+            .returns(responseClassName)
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "%T(%T.%N(),completableResponse)",
+                        "return %T(%T.%N())",
                         CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
                         protoService.enclosingServiceClassName,
                         methodDefinitionGetterName
@@ -158,13 +163,13 @@ object GrpcCoroutinesGenerator : Generator {
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "%T(%T.%N(),responseObserver) { completableResponse ->",
+                        "%T(%T.%N(),responseObserver) {",
                         CommonClassNames.ServerCalls.serverCallUnary,
                         protoService.enclosingServiceClassName,
                         methodDefinitionGetterName
                     )
                     .indent()
-                    .addStatement("%N(request, completableResponse)", functionName)
+                    .addStatement("%N(request)", functionName)
                     .unindent()
                     .addStatement("}")
                     .build()
@@ -181,17 +186,11 @@ object GrpcCoroutinesGenerator : Generator {
                 )
                     .build()
             )
-            .addParameter(
-                ParameterSpec.builder(
-                    "completableResponse", ParameterizedTypeName
-                        .get(CommonClassNames.completableDeferred, responseClassName)
-                )
-                    .build()
-            )
+            .returns(responseClassName)
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "%T(%T.%N(),completableResponse)",
+                        "return %T(%T.%N())",
                         CommonClassNames.ServerCalls.serverCallUnimplementedUnary,
                         protoService.enclosingServiceClassName,
                         methodDefinitionGetterName
@@ -211,14 +210,14 @@ object GrpcCoroutinesGenerator : Generator {
             .addCode(
                 CodeBlock.builder()
                     .addStatement(
-                        "val requestObserver = %T(%T.%N(),responseObserver) { requestChannel: %T, completableResponse ->",
+                        "val requestObserver = %T(%T.%N(),responseObserver) { requestChannel: %T ->",
                         CommonClassNames.ServerCalls.serverCallClientStreaming,
                         protoService.enclosingServiceClassName,
                         methodDefinitionGetterName,
                         ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName)
                     )
                     .indent()
-                    .addStatement("%N(requestChannel, completableResponse)", functionName)
+                    .addStatement("%N(requestChannel)", functionName)
                     .unindent()
                     .addStatement("}")
                     .addStatement("return requestObserver")
@@ -255,6 +254,7 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
             .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
+            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .addParameter("request", requestClassName)
             .addParameter(
                 "responseObserver", ParameterizedTypeName
@@ -359,9 +359,9 @@ object GrpcCoroutinesGenerator : Generator {
             .let { (completableResponseMethods, streamingResponseMethods) ->
 
                 mutableListOf<FunSpec>().apply {
-                    completableResponseMethods
-                        .distinctBy { it.responseType }
-                        .mapTo(this) { it.buildCompletableDeferredLambdaExt() }
+//                    completableResponseMethods
+//                        .distinctBy { it.responseType }
+//                        .mapTo(this) { it.buildCompletableDeferredLambdaExt() }
 
                     streamingResponseMethods
                         .distinctBy { it.responseType }
@@ -547,11 +547,11 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoMessage.buildSendChannelLambdaExt(): FunSpec {
+    fun ProtoMessage.buildSendChannelLambdaExt(suffix: String = ""): FunSpec {
 
         val jvmNameSuffix = canonicalJavaName
             .replace(javaPackage.orEmpty(), "")
-            .replace(".", "")
+            .replace(".", "") + suffix
 
         return FunSpec.builder("send")
             .addModifiers(KModifier.INLINE, KModifier.SUSPEND)
@@ -574,14 +574,26 @@ object GrpcCoroutinesGenerator : Generator {
     }
 
     fun ProtoService.buildSendChannelOverloads(): List<FunSpec> =
+        getSendChannelMessageTypes()
+            .map { it.buildSendChannelLambdaExt() }
+
+    fun ProtoService.getSendChannelMessageTypes(): List<ProtoMessage> =
         methodDefinitions
             .asSequence()
             .filter { it.isClientStream || it.isBidi }
             .distinctBy { it.requestType }
-            .mapNotNull {
-                (it.requestType as? ProtoMessage)?.buildSendChannelLambdaExt()
-            }
+            .mapNotNull { (it.requestType as? ProtoMessage) }
             .toList()
+
+    fun List<ProtoMessage>.buildSendChannelExtFiles(): List<FileSpec> =
+        distinct()
+            .groupBy( { it.protoFile }, { it.buildSendChannelLambdaExt() })
+            .map { (protoFile, funSpecs) ->
+
+                FileSpec.builder(protoFile.javaPackage,"${protoFile.javaOuterClassname}GrpcExts")
+                    .addFunctions(funSpecs)
+                    .build()
+            }
 
     fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
         methodDefinitions.mapNotNull {

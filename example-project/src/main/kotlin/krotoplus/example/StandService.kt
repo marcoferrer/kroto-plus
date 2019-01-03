@@ -9,9 +9,8 @@ import kotlinx.coroutines.channels.*
 class StandService : StandServiceCoroutineGrpc.StandServiceImplBase(){
 
     override suspend fun getStandByName(
-        request: StandServiceProto.GetStandByNameRequest,
-        completableResponse: CompletableDeferred<StandProto.Stand>
-    ) {
+        request: StandServiceProto.GetStandByNameRequest
+    ): StandProto.Stand = coroutineScope {
         val asyncAttack = async {
             Attack {
                 name = "Life Shot"
@@ -21,14 +20,14 @@ class StandService : StandServiceCoroutineGrpc.StandServiceImplBase(){
         }
 
         if(request.name == "Gold Experience"){
-            completableResponse.complete {
+            Stand {
                 name = "Gold Experience"
                 powerLevel = 575
                 speed = 500
                 addAttacks(asyncAttack.await())
             }
         }else{
-            completableResponse.completeExceptionally(Status.NOT_FOUND.asException())
+            throw Status.NOT_FOUND.asException()
         }
     }
 
@@ -37,23 +36,25 @@ class StandService : StandServiceCoroutineGrpc.StandServiceImplBase(){
         requestChannel: ReceiveChannel<CharacterProto.Character>,
         responseChannel: SendChannel<StandProto.Stand>
     ) {
+        coroutineScope {
 
-        val requestIter = requestChannel.iterator()
+            val requestIter = requestChannel.iterator()
 
-        while (requestIter.hasNext()){
+            while (requestIter.hasNext()){
 
-            val requestValues = listOf(
-                requestIter.next(),
-                requestIter.next(),
-                requestIter.next()
-            )
+                val requestValues = listOf(
+                    requestIter.next(),
+                    requestIter.next(),
+                    requestIter.next()
+                )
 
-            responseChannel.send {
-                name = requestValues.joinToString()
+                responseChannel.send {
+                    name = requestValues.joinToString()
+                }
             }
-        }
 
-        responseChannel.close()
-        println("Server Finished")
+            println("Server Finished")
+        }
     }
+
 }

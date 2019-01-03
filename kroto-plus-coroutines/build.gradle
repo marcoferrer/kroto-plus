@@ -1,10 +1,25 @@
-description = "Kroto+ Coroutine Support"
+description = "Kroto+ Grpc Coroutine Support"
 
 apply from: "$rootDir/publishing.gradle"
 
+def experimentalFlags = [
+    "-Xuse-experimental=kotlin.Experimental",
+    "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
+    "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi"
+]
+
 compileKotlin {
     kotlinOptions {
-        freeCompilerArgs += ["-Xuse-experimental=kotlin.Experimental"]
+        // We're setting the jvm target to 1.6 to maintain
+        // compatibility with android runtime
+        jvmTarget = "1.6"
+        freeCompilerArgs += experimentalFlags
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs += experimentalFlags
     }
 }
 

@@ -2,12 +2,8 @@ import com.google.protobuf.ByteString
 import io.grpc.Status
 import io.grpc.benchmarks.proto.BenchmarkServiceCoroutineGrpc
 import io.grpc.benchmarks.proto.Messages
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.toList
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.coroutineScope
 
 class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(){
 
@@ -21,57 +17,44 @@ class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(
         .build()
 
     override suspend fun unaryCall(
-        request: Messages.SimpleRequest,
-        completableResponse: CompletableDeferred<Messages.SimpleResponse>
-    ) {
-        completableResponse.complete(makeResponse(request))
+        request: Messages.SimpleRequest
+    ): Messages.SimpleResponse = coroutineScope {
+        makeResponse(request)
     }
 
     override suspend fun streamingCall(
         requestChannel: ReceiveChannel<Messages.SimpleRequest>,
         responseChannel: SendChannel<Messages.SimpleResponse>
     ) {
-        runCatching {
-            requestChannel.consumeEach {
-                launch {
-                    responseChannel.send(makeResponse(it))
-                }
-            }
-        }.onSuccess {
-            responseChannel.close()
-        }.onFailure {
-            responseChannel.close(it)
-        }
+       coroutineScope {
+           requestChannel.mapTo(responseChannel){ makeResponse(it) }
+       }
     }
 
     override suspend fun streamingFromClient(
-        requestChannel: ReceiveChannel<Messages.SimpleRequest>,
-        completableResponse: CompletableDeferred<Messages.SimpleResponse>
-    ) {
-        runCatching {
-            val lastSeen = requestChannel.toList().lastOrNull()
+        requestChannel: ReceiveChannel<Messages.SimpleRequest>
+    ): Messages.SimpleResponse = coroutineScope {
 
-            if(lastSeen != null){
-                completableResponse.complete(makeResponse(lastSeen))
-            } else {
-                completableResponse.completeExceptionally(
-                    Status.FAILED_PRECONDITION
-                        .withDescription("never received any requests").asException()
-                )
-            }
-        }.onFailure {
-            completableResponse.completeExceptionally(it)
-        }
+        val lastSeen = requestChannel
+            .toList()
+            .lastOrNull()
+            ?: throw Status.FAILED_PRECONDITION
+                .withDescription("never received any requests")
+                .asException()
+
+        makeResponse(lastSeen)
     }
 
     override suspend fun streamingFromServer(
         request: Messages.SimpleRequest,
         responseChannel: SendChannel<Messages.SimpleResponse>
     ) {
-        val response = makeResponse(request)
+        coroutineScope {
+            val response = makeResponse(request)
 
-        while (!responseChannel.isClosedForSend){
-            responseChannel.send(response)
+            while (!responseChannel.isClosedForSend) {
+                responseChannel.send(response)
+            }
         }
     }
 
@@ -79,8 +62,10 @@ class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(
         requestChannel: ReceiveChannel<Messages.SimpleRequest>,
         responseChannel: SendChannel<Messages.SimpleResponse>
     ) {
-        while(!requestChannel.isClosedForReceive){
-            responseChannel.send(BIDI_RESPONSE)
+        coroutineScope {
+            while(!requestChannel.isClosedForReceive){
+                responseChannel.send(BIDI_RESPONSE)
+            }
         }
     }
 }
