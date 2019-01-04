@@ -45,12 +45,11 @@ allprojects {
         jcenter()
         maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
         maven { url "https://kotlin.bintray.com/kotlinx" }
-        if(versions.krotoplus.endsWith("SNAPSHOT")) {
-            flatDir dirs: "${rootDir}/../kroto-plus-message/build/libs/"
-            flatDir dirs: "${rootDir}/../kroto-plus-coroutines/build/libs/"
-            flatDir dirs: "${rootDir}/../kroto-plus-test/build/libs/"
-            flatDir dirs: "${rootDir}/../protoc-gen-kroto-plus/build/libs/"
-        }
+
+        flatDir dirs: "${rootDir}/../kroto-plus-message/build/libs/"
+        flatDir dirs: "${rootDir}/../kroto-plus-coroutines/build/libs/"
+        flatDir dirs: "${rootDir}/../kroto-plus-test/build/libs/"
+        flatDir dirs: "${rootDir}/../protoc-gen-kroto-plus/build/libs/"
     }
 }
 
