@@ -9,6 +9,7 @@ _2018-01-03_
 #### Coroutines
 * New: Benchmark implementation of gRPC coroutines
 * New: Experimental global dispatcher ```Dispatchers.Grpc```
+* New: ```SendChannel``` utility api ```CoroutineScope.launchProducerJob```   
 * Deprecated: ```InboundStreamChannel``` in favor of new stub APIs
 * Deprecated: ```ServerBidiCallChannel``` in favor of new stub APIs
 
