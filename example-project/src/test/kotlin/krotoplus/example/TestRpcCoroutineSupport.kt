@@ -5,11 +5,8 @@ import io.grpc.ManagedChannel
 import io.grpc.testing.GrpcServerRule
 import jojo.bizarre.adventure.character.MockCharacterService
 import jojo.bizarre.adventure.stand.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
@@ -122,7 +119,7 @@ class TestSuspendingRpcCalls {
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
     @Test
-    fun `Test Bidirectional Rpc Channel`(): Unit = runBlocking {
+    fun `Test Bidirectional Rpc Channel`(): Unit = runBlocking(Dispatchers.Default) {
 
         val stub = StandServiceGrpc.newStub(grpcServerRule.channel)
 
