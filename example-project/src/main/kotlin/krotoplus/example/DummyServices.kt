@@ -5,10 +5,14 @@ import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import jojo.bizarre.adventure.character.CharacterProto
 import jojo.bizarre.adventure.stand.StandProto
-import jojo.bizarre.adventure.stand.StandServiceGrpc
+import jojo.bizarre.adventure.stand.StandServiceCoroutineGrpc
 import jojo.bizarre.adventure.stand.StandServiceProto
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.coroutineScope
 
-class DummyStandService : StandServiceGrpc.StandServiceImplBase() {
+class DummyStandService : StandServiceCoroutineGrpc.StandServiceImplBase() {
 
     fun getStandByName(name: String): StandProto.Stand? =
         when (name) {
@@ -17,76 +21,46 @@ class DummyStandService : StandServiceGrpc.StandServiceImplBase() {
             else -> null
         }
 
-
-    override fun getStandByCharacterName(
-        request: StandServiceProto.GetStandByCharacterNameRequest,
-        responseObserver: StreamObserver<StandProto.Stand>
-    ) {
+    override suspend fun getStandByCharacterName(
+        request: StandServiceProto.GetStandByCharacterNameRequest
+    ): StandProto.Stand = coroutineScope {
         getStandByName(request.name)
-            ?.let { responseObserver.onNext(it) }
-            ?: run {
-                responseObserver.onError(Status.NOT_FOUND.asException())
-                return
-            }
-
-        responseObserver.onCompleted()
+            ?: throw Status.NOT_FOUND.asException()
     }
 
-    override fun getStandByCharacter(
-        request: CharacterProto.Character,
-        responseObserver: StreamObserver<StandProto.Stand>
-    ) {
-        getStandByName(request.name)
-            ?.let { responseObserver.onNext(it) }
-            ?: run {
-                responseObserver.onError(Status.NOT_FOUND.asException())
-                return
-            }
-
-        responseObserver.onCompleted()
+    override suspend fun getStandByCharacter(request: CharacterProto.Character): StandProto.Stand = coroutineScope {
+        getStandByName(request.name) ?: throw Status.NOT_FOUND.asException()
     }
 
-    override fun getStandsForCharacters(responseObserver: StreamObserver<StandProto.Stand>): StreamObserver<CharacterProto.Character> {
+    override suspend fun getStandsForCharacters(
+        requestChannel: ReceiveChannel<CharacterProto.Character>,
+        responseChannel: SendChannel<StandProto.Stand>
+    ) {
+        coroutineScope {
+            requestChannel.consumeEach { character ->
 
-        return object : StreamObserver<CharacterProto.Character> {
-            override fun onNext(value: CharacterProto.Character) {
-                println("Client Sent: ${value.name}")
-                getStandByName(value.name)?.let {
-                    responseObserver.onNext(it)
-                    responseObserver.onNext(it)
-                    responseObserver.onNext(it)
-                }
-                    ?: run {
-                        responseObserver.onError(Status.NOT_FOUND.asException())
-                        return
+                getStandByName(character.name)
+                    ?.let { stand ->
+                        repeat(3) {
+                            responseChannel.send(stand)
+                        }
                     }
-            }
-
-            override fun onError(t: Throwable?) {
-                println("Client Sent Error: ${t?.message}")
-            }
-
-            override fun onCompleted() {
-                println("Client Called onComplete")
-                responseObserver.onCompleted()
+                    ?: throw Status.NOT_FOUND.asException()
             }
         }
     }
 
-    override fun getAllStandsStream(request: Empty?, responseObserver: StreamObserver<StandProto.Stand>) {
-        for ((_, stand) in stands)
-            responseObserver.onNext(stand)
-
-        responseObserver.onCompleted()
+    override suspend fun getAllStandsStream(request: Empty, responseChannel: SendChannel<StandProto.Stand>) {
+        coroutineScope {
+            stands.values.forEach {
+                responseChannel.send(it)
+            }
+        }
     }
 
-    override fun getStandByName(
-        request: StandServiceProto.GetStandByNameRequest,
-        responseObserver: StreamObserver<StandProto.Stand>
-    ) {
-        stands[request.name]?.let {
-            responseObserver.onNext(it)
-            responseObserver.onCompleted()
-        } ?: responseObserver.onError(Status.NOT_FOUND.asException())
-    }
+    override suspend fun getStandByName(request: StandServiceProto.GetStandByNameRequest): StandProto.Stand =
+        coroutineScope {
+            stands[request.name] ?: throw Status.NOT_FOUND.asException()
+        }
+
 }

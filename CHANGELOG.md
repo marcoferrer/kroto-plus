@@ -1,5 +1,17 @@
-## Version 0.2.2
-_2018-12-3_
+## Version 0.2.2-RC1
+_2018-01-03_
+* New: Update to kotlin ```1.3.11```
+
+#### Protoc Plugin
+* New: gRPC Coroutines Client & Server Code Generation 
+* New: Stand alone version of gRPC code gen. ```protoc-gen-grpc-coroutines```
+
+#### Coroutines
+* New: Benchmark implementation of gRPC coroutines
+* New: Experimental global dispatcher ```Dispatchers.Grpc```
+* New: ```SendChannel``` utility api ```CoroutineScope.launchProducerJob```   
+* Deprecated: ```InboundStreamChannel``` in favor of new stub APIs
+* Deprecated: ```ServerBidiCallChannel``` in favor of new stub APIs
 
 ## Version 0.2.1
 _2018-11-02_

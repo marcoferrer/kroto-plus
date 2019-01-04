@@ -33,6 +33,8 @@ message CompilerConfig {
     // Configuration entries for the 'Generator Scripts' code generator.
     repeated GeneratorScriptsGenOptions generator_scripts = 25;
 
+    // Configuration entries for the 'Grpc Coroutines' code generator.
+    repeated GrpcCoroutinesGenOptions grpc_coroutines = 26;
 }
 
 // Represent a filter used for including and excluding source files from
@@ -66,6 +68,15 @@ message GrpcStubExtsGenOptions{
     // Enable code generation for coroutine supporting service stub extensions.
     // This options generates code that relies on the artifact 'kroto-plus-coroutines'
     bool support_coroutines = 2;
+
+}
+
+// Configuration used by the 'gRPC Coroutines' code generator.
+message GrpcCoroutinesGenOptions {
+
+    // Filter used for limiting the input files that are processed by the code generator
+    // The default filter will match true against all input files.
+    FileFilter filter = 1;
 
 }
 

@@ -16,6 +16,7 @@ fun main(args: Array<String>) = runBlocking {
 
     val generators = listOf(
         GrpcStubExtsGenerator,
+        GrpcCoroutinesGenerator,
         ProtoBuildersGenerator,
         ExtendableMessagesGenerator,
         MockServicesGenerator,
