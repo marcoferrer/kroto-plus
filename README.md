@@ -35,9 +35,11 @@ cd kotlin-coroutines-gRPC-template && \
 ---
 ---
 
-* **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
+* **Getting Started**
+  * **[Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
+  * **[Maven](https://github.com/marcoferrer/kroto-plus#getting-started-with-maven)**
 * **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
-* Generators
+* **Generators**
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
     * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
@@ -372,6 +374,89 @@ protobuf {
         }
     }
 }
+```
+
+## Getting Started With Maven
+
+#### Repositories
+* Available on ```jcenter``` or ```mavenCentral```
+* SNAPSHOT
+```xml
+<repository>
+    <id>oss-snapshot</id>
+    <name>OSS Snapshot Repository</name>
+    <url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+    <snapshots>
+        <enabled>true</enabled>
+    </snapshots>
+</repository>
+```
+* Bintray
+```xml
+<!-- Useful when syncronization to jcenter or maven central are taking longer than expected-->
+<repository>
+    <id>kroto-plus-bintray</id>
+    <name>Kroto Plus Bintray Repository</name>
+    <url>https://dl.bintray.com/marcoferrer/kroto-plus/</url>
+</repository>
+```
+
+##### Configuring Protobuf Maven Plugin
+```xml
+<plugin>
+    <groupId>org.xolstice.maven.plugins</groupId>
+    <artifactId>protobuf-maven-plugin</artifactId>
+    <version>0.6.1</version>
+    <configuration>
+        <protocArtifact>com.google.protobuf:protoc:3.6.1:exe:${os.detected.classifier}</protocArtifact>
+    </configuration>
+    <executions>
+        <execution>
+            <goals><goal>compile</goal></goals>
+        </execution>
+        <execution>
+            <id>grpc-java</id>
+            <goals><goal>compile-custom</goal></goals>
+            <configuration>
+                <pluginId>grpc-java</pluginId>
+                <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.17.1:exe:${os.detected.classifier}</pluginArtifact>
+            </configuration>
+        </execution>
+        <execution>
+            <id>kroto-plus</id>
+            <goals>
+                <goal>compile-custom</goal>
+            </goals>
+            <configuration>
+                <pluginId>kroto-plus</pluginId>
+                <pluginArtifact>com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${krotoPlusVersion}:jar:jvm8</pluginArtifact>
+                <pluginParameter>ConfigPath=${project.basedir}/krotoPlusConfig.asciipb</pluginParameter>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+```
+Add generated sources to Kotlin plugin
+```xml
+<plugin>
+    <artifactId>kotlin-maven-plugin</artifactId>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <version>${kotlin.version}</version>
+    <executions>
+        <execution>
+            <id>compile</id>
+            <goals>
+                <goal>compile</goal>
+            </goals>
+            <configuration>
+                <sourceDirs>
+                    <sourceDir>${project.basedir}/target/generated-sources/protobuf/kroto-plus</sourceDir>
+                </sourceDirs>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 ## Configuring Generators
