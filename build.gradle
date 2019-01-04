@@ -3,7 +3,7 @@ buildscript {
         versions = [
                 "protobuf":   '3.6.1',
                 "grpc":       '1.15.1',
-                "kotlin":     '1.3.0',
+                "kotlin":     '1.3.11',
                 "coroutines": '1.0.0',
                 "bintray":    '1.7.3',
                 'artifactory':'4.7.1',
@@ -24,11 +24,12 @@ buildscript {
 
 plugins{
     id 'com.google.protobuf' version '0.8.6' apply false
-    id 'org.jetbrains.kotlin.jvm' version '1.3.0-rc-116' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.3.11' apply false
     id "com.jfrog.bintray" version "1.8.4" apply false
     id "com.jfrog.artifactory" version "4.8.1" apply false
     id "org.springframework.boot" version "2.0.3.RELEASE" apply false
     id 'com.gradle.plugin-publish' version '0.9.7' apply false
+    id "com.google.osdetector" version "1.4.0"
 }
 
 subprojects{ subproject ->
@@ -44,7 +45,7 @@ subprojects{ subproject ->
     apply plugin: 'kotlin'
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.2.1'
+    version = '0.2.2-RC1'
 
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -55,7 +56,7 @@ subprojects{ subproject ->
     }
 
     dependencies {
-        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+        implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
         testImplementation group: 'junit', name: 'junit', version: '[4,)'
         testImplementation "org.jetbrains.kotlin:kotlin-test"

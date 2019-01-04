@@ -20,6 +20,8 @@ object ProtoBuildersGenerator : Generator {
 
     override fun invoke(): PluginProtos.CodeGeneratorResponse {
         val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
+
+        // Build Exts & DSL Marker
         context.schema.protoFiles.asSequence()
             .filter { it.protoMessages.isNotEmpty() }
             .forEach { protoFile ->
@@ -28,6 +30,18 @@ object ProtoBuildersGenerator : Generator {
                         buildFileSpec(protoFile, options, responseBuilder)
                 }
             }
+
+        // Build DSL Insertions
+        context.schema.protoTypes.asSequence()
+            .filterIsInstance<ProtoMessage>()
+            .filterNot { it.isMapEntry }
+            .forEach { protoMessage ->
+                for (options in context.config.protoBuildersList) {
+                    if (options.filter.matches(protoMessage.protoFile.name))
+                        responseBuilder.addFile(protoMessage.buildDslInsertion())
+                }
+            }
+
         return responseBuilder.build()
     }
 
@@ -61,7 +75,6 @@ object ProtoBuildersGenerator : Generator {
 
         if (options.useDslMarkers) {
             fileSpecBuilder.buildDslMarkerInterface(protoFile)
-            responseBuilder.addFiles(protoFile.buildDslInterfaceInsertions())
         }
 
         fileSpecBuilder.build().takeIf { it.members.isNotEmpty() }?.let {
@@ -81,6 +94,7 @@ object ProtoBuildersGenerator : Generator {
                 returnType = UNIT
             )
 
+            // Builder Spec
             FunSpec.builder(protoType.name)
                 .addModifiers(KModifier.INLINE)
                 .addParameter("block", builderLambdaTypeName)
@@ -93,6 +107,7 @@ object ProtoBuildersGenerator : Generator {
                     this.addFunction(it.build())
                 }
 
+            // Copy Spec
             FunSpec.builder("copy")
                 .receiver(protoType.className)
                 .addModifiers(KModifier.INLINE)
@@ -103,12 +118,22 @@ object ProtoBuildersGenerator : Generator {
                     fileSpecBuilder.addFunction(it.build())
                 }
 
+            // Plus Operator Spec
             FunSpec.builder("plus")
                 .receiver(protoType.className)
                 .addModifiers(KModifier.OPERATOR)
                 .addParameter("other", protoType.className)
                 .returns(protoType.className)
                 .addStatement("return this.toBuilder().mergeFrom(other).build()")
+                .also {
+                    fileSpecBuilder.addFunction(it.build())
+                }
+
+            // Or Default Spec
+            FunSpec.builder("orDefault")
+                .receiver(protoType.className.asNullable())
+                .returns(protoType.className)
+                .addStatement("return this ?: %T.getDefaultInstance()", protoType.className)
                 .also {
                     fileSpecBuilder.addFunction(it.build())
                 }
@@ -185,13 +210,6 @@ object ProtoBuildersGenerator : Generator {
             .build()
             .also { this@buildDslMarkerInterface.addType(it) }
     }
-
-    private fun ProtoFile.buildDslInterfaceInsertions(): List<PluginProtos.CodeGeneratorResponse.File> =
-        protoMessages
-            .asSequence()
-            .filter { !it.isMapEntry }
-            .map { it.buildDslInsertion() }
-            .toList()
 
     private fun ProtoMessage.buildDslInsertion() =
         PluginProtos.CodeGeneratorResponse.File.newBuilder()

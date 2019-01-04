@@ -195,6 +195,10 @@
                 </li>
               
                 <li>
+                  <a href="#krotoplus.compiler.GrpcCoroutinesGenOptions"><span class="badge">M</span>GrpcCoroutinesGenOptions</a>
+                </li>
+              
+                <li>
                   <a href="#krotoplus.compiler.GrpcStubExtsGenOptions"><span class="badge">M</span>GrpcStubExtsGenOptions</a>
                 </li>
               
@@ -286,6 +290,13 @@
                   <td><a href="#krotoplus.compiler.GeneratorScriptsGenOptions">GeneratorScriptsGenOptions</a></td>
                   <td>repeated</td>
                   <td><p>Configuration entries for the &#39;Generator Scripts&#39; code generator. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>grpc_coroutines</td>
+                  <td><a href="#krotoplus.compiler.GrpcCoroutinesGenOptions">GrpcCoroutinesGenOptions</a></td>
+                  <td>repeated</td>
+                  <td><p>Configuration entries for the &#39;Grpc Coroutines&#39; code generator. </p></td>
                 </tr>
               
             </tbody>
@@ -427,6 +438,30 @@ ie. &#39;sampleInsertionScript.kts&#39; </p></td>
                   <td><a href="#string">string</a></td>
                   <td></td>
                   <td><p>Path to the jar containing precompile scripts. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+        
+
+        
+      
+        <h3 id="krotoplus.compiler.GrpcCoroutinesGenOptions">GrpcCoroutinesGenOptions</h3>
+        <p>Configuration used by the 'gRPC Coroutines' code generator.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>filter</td>
+                  <td><a href="#krotoplus.compiler.FileFilter">FileFilter</a></td>
+                  <td></td>
+                  <td><p>Filter used for limiting the input files that are processed by the code generator
+The default filter will match true against all input files. </p></td>
                 </tr>
               
             </tbody>
@@ -632,6 +667,16 @@ wrapped in an object similiar to a proto outer class. For better
 ergonomics with code generated using &#39;java_multiple_files&#39; the
 builders can be unwrapped and generated at the root scope of
 the output file. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>use_dsl_markers</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Tag java builder classes with a kotlin interface annotated
+with @DslMarker. This requires the kroto-plus output directory to
+match the generated java classes directory. Using @DslMarker
+provides safer and predictable dsl usage. </p></td>
                 </tr>
               
             </tbody>

@@ -8,6 +8,7 @@
     - [ExtenableMessagesGenOptions](#krotoplus.compiler.ExtenableMessagesGenOptions)
     - [FileFilter](#krotoplus.compiler.FileFilter)
     - [GeneratorScriptsGenOptions](#krotoplus.compiler.GeneratorScriptsGenOptions)
+    - [GrpcCoroutinesGenOptions](#krotoplus.compiler.GrpcCoroutinesGenOptions)
     - [GrpcStubExtsGenOptions](#krotoplus.compiler.GrpcStubExtsGenOptions)
     - [InsertionsGenOptions](#krotoplus.compiler.InsertionsGenOptions)
     - [InsertionsGenOptions.Entry](#krotoplus.compiler.InsertionsGenOptions.Entry)
@@ -44,6 +45,7 @@ Message backing the root of a Kroto&#43; configuration file.
 | extendable_messages | [ExtenableMessagesGenOptions](#krotoplus.compiler.ExtenableMessagesGenOptions) | repeated | Configuration entries for the &#39;Extendable Messages&#39; code generator. |
 | insertions | [InsertionsGenOptions](#krotoplus.compiler.InsertionsGenOptions) | repeated | Configuration entries for the &#39;Protoc Insertions&#39; code generator. |
 | generator_scripts | [GeneratorScriptsGenOptions](#krotoplus.compiler.GeneratorScriptsGenOptions) | repeated | Configuration entries for the &#39;Generator Scripts&#39; code generator. |
+| grpc_coroutines | [GrpcCoroutinesGenOptions](#krotoplus.compiler.GrpcCoroutinesGenOptions) | repeated | Configuration entries for the &#39;Grpc Coroutines&#39; code generator. |
 
 
 
@@ -101,6 +103,21 @@ Configuration used by the &#39;Generator Scripts&#39; code generator.
 | filter | [FileFilter](#krotoplus.compiler.FileFilter) |  | Filter used for limiting the input files that are processed by the code generator The default filter will match true against all input files. |
 | script_path | [string](#string) | repeated | List of paths to kotlin script files to execute for this configuration. The scripts are compile at runtime by an embedded kotlin compiler. This comes at the cost of performance. Paths for scripts compiled at run time must be relative to the path of the configuration file. ie. &#39;kp-scripts/src/main/kotlin/sampleInsertionScript.kts&#39; For a more performant option for script execution, precompiled scripts are supported. Paths for precompile scripts need to match their location in the supplied jar. ie. &#39;sampleInsertionScript.kts&#39; |
 | script_bundle | [string](#string) |  | Path to the jar containing precompile scripts. |
+
+
+
+
+
+
+<a name="krotoplus.compiler.GrpcCoroutinesGenOptions"></a>
+
+### GrpcCoroutinesGenOptions
+Configuration used by the &#39;gRPC Coroutines&#39; code generator.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| filter | [FileFilter](#krotoplus.compiler.FileFilter) |  | Filter used for limiting the input files that are processed by the code generator The default filter will match true against all input files. |
 
 
 

@@ -19,6 +19,9 @@ proto_builders {
 grpc_stub_exts {
     support_coroutines: true
 }
+grpc_coroutines {
+
+}
 extendable_messages {
     filter { include_path: "jojo/bizarre/adventure/stand/*" }
 }

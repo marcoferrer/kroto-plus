@@ -1,0 +1,57 @@
+apply plugin: 'org.springframework.boot'
+apply from: "$rootDir/publishing.gradle"
+
+description 'Kroto+ Proto-c Grpc Coroutines Plugin'
+
+def mainClassName = 'com.github.marcoferrer.krotoplus.GrpcCoroutinesMain'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies{
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
+    implementation "io.grpc:grpc-protobuf:${Versions.grpc}"
+    implementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
+
+    implementation project(':protoc-gen-kroto-plus')
+
+}
+
+bootJar {
+    launchScript()
+    classifier = 'jvm8'
+
+    dependsOn jar
+    from(jar) { into '/BOOT-INF/lib' }
+    
+    manifest {
+        attributes 'Start-Class': mainClassName
+        attributes 'Implementation-Title' : 'Kroto+ Proto-c Grpc Coroutines Plugin'
+        attributes 'Implementation-Version': project.version
+    }
+}
+
+jar.enabled = true
+
+artifacts {
+    archives bootJar
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            artifact bootJar {
+                classifier "jvm8"
+            }
+        }
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/kotlin/main")
+        testOutputDir = file("$buildDir/classes/kotlin/test")
+    }
+}
+

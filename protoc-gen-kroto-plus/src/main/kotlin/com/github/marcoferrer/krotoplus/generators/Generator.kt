@@ -1,5 +1,6 @@
 package com.github.marcoferrer.krotoplus.generators
 
+import com.github.marcoferrer.krotoplus.config.CompilerConfig
 import com.github.marcoferrer.krotoplus.script.ScriptManager
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.FileSpec
@@ -39,9 +40,12 @@ val ScriptTemplateWithArgs.context: GeneratorContext
 val ScriptManager.context: GeneratorContext
     get() = contextInstance
 
-internal fun initializeContext() {
+fun initializeContext(compilerConfig: CompilerConfig? = null) {
+    compilerConfigOverride = compilerConfig
     contextInstance
 }
+
+private var compilerConfigOverride: CompilerConfig? = null
 
 private val contextInstance by lazy {
     val inputStream = System.getProperty("krotoplus.debug.request.src")
@@ -49,7 +53,10 @@ private val contextInstance by lazy {
         ?: System.`in`
 
     val protoRequest = PluginProtos.CodeGeneratorRequest.parseFrom(inputStream)
-    GeneratorContext(protoRequest)
+
+    compilerConfigOverride
+        ?.let { GeneratorContext(protoRequest, config = it) }
+        ?: GeneratorContext(protoRequest)
 }
 
 
