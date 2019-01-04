@@ -17,10 +17,11 @@
  * Windows executable
 ---
 
-* **[Getting Started With Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
-* **[Getting Started With Maven](https://github.com/marcoferrer/kroto-plus#getting-started-with-maven)**
+* **Getting Started**
+  * **[Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
+  * **[Maven](https://github.com/marcoferrer/kroto-plus#getting-started-with-maven)**
 * **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
-* Generators
+* **Generators**
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
     * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
@@ -417,6 +418,27 @@ protobuf {
     </executions>
 </plugin>
 
+```
+Add generated sources to Kotlin plugin
+```xml
+<plugin>
+    <artifactId>kotlin-maven-plugin</artifactId>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <version>${kotlin.version}</version>
+    <executions>
+        <execution>
+            <id>compile</id>
+            <goals>
+                <goal>compile</goal>
+            </goals>
+            <configuration>
+                <sourceDirs>
+                    <sourceDir>${project.basedir}/target/generated-sources/protobuf/kroto-plus</sourceDir>
+                </sourceDirs>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 ## Configuring Generators
