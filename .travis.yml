@@ -17,4 +17,4 @@ before_cache:
 jobs:
   include:
   - stage: "Tests"
-    script: ./example-project/gradlew test
+    script: cd example-project && ./gradlew test
