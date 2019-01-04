@@ -9,9 +9,16 @@ _2018-01-03_
 #### Coroutines
 * New: Benchmark implementation of gRPC coroutines
 * New: Experimental global dispatcher ```Dispatchers.Grpc```
-* New: ```SendChannel``` utility api ```CoroutineScope.launchProducerJob```   
+* New: ```SendChannel``` utility api ```CoroutineScope.launchProducerJob```
+* Fix: Lowered byte code target for Android compatibility    
 * Deprecated: ```InboundStreamChannel``` in favor of new stub APIs
 * Deprecated: ```ServerBidiCallChannel``` in favor of new stub APIs
+
+#### Proto Builders (DSL)
+* Fix: Nested messages are now tagged with ```@DslMarker``` annotation
+
+#### Community Scripts
+* New: ```grpc-gateway``` entry point generation script
 
 ## Version 0.2.1
 _2018-11-02_

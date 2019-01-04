@@ -9,7 +9,7 @@
 
 ### Community Contributions are Welcomed
 
-## Quick Start: 
+## Quick Start: gRPC Coroutines
 Run the following command to get started with a preconfigured template project. (_[kotlin-coroutines-gRPC-template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_)
 ```bash
 git clone https://github.com/marcoferrer/kotlin-coroutines-gRPC-template && \
@@ -17,15 +17,12 @@ cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
 
-## Version 0.2.1
+## Version 0.2.2-RC1
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
-  * Update to Kotlin 1.3.0
-  * Update to Coroutines 1.0.0
-  * Builder DSL support and safety via Kotlin's ```@DslMarker``` annotation
+  * Full Client & Server Stub Generation 🎉
 
 ## Coming Soon
- * Full Client & Server Stub Generation 🎉
  * New gradle configuration dsl
  * Windows executable
  
@@ -85,6 +82,11 @@ The generated extensions allow composition of proto messages in a dsl style. Sup
         }
     }
 ```
+
+### gRPC Coroutines Client & Server
+#### [Configuration Options]()
+__Docs Coming Soon__
+
 
 ### gRPC Stub Extensions
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L61)

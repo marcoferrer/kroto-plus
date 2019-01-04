@@ -3,15 +3,20 @@ apply plugin: 'com.google.protobuf'
 def isGoLangPresent = hasGolang()
 
 sourceSets{
-    html { compileClasspath = configurations.compileOnly }
-    markdown { compileClasspath = configurations.compileOnly }
+    def protoSrcs = "${project(":protoc-gen-kroto-plus").projectDir}/src/main/proto"
+
+    html {
+        proto{ srcDir protoSrcs }
+        compileClasspath = configurations.compileOnly
+    }
+    markdown {
+        proto{ srcDir protoSrcs }
+        compileClasspath = configurations.compileOnly
+    }
 }
 
 dependencies{
     compileOnly "com.google.protobuf:protobuf-java:${versions.protobuf}"
-
-    htmlProtobuf project(":protoc-gen-kroto-plus")
-    markdownProtobuf project(":protoc-gen-kroto-plus")
 }
 
 
