@@ -12,11 +12,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 
 public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
-    methodDescriptor: MethodDescriptor<ReqT,RespT>,
+    methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend () -> RespT
 ) {
-    newRpcScope(methodDescriptor,io.grpc.Context.current())
+    newRpcScope(methodDescriptor, io.grpc.Context.current())
         .launch { responseObserver.onNext(block()) }
         .invokeOnCompletion(responseObserver.completionHandler)
 }
@@ -24,7 +24,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
-    methodDescriptor: MethodDescriptor<ReqT,RespT>,
+    methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
@@ -40,7 +40,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
 
 @ExperimentalCoroutinesApi
 fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
-    methodDescriptor: MethodDescriptor<ReqT,RespT>,
+    methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>) -> RespT
 ): StreamObserver<ReqT> {
@@ -74,7 +74,7 @@ fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
-    methodDescriptor: MethodDescriptor<ReqT,RespT>,
+    methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ): StreamObserver<ReqT> {
@@ -85,10 +85,10 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
     val requestChannelDelegate = Channel<ReqT>(capacity = 1)
     val responseChannel = rpcScope.newManagedServerResponseChannel(
-            responseObserver = serverCallObserver,
-            requestChannel = requestChannelDelegate,
-            isMessagePreloaded = isMessagePreloaded
-        )
+        responseObserver = serverCallObserver,
+        requestChannel = requestChannelDelegate,
+        isMessagePreloaded = isMessagePreloaded
+    )
     val requestChannel = ServerRequestStreamChannel(
         coroutineContext = rpcScope.coroutineContext,
         delegateChannel = requestChannelDelegate,

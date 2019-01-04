@@ -1,5 +1,0 @@
-grpc_coroutines {}
-proto_builders {
-    filter { exclude_path: "google/*" }
-    use_dsl_markers: true
-}
