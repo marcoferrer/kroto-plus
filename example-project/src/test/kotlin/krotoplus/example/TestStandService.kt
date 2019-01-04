@@ -3,6 +3,7 @@ package krotoplus.example
 import com.github.marcoferrer.krotoplus.coroutines.*
 import io.grpc.*
 import io.grpc.testing.GrpcServerRule
+import jojo.bizarre.adventure.character.send
 import jojo.bizarre.adventure.stand.*
 import org.junit.Rule
 import org.junit.Test
