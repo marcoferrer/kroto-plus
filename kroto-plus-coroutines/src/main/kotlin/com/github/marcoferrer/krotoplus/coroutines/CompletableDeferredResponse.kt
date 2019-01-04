@@ -3,7 +3,7 @@ package com.github.marcoferrer.krotoplus.coroutines
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CompletableDeferred
 
-class CompletableDeferredObserver<RespT>(
+class CompletableDeferredObserver<RespT> internal constructor(
     private val delegateObserver: StreamObserver<RespT>,
     private val delegateDeferred: CompletableDeferred<RespT> = CompletableDeferred()
 ) : CompletableDeferred<RespT> by delegateDeferred {
