@@ -8,9 +8,14 @@ git clone https://github.com/marcoferrer/kotlin-coroutines-gRPC-template && \
 cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
+* **Getting Started**
+  * **[Using Kroto+ Plugin](https://github.com/marcoferrer/kroto-plus/tree/master/example-grpc-client-server#using-kroto-plugin)**
+  * **[Gradle: Stand Alone Plugin](https://github.com/marcoferrer/kroto-plus/tree/master/example-grpc-client-server#gradle)**
+  * **[Maven: Stand Alone Plugin](https://github.com/marcoferrer/kroto-plus/tree/master/example-grpc-client-server#maven)**
 
-### Getting Started: Kroto+ Plugin
-_[Template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template/tree/kroto-plus-template)_
+### Using Kroto+ Plugin
+_[Quick Start Template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template/tree/kroto-plus-template)_
+
 Add the following configuration to your existing Kroto configuration file.
 
 #### Asciipb (Proto Plain Text)
@@ -28,7 +33,7 @@ grpc_coroutines {}
 ### Getting Started: Stand Alone Plugin
 If you are not using any additional features from Kroto-Plus, then configuration can be simplified and use the stand alone version of the ```grpc-coroutines``` protoc plugin.
 
-#### Gradle Protobuf 
+#### Gradle 
 _[Gradle Template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_
 ```groovy
 dependencies {
@@ -115,5 +120,4 @@ Add generated sources to Kotlin plugin
         </execution>
     </executions>
 </plugin>
-```
 ```
