@@ -50,8 +50,8 @@ cd kotlin-coroutines-gRPC-template && \
 
 * There are several built in code generators that each accept unique configuration options.
 
-### Proto Builder Generator
-#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L74)
+### Proto Builder Generator (Message DSL)
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#protobuildersgenoptions)
 This generator creates lambda based builders for message types
 ```kotlin
     val attack = Attack {
@@ -84,12 +84,117 @@ The generated extensions allow composition of proto messages in a dsl style. Sup
 ```
 
 ### gRPC Coroutines Client & Server
-#### [Configuration Options]()
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpccoroutinesgenoptions)
 __Docs Coming Soon__
 
 
+* [Unary](https://github.com/marcoferrer/kroto-plus#unary)
+* [Client Streaming](https://github.com/marcoferrer/kroto-plus#client-streaming)
+* [Server Streaming](https://github.com/marcoferrer/kroto-plus#server-streaming)
+* [Bi-Directional Streaming](https://github.com/marcoferrer/kroto-plus#bi-directional-streaming)
+  
+#### Unary
+_Client_
+```kotlin
+val response = stub.sayHello { name = "John" }
+```
+_Server_ 
+```kotlin
+override suspend fun sayHello(request: HelloRequest): HelloReply  = coroutineScope {
+
+    if (isValid(request.name))
+        HelloReply { message = "Hello there, ${request.name}!" } else
+        throw Status.INVALID_ARGUMENT.asRuntimeException()
+}
+```
+
+#### Client Streaming
+_Client_
+```kotlin
+val (requestChannel, response) = stub.sayHelloClientStreaming()
+
+launchProducerJob(requestChannel){
+    repeat(5){
+        send { name = "name #$it" }
+    }
+}
+
+println("Client Streaming Response: ${response.await()}")
+```
+_Server_
+```kotlin
+override suspend fun sayHelloClientStreaming(
+    requestChannel: ReceiveChannel<HelloRequest>
+): HelloReply = coroutineScope {
+
+    HelloReply {
+        message = requestChannel.toList().joinToString()
+    }
+}
+```
+ 
+
+#### Server Streaming
+_Client_
+```kotlin
+val responseChannel = stub.sayHelloServerStreaming { name = "John" }
+
+responseChannel.consumeEach {
+    println("Server Streaming Response: $it")
+}
+```
+_Server_
+```kotlin
+override suspend fun sayHelloServerStreaming(
+    request: HelloRequest,
+    responseChannel: SendChannel<HelloReply>
+) = coroutineScope {
+        
+    for(char in request.name) {
+        responseChannel.send {
+            message = "Hello $char!"
+        }
+    }
+}
+
+``` 
+
+#### Bi-Directional Streaming
+_Client_
+```kotlin
+val (requestChannel, responseChannel) = stub.sayHelloStreaming()
+
+launchProducerJob(requestChannel){
+    repeat(5){
+        send { name = "person #$it" }
+    }
+}
+
+responseChannel.consumeEach {
+    println("Bidi Response: $it")
+}
+``` 
+_Server_
+```kotlin
+override suspend fun sayHelloStreaming(
+    requestChannel: ReceiveChannel<HelloRequest>,
+    responseChannel: SendChannel<HelloReply>
+) {
+    coroutineScope {
+    
+        requestChannel.mapTo(responseChannel){
+        
+            HelloReply {
+                message = "Hello there, ${it.name}!"
+            }
+        }
+    }
+}
+```
+
+
 ### gRPC Stub Extensions
-#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L61)
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpcstubextsgenoptions)
 
 This modules generates extension methods that overload the request message argument for rpc methods with a builder lambda block.
 
@@ -221,7 +326,7 @@ The included example project contains full samples. [TestRpcCoroutineSupport](ht
 ```   
    
 ### Mock Service Generator
-#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L196)
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#mockservicesgenoptions)
 
 This generator creates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses, aiding in unit testing methods that rely on rpc calls.
 [Full example for mocking services in unit tests](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestMockServiceResponseQueue.kt). The code generated relies on the ``` kroto-plus-test ``` artifact as a dependency. It is a small library that provides utility methods used by the mock services. 
@@ -270,7 +375,7 @@ This generator creates mock implementations of proto service definitions. This i
 ```
 
 ### Extendable Messages Generator ___(Experimental)___
-#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L115)
+#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#krotoplus.compiler.ExtenableMessagesGenOptions)
 Generated code relies on the ```kroto-plus-message``` artifact. This generator adds tagging interfaces to the java classes produce by protoc.
 It also adds pseudo companion objects to provide a way to access proto message APIs in a non static manner.
 The following is a small example of how to write generic methods and extensions that resolve both message and builders type.
@@ -311,13 +416,13 @@ Samples are available in the [kp-script](https://github.com/marcoferrer/kroto-pl
 
 There are two categories of scripts available. 
 * #### **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/sampleInsertionScript.kts)**
-  * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L145)
+  * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#insertionsgenoptions)
   * Using the insertion api from the java protoc plugin, users can add code at specific points in generated java classes.
   * This is useful for adding code to allow more idiomatic use of generated java classes from Kotlin.
   * The entire ```ExtendableMessages``` generator can be implemented using an insertion script, an example can be in the example script [extendableMessages.kts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/extendableMessages.kts).   
   * Additional information regarding the insertion api can be found in the [official docs](https://developers.google.com/protocol-buffers/docs/reference/java-generated#plugins)
 * #### **[Generator Scripts](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/kp-scripts/src/main/kotlin/helloThere.kts)**
-  * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto#L89)
+  * [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#generatorscriptsgenoptions)
   * These scripts implement the ```Generator``` interface used by all internal kroto+ code generators.
   * Generators rely on the ```GeneratorContext```, which is available via the property ```context```. 
   * The ```context``` is used for iterating over files, messages, and services submitted by protoc.
