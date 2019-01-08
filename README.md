@@ -22,18 +22,17 @@ cd kotlin-coroutines-gRPC-template && \
 * Most notable changes
   * Full Client & Server Stub Generation 🎉
 * **In Progress:** Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
----
 
-* **Getting Started**
-  * **[Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
-  * **[Maven](https://github.com/marcoferrer/kroto-plus#getting-started-with-maven)**
+## Getting Started
+* **[Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
+* **[Maven](https://github.com/marcoferrer/kroto-plus#getting-started-with-maven)**
 
 ## Code Generators
 
 * There are several built in code generators that each accept unique configuration options.
 * **[Configuration Setup](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
-  * **[gRPC Coroutines Client & Server](https://github.com/marcoferrer/kroto-plus#grpc-coroutines-client-Server)**
+  * **[gRPC Coroutines Client & Server](https://github.com/marcoferrer/kroto-plus#grpc-coroutines-client--server)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
     * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)** _(Legacy)_
   * **[Mock Service Generator](https://github.com/marcoferrer/kroto-plus#mock-service-generator)**
