@@ -21,16 +21,17 @@ cd kotlin-coroutines-gRPC-template && \
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
   * Full Client & Server Stub Generation 🎉
- 
-#### In Progress
- * Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
+* **In Progress:** Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 ---
 
 * **Getting Started**
   * **[Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
   * **[Maven](https://github.com/marcoferrer/kroto-plus#getting-started-with-maven)**
-* **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
-* **Generators**
+
+## Code Generators
+
+* There are several built in code generators that each accept unique configuration options.
+* **[Configuration Setup](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
   * **[gRPC Coroutines Client & Server](https://github.com/marcoferrer/kroto-plus#grpc-coroutines-client-Server)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
@@ -41,9 +42,7 @@ cd kotlin-coroutines-gRPC-template && \
     * **[Insertion Scripts](https://github.com/marcoferrer/kroto-plus#insertion-scripts)**
     * **[Generator Scripts](https://github.com/marcoferrer/kroto-plus#generator-scripts)**
 
-## Code Generators
-
-* There are several built in code generators that each accept unique configuration options.
+---
 
 ### Proto Builder Generator (Message DSL)
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#protobuildersgenoptions)
@@ -77,6 +76,7 @@ The generated extensions allow composition of proto messages in a dsl style. Sup
         }
     }
 ```
+---
 
 ### gRPC Coroutines Client & Server
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpccoroutinesgenoptions)
