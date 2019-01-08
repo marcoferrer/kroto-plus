@@ -21,15 +21,9 @@ cd kotlin-coroutines-gRPC-template && \
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
   * Full Client & Server Stub Generation 🎉
-
-## Coming Soon
- * New gradle configuration dsl
- * Windows executable
  
 #### In Progress
  * Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
-
----
 ---
 
 * **Getting Started**
@@ -38,8 +32,9 @@ cd kotlin-coroutines-gRPC-template && \
 * **[Configuring Generators](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
 * **Generators**
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
+  * **[gRPC Coroutines Client & Server](https://github.com/marcoferrer/kroto-plus#grpc-coroutines-client-Server)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
-    * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
+    * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)** _(Legacy)_
   * **[Mock Service Generator](https://github.com/marcoferrer/kroto-plus#mock-service-generator)**
   * **[Extendable Messages Generator](https://github.com/marcoferrer/kroto-plus#extendable-messages-generator-experimental)**
   * **[User Defined Generator Scripts](https://github.com/marcoferrer/kroto-plus#user-defined-generator-scripts)**
@@ -85,9 +80,38 @@ The generated extensions allow composition of proto messages in a dsl style. Sup
 
 ### gRPC Coroutines Client & Server
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpccoroutinesgenoptions)
-__Docs Coming Soon__
+__Addtional Docs Coming Soon__
 
+[Client / Server Examples](https://github.com/marcoferrer/kroto-plus#examples)  
 
+* Design
+  * **Back pressure** is supported via [Manual Flow Control](https://github.com/grpc/grpc-java/tree/master/examples/src/main/java/io/grpc/examples/manualflowcontrol)
+    * Related Reading: [Understanding Reactive gRPC Flow Control](https://github.com/salesforce/reactive-grpc#back-pressure)
+  * **Cooperative cancellation** is propagated across network boundaries. Meaning a cancelled client ```coroutineContext``` attached to a stub will cancel the related rpc job within the service impl.
+<a></a>
+* Client Stubs
+  * Implement ```CoroutineScope``` interface
+  * Designed to work well with **Structured Concurrency**
+  * Cancellations can now be propagated across usages of a specific stub instance.
+  * Rpc methods are overloaded with inline builders for request types
+       
+```kotlin
+val stub = GreeterCoroutineGrpc.newStub(channel)
+    .withCoroutineContext() 
+    // or .withCoroutineContext(coroutineContext)
+
+stub.sayHello { name = "John" }
+```  
+  * Service Base Impl
+    * Rpc calls are wrapped within a scope initialized with the following context elements.
+      * ```CoroutineName``` set to ```MethodDescriptor.fullMethodName```
+      * ```GrpcContextElement``` set to ```io.grpc.Context.current()```
+    * Base services implement ```CoroutineScope``` only as a means to allow overriding the initial ```coroutineContext```
+    * The initial ```coroutineContext``` defaults to ```Dispatchers.Default```
+    * A common case for overriding the default context is for setting up application specific ```ThreadContextElement``` or ```CoroutineDispatcher```, such as ```MDCContext()``` or ```newFixedThreadPoolContext(...)```
+    * Rpc method implementation **MUST** be wrapped in a ```coroutineScope{}``` builder. Future versions of Kotlin will show a warning in the ide for ambiguous scope resolution. [KT-27493](https://youtrack.jetbrains.com/issue/KT-27493). It also ensures that the proper ```coroutineContext``` is used during method execution.
+
+#### Examples
 * [Unary](https://github.com/marcoferrer/kroto-plus#unary)
 * [Client Streaming](https://github.com/marcoferrer/kroto-plus#client-streaming)
 * [Server Streaming](https://github.com/marcoferrer/kroto-plus#server-streaming)
@@ -192,7 +216,7 @@ override suspend fun sayHelloStreaming(
 }
 ```
 
-
+---
 ### gRPC Stub Extensions
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpcstubextsgenoptions)
 
@@ -234,7 +258,7 @@ For unary rpc methods, the generator will create the following extensions
     inline fun ServiceBlockingStub.myRpcMethod(block: Request.Builder.() -> Unit): Response 
 ``` 
 
-### Coroutine Support
+#### Coroutine Support _(Legacy)_
 In addition to request message arguments as builder lambda rpc overloads, suspending overloads for rpc calls can also be generated.
 This allows blocking style rpc calls without the use of the blocking stub, preventing any negative impact on coroutine performance. 
 * This is accomplished by defining extension functions for async service stubs and combining a response observer with a coroutine builder.
@@ -324,7 +348,7 @@ The included example project contains full samples. [TestRpcCoroutineSupport](ht
         assertNull(rpcChannel.receiveOrNull(),"Response quantity was greater than expected")
     }
 ```   
-   
+---
 ### Mock Service Generator
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#mockservicesgenoptions)
 
@@ -373,7 +397,7 @@ This generator creates mock implementations of proto service definitions. This i
     }
 }
 ```
-
+---
 ### Extendable Messages Generator ___(Experimental)___
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#krotoplus.compiler.ExtenableMessagesGenOptions)
 Generated code relies on the ```kroto-plus-message``` artifact. This generator adds tagging interfaces to the java classes produce by protoc.
@@ -408,7 +432,7 @@ inline fun <M, B> KpCompanion<M, B>.build( block: B.() -> Unit ): M
 MyMessage.Companion.build { ... }
 
 ```
-
+---
 ### User Defined Generator Scripts
 Users can define kotlin scripts that they would like to run during code generation.
 For type completion, scripts can be couple with a small gradle build script, although this is completely optional.
@@ -430,7 +454,9 @@ There are two categories of scripts available.
 
 #### Community Scripts
 Community contributions for scripts are welcomed and more information regarding guidelines will be published soon.  
-  
+
+---
+
 ## Getting Started With Gradle
 
 #### Repositories
@@ -482,7 +508,7 @@ protobuf {
     }
 }
 ```
-
+---
 ## Getting Started With Maven
 
 #### Repositories
