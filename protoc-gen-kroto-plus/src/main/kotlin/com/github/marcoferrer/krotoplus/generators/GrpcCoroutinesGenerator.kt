@@ -356,12 +356,8 @@ object GrpcCoroutinesGenerator : Generator {
 
     fun ProtoService.buildResponseLambdaOverloads(): List<FunSpec> =
         methodDefinitions.partition { it.isUnary || it.isClientStream }
-            .let { (completableResponseMethods, streamingResponseMethods) ->
-
+            .let { (streamingResponseMethods) ->
                 mutableListOf<FunSpec>().apply {
-//                    completableResponseMethods
-//                        .distinctBy { it.responseType }
-//                        .mapTo(this) { it.buildCompletableDeferredLambdaExt() }
 
                     streamingResponseMethods
                         .distinctBy { it.responseType }

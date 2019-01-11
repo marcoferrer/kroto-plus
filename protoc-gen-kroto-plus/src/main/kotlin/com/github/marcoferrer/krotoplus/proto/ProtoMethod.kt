@@ -1,9 +1,6 @@
 package com.github.marcoferrer.krotoplus.proto
 
 import com.google.protobuf.DescriptorProtos
-import com.squareup.kotlinpoet.AnnotationSpec
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.asClassName
 import io.grpc.MethodDescriptor
 
 class ProtoMethod(

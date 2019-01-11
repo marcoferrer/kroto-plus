@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 apply plugin: 'kotlin'
@@ -32,7 +34,11 @@ protobuf {
     //noinspection GroovyAssignabilityCheck
     plugins {
         kroto {
-            path = "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-jvm8.jar"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                path = "${rootProject.projectDir}/protoc-gen-kroto-plus/windows.cmd"
+            }else{
+                path = "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-jvm8.jar"
+            }
         }
     }
 
@@ -47,7 +53,7 @@ protobuf {
             }
             task.plugins {
                 kroto {
-                    option "ConfigPath=$krotoConfig"
+                    option "ConfigPath=${file('.').toPath().toAbsolutePath().relativize(krotoConfig.toPath().toAbsolutePath()).toString()}"
                 }
             }
         }

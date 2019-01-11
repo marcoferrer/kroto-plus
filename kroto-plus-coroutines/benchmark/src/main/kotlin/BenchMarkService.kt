@@ -1,11 +1,9 @@
 import com.google.protobuf.ByteString
 import io.grpc.Status
-import io.grpc.benchmarks.proto.BenchmarkServiceCoroutineGrpc
+import io.grpc.benchmarks.proto.BenchmarkServiceGrpc
 import io.grpc.benchmarks.proto.Messages
-import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.coroutineScope
 
-class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(){
+class BenchMarkService : BenchmarkServiceGrpc.BenchmarkServiceImplBase(){
 
     private val BIDI_RESPONSE_BYTES = 100
     private val BIDI_RESPONSE = Messages.SimpleResponse
@@ -15,59 +13,6 @@ class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(
                 .setBody(ByteString.copyFrom(ByteArray(BIDI_RESPONSE_BYTES))).build()
         )
         .build()
-
-    override suspend fun unaryCall(
-        request: Messages.SimpleRequest
-    ): Messages.SimpleResponse = coroutineScope {
-        makeResponse(request)
-    }
-
-    override suspend fun streamingCall(
-        requestChannel: ReceiveChannel<Messages.SimpleRequest>,
-        responseChannel: SendChannel<Messages.SimpleResponse>
-    ) {
-       coroutineScope {
-           requestChannel.mapTo(responseChannel){ makeResponse(it) }
-       }
-    }
-
-    override suspend fun streamingFromClient(
-        requestChannel: ReceiveChannel<Messages.SimpleRequest>
-    ): Messages.SimpleResponse = coroutineScope {
-
-        val lastSeen = requestChannel
-            .toList()
-            .lastOrNull()
-            ?: throw Status.FAILED_PRECONDITION
-                .withDescription("never received any requests")
-                .asException()
-
-        makeResponse(lastSeen)
-    }
-
-    override suspend fun streamingFromServer(
-        request: Messages.SimpleRequest,
-        responseChannel: SendChannel<Messages.SimpleResponse>
-    ) {
-        coroutineScope {
-            val response = makeResponse(request)
-
-            while (!responseChannel.isClosedForSend) {
-                responseChannel.send(response)
-            }
-        }
-    }
-
-    override suspend fun streamingBothWays(
-        requestChannel: ReceiveChannel<Messages.SimpleRequest>,
-        responseChannel: SendChannel<Messages.SimpleResponse>
-    ) {
-        coroutineScope {
-            while(!requestChannel.isClosedForReceive){
-                responseChannel.send(BIDI_RESPONSE)
-            }
-        }
-    }
 }
 
 // Copied from

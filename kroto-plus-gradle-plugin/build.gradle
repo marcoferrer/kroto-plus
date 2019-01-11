@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
 apply plugin: 'com.google.protobuf'
@@ -43,9 +45,15 @@ protobuf {
     //noinspection GroovyAssignabilityCheck
     plugins {
         kroto {
-            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:0.1.3:jvm8@jar"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                path = "${rootProject.projectDir}/protoc-gen-kroto-plus/windows.cmd"
+            }else{
+                artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:0.1.3:jvm8@jar"
+            }
         }
     }
+    
+    
 
     generateProtoTasks {
         def krotoConfig = file("krotoPlusConfig.asciipb")
@@ -56,7 +64,7 @@ protobuf {
             task.plugins {
                 kroto {
                     outputSubDir = "java"
-                    option "ConfigPath=$krotoConfig"
+                    option "ConfigPath=${file('.').toPath().toAbsolutePath().relativize(krotoConfig.toPath().toAbsolutePath()).toString()}"
                 }
             }
         }

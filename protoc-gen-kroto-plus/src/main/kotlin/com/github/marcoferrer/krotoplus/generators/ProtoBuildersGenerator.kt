@@ -11,7 +11,6 @@ import com.google.protobuf.DescriptorProtos
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
-import org.jetbrains.kotlin.utils.sure
 
 object ProtoBuildersGenerator : Generator {
 

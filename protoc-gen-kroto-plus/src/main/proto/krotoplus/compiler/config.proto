@@ -5,8 +5,6 @@ package krotoplus.compiler;
 option java_package = "com.github.marcoferrer.krotoplus.config";
 option java_multiple_files = true;
 
-import "google/protobuf/descriptor.proto";
-
 // Message backing the root of a Kroto+ configuration file.
 message CompilerConfig {
 
