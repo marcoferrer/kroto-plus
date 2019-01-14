@@ -92,7 +92,7 @@ protobuf {
             </goals>
             <configuration>
                 <pluginId>grpc-coroutines</pluginId>
-                <pluginArtifact>com.github.marcoferrer.krotoplus:protoc-gen-grpc-coroutines:0.2.2-RC1:jar:jvm8</pluginArtifact>
+                <pluginArtifact>com.github.marcoferrer.krotoplus:protoc-gen-grpc-coroutines:0.2.2-RC2:jar:jvm8</pluginArtifact>
             </configuration>
         </execution>
     </executions>
