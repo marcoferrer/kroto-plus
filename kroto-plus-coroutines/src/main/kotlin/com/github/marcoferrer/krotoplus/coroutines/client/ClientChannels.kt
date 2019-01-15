@@ -21,13 +21,11 @@ interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, ReceiveChannel
     public val requestChannel: SendChannel<ReqT>
 
     public val responseChannel: ReceiveChannel<RespT>
+
+    public operator fun component1(): SendChannel<ReqT> = requestChannel
+
+    public operator fun component2(): ReceiveChannel<RespT> = responseChannel
 }
-
-public operator fun <ReqT, RespT> ClientBidiCallChannel<ReqT, RespT>.component1(): SendChannel<ReqT> =
-    requestChannel
-
-public operator fun <ReqT, RespT> ClientBidiCallChannel<ReqT, RespT>.component2(): ReceiveChannel<RespT> =
-    responseChannel
 
 internal class ClientBidiCallChannelImpl<ReqT, RespT>(
     public override val requestChannel: SendChannel<ReqT>,
@@ -35,7 +33,6 @@ internal class ClientBidiCallChannelImpl<ReqT, RespT>(
 ) : ClientBidiCallChannel<ReqT, RespT>,
     SendChannel<ReqT> by requestChannel,
     ReceiveChannel<RespT> by responseChannel
-
 
 /**
  *
@@ -45,16 +42,14 @@ interface ClientStreamingCallChannel<ReqT, RespT> : SendChannel<ReqT> {
     public val requestChannel: SendChannel<ReqT>
 
     public val response: Deferred<RespT>
+
+    public operator fun component1(): SendChannel<ReqT> = requestChannel
+
+    public operator fun component2(): Deferred<RespT> = response
 }
 
-public operator fun <ReqT, RespT> ClientStreamingCallChannel<ReqT, RespT>.component1(): SendChannel<ReqT> =
-    requestChannel
-
-public operator fun <ReqT, RespT> ClientStreamingCallChannel<ReqT, RespT>.component2(): Deferred<RespT> =
-    response
-
 internal class ClientStreamingCallChannelImpl<ReqT, RespT>(
-    public override val requestChannel: SendChannel<ReqT> = Channel(),
+    public override val requestChannel: SendChannel<ReqT>,
     public override val response: Deferred<RespT>
 ) : ClientStreamingCallChannel<ReqT, RespT>,
     SendChannel<ReqT> by requestChannel

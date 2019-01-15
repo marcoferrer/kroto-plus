@@ -90,7 +90,8 @@ internal fun Throwable.toRpcException(): Throwable =
 internal fun MethodDescriptor<*, *>.getCoroutineName(): CoroutineName =
     CoroutineName(fullMethodName)
 
-internal fun CoroutineScope.newRpcScope(
+internal fun newRpcScope(
+    coroutineContext: CoroutineContext,
     methodDescriptor: MethodDescriptor<*, *>,
     grpcContext: io.grpc.Context = io.grpc.Context.current()
 ): CoroutineScope = CoroutineScope(

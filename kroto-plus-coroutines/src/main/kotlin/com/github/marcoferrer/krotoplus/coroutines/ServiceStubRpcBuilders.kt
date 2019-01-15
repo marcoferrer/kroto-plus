@@ -1,6 +1,7 @@
 package com.github.marcoferrer.krotoplus.coroutines
 
 import com.github.marcoferrer.krotoplus.coroutines.client.ClientBidiCallChannel
+import com.github.marcoferrer.krotoplus.coroutines.client.ClientBidiCallChannelImpl
 import io.grpc.stub.AbstractStub
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.*
@@ -20,8 +21,8 @@ suspend inline fun <T : AbstractStub<T>, reified R> T.suspendingUnaryCallObserve
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 @ExperimentalKrotoPlusCoroutinesApi
-inline fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
-    crossinline block: T.(StreamObserver<RespT>) -> StreamObserver<ReqT>
+fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
+    block: T.(StreamObserver<RespT>) -> StreamObserver<ReqT>
 ): ClientBidiCallChannel<ReqT, RespT> {
 
     val responseObserverChannel = InboundStreamChannel<RespT>()
@@ -30,7 +31,7 @@ inline fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
     val requestObserverChannel = CoroutineScope(coroutineContext ?: EmptyCoroutineContext)
         .newSendChannelFromObserver(requestObserver)
 
-    return ClientBidiCallChannel(
+    return ClientBidiCallChannelImpl(
         requestObserverChannel,
         responseObserverChannel
     )

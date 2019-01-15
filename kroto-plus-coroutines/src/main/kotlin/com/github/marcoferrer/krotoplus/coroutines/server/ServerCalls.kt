@@ -16,7 +16,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
     responseObserver: StreamObserver<RespT>,
     block: suspend () -> RespT
 ) {
-    newRpcScope(methodDescriptor, io.grpc.Context.current())
+    newRpcScope(coroutineContext, methodDescriptor)
         .launch { responseObserver.onNext(block()) }
         .invokeOnCompletion(responseObserver.completionHandler)
 }
@@ -28,7 +28,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
-    val rpcScope = newRpcScope(methodDescriptor)
+    val rpcScope = newRpcScope(coroutineContext, methodDescriptor)
 
     val responseChannel = newSendChannelFromObserver(responseObserver)
 
@@ -39,13 +39,13 @@ public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
 }
 
 @ExperimentalCoroutinesApi
-fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
+public fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>) -> RespT
 ): StreamObserver<ReqT> {
 
-    val rpcScope = newRpcScope(methodDescriptor, io.grpc.Context.current())
+    val rpcScope = newRpcScope(coroutineContext, methodDescriptor)
 
     val isMessagePreloaded = AtomicBoolean(false)
     val requestChannelDelegate = Channel<ReqT>(capacity = 1)
@@ -79,7 +79,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ): StreamObserver<ReqT> {
 
-    val rpcScope = newRpcScope(methodDescriptor, io.grpc.Context.current())
+    val rpcScope = newRpcScope(coroutineContext, methodDescriptor)
 
     val isMessagePreloaded = AtomicBoolean(false)
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
@@ -109,7 +109,6 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
 
     return requestChannel
 }
-
 
 private fun MethodDescriptor<*, *>.getUnimplementedException(): StatusRuntimeException =
     Status.UNIMPLEMENTED
