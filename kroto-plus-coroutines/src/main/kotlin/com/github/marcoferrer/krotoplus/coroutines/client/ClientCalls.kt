@@ -12,8 +12,13 @@ public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
     request: ReqT,
     method: MethodDescriptor<ReqT,RespT>
 ): RespT = suspendCancellableCoroutine { cont: CancellableContinuation<RespT> ->
+
+    val rpcScope = CoroutineScope(cont.context)
+        .newRpcScope(method, io.grpc.Context.current())
+    val rpcContext = rpcScope.coroutineContext
+
     asyncUnaryCall<ReqT, RespT>(
-        channel.newCall(method, callOptions),
+        channel.newCall(method, callOptions.withCoroutineContext(rpcContext)),
         request,
         SuspendingUnaryObserver(cont)
     )
@@ -53,10 +58,9 @@ public fun <ReqT, RespT, T> T.clientCallBidiStreaming(
     )
     val requestChannel = rpcScope.newSendChannelFromObserver(requestObserver)
 
-    return ClientBidiCallChannel(requestChannel, responseChannel)
+    return ClientBidiCallChannelImpl(requestChannel, responseChannel)
 }
 
-@ObsoleteCoroutinesApi
 public fun <ReqT, RespT, T> T.clientCallClientStreaming(
     method: MethodDescriptor<ReqT,RespT>
 ): ClientStreamingCallChannel<ReqT, RespT>
@@ -69,7 +73,7 @@ public fun <ReqT, RespT, T> T.clientCallClientStreaming(
         channel.newCall(method, callOptions.withCoroutineContext(rpcContext)), completableResponse.toStreamObserver()
     )
     val requestChannel = rpcScope.newSendChannelFromObserver(requestObserver)
-    return ClientStreamingCallChannel(
+    return ClientStreamingCallChannelImpl(
         requestChannel,
         completableResponse
     )
