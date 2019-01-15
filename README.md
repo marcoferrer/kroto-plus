@@ -31,7 +31,7 @@ cd kotlin-coroutines-gRPC-template && \
 
 * There are several built in code generators that each accept unique configuration options.
 * **[Configuration Setup](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
-  * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator)**
+  * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator-message-dsl)**
   * **[gRPC Coroutines Client & Server](https://github.com/marcoferrer/kroto-plus#grpc-coroutines-client--server)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
     * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)** _(Legacy)_
