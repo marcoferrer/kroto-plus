@@ -16,9 +16,12 @@ public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
     responseObserver: StreamObserver<RespT>,
     block: suspend () -> RespT
 ) {
-    newRpcScope(coroutineContext, methodDescriptor)
-        .launch { responseObserver.onNext(block()) }
-        .invokeOnCompletion(responseObserver.completionHandler)
+    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+        bindToClientCancellation(responseObserver as ServerCallStreamObserver<*>)
+        launch {
+            responseObserver.handleUnaryRpc { block() }
+        }
+    }
 }
 
 @ExperimentalCoroutinesApi
@@ -28,14 +31,17 @@ public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
-    val rpcScope = newRpcScope(coroutineContext, methodDescriptor)
+    val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
 
-    val responseChannel = newSendChannelFromObserver(responseObserver)
+    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+        bindToClientCancellation(serverCallObserver)
 
-    rpcScope.launch { block(responseChannel) }
-        .invokeOnCompletion {
-            responseChannel.close(it?.toRpcException())
-        }
+        val responseChannel = newSendChannelFromObserver(responseObserver)
+
+        launch {
+            responseChannel.handleStreamingRpc(block)
+        }.invokeOnCompletion(responseChannel.abandonedRpcHandler)
+    }
 }
 
 @ExperimentalCoroutinesApi
@@ -45,29 +51,31 @@ public fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
     block: suspend (ReceiveChannel<ReqT>) -> RespT
 ): StreamObserver<ReqT> {
 
-    val rpcScope = newRpcScope(coroutineContext, methodDescriptor)
-
     val isMessagePreloaded = AtomicBoolean(false)
     val requestChannelDelegate = Channel<ReqT>(capacity = 1)
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
         .apply { enableManualFlowControl(requestChannelDelegate, isMessagePreloaded) }
 
-    val requestChannel = ServerRequestStreamChannel(
-        coroutineContext = rpcScope.coroutineContext,
-        delegateChannel = requestChannelDelegate,
-        callStreamObserver = serverCallObserver,
-        isMessagePreloaded = isMessagePreloaded,
-        onErrorHandler = {
-            rpcScope.cancel()
-            responseObserver.onError(it.toRpcException())
+    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+        bindToClientCancellation(serverCallObserver)
+
+        val requestChannel = ServerRequestStreamChannel(
+            coroutineContext = coroutineContext,
+            delegateChannel = requestChannelDelegate,
+            callStreamObserver = serverCallObserver,
+            isMessagePreloaded = isMessagePreloaded,
+            onErrorHandler = {
+                this@rpcScope.cancel()
+                responseObserver.onError(it.toRpcException())
+            }
+        )
+
+        launch {
+            responseObserver.handleUnaryRpc { block(requestChannel) }
         }
-    )
 
-    rpcScope
-        .launch { responseObserver.onNext(block(requestChannel)) }
-        .invokeOnCompletion(responseObserver.completionHandler)
-
-    return requestChannel
+        return requestChannel
+    }
 }
 
 
@@ -79,48 +87,48 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ): StreamObserver<ReqT> {
 
-    val rpcScope = newRpcScope(coroutineContext, methodDescriptor)
-
     val isMessagePreloaded = AtomicBoolean(false)
-    val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
     val requestChannelDelegate = Channel<ReqT>(capacity = 1)
-    val responseChannel = rpcScope.newManagedServerResponseChannel(
-        responseObserver = serverCallObserver,
-        requestChannel = requestChannelDelegate,
-        isMessagePreloaded = isMessagePreloaded
-    )
-    val requestChannel = ServerRequestStreamChannel(
-        coroutineContext = rpcScope.coroutineContext,
-        delegateChannel = requestChannelDelegate,
-        callStreamObserver = serverCallObserver,
-        isMessagePreloaded = isMessagePreloaded,
-        onErrorHandler = {
-            // In the event of a request error, we
-            // need to close the responseChannel before
-            // cancelling the rpcScope.
-            responseChannel.close(it)
-            rpcScope.cancel()
-        }
-    )
+    val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
 
-    rpcScope
-        .launch { block(requestChannel, responseChannel) }
-        .invokeOnCompletion(responseChannel.completionHandler)
+    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+        bindToClientCancellation(serverCallObserver)
 
-    return requestChannel
+        val responseChannel = newManagedServerResponseChannel(
+            responseObserver = serverCallObserver,
+            requestChannel = requestChannelDelegate,
+            isMessagePreloaded = isMessagePreloaded
+        )
+        val requestChannel = ServerRequestStreamChannel(
+            coroutineContext = coroutineContext,
+            delegateChannel = requestChannelDelegate,
+            callStreamObserver = serverCallObserver,
+            isMessagePreloaded = isMessagePreloaded,
+            onErrorHandler = {
+                // In the event of a request error, we
+                // need to close the responseChannel before
+                // cancelling the rpcScope.
+                responseChannel.close(it)
+                this@rpcScope.cancel()
+            }
+        )
+
+        launch {
+            handleBidiStreamingRpc(requestChannel, responseChannel, block)
+        }.invokeOnCompletion(responseChannel.abandonedRpcHandler)
+
+        return requestChannel
+    }
+}
+
+public fun <T> serverCallUnimplementedUnary(methodDescriptor: MethodDescriptor<*, *>): T =
+    throw methodDescriptor.getUnimplementedException()
+
+public fun serverCallUnimplementedStream(methodDescriptor: MethodDescriptor<*, *>, responseChannel: SendChannel<*>) {
+    responseChannel.close(methodDescriptor.getUnimplementedException())
 }
 
 private fun MethodDescriptor<*, *>.getUnimplementedException(): StatusRuntimeException =
     Status.UNIMPLEMENTED
         .withDescription("Method $fullMethodName is unimplemented")
         .asRuntimeException()
-
-public fun <T> serverCallUnimplementedUnary(
-    methodDescriptor: MethodDescriptor<*, *>
-): T {
-    throw methodDescriptor.getUnimplementedException()
-}
-
-public fun serverCallUnimplementedStream(methodDescriptor: MethodDescriptor<*, *>, responseChannel: SendChannel<*>) {
-    responseChannel.close(methodDescriptor.getUnimplementedException())
-}
