@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 
 object CommonClassNames{
@@ -18,6 +19,7 @@ object CommonClassNames{
     val bindableService: ClassName = BindableService::class.asClassName()
     val coroutineScope: ClassName = CoroutineScope::class.asClassName()
     val coroutineContext: ClassName = CoroutineContext::class.asClassName()
+    val emptyCoroutineContext: ClassName = EmptyCoroutineContext::class.asClassName()
     val receiveChannel: ClassName = ReceiveChannel::class.asClassName()
     val sendChannel: ClassName = SendChannel::class.asClassName()
     val dispatchers: ClassName = Dispatchers::class.asClassName()

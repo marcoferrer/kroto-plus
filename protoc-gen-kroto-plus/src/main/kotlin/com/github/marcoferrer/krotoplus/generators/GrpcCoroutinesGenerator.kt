@@ -103,7 +103,7 @@ object GrpcCoroutinesGenerator : Generator {
                     .addModifiers(KModifier.OVERRIDE)
                     .getter(
                         FunSpec.getterBuilder()
-                            .addCode("return %T.Default", CommonClassNames.dispatchers)
+                            .addCode("return %T", CommonClassNames.emptyCoroutineContext)
                             .build()
                     )
                     .build()
