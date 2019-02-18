@@ -1,3 +1,20 @@
+## Version 0.2.2-RC2
+_2018-02-17_
+
+#### Coroutines
+* Fix: Refine API Visibility
+* Fix: Remove unused prototype response extensions
+* Fix: Remove protobuf dependency from coroutine runtime, Resolves [GH-25](https://github.com/marcoferrer/kroto-plus/issues/25)
+* Fix: Propagate client cancellation to server RPC scope
+* Fix: Simplify client call stub extensions
+* Fix: Remove obsolete annotations from generated stubs
+* Fix: Default call option `CALL_OPTION_COROUTINE_CONTEXT` to `EmptyCoroutineContext`
+* Fix: Convert `ClientBidiCallChannel` and `ClientStreamingCallChannel` to interfaces
+* Fix: Remove unnecessary data modifier from client call channels
+* Fix: Add `component1()` and `component2()` operators to client call channel interfaces
+* Fix: Favor directly handling rpc exceptions over installing a completion handler.
+* Fix: Improve rpc method exception handling and propagation.
+
 ## Version 0.2.2-RC1
 _2018-01-03_
 * New: Update to kotlin ```1.3.11```

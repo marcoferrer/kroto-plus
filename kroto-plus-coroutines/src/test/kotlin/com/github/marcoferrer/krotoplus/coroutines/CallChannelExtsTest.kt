@@ -1,13 +1,15 @@
 package com.github.marcoferrer.krotoplus.coroutines
 
 import io.grpc.Status
+import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
 import io.mockk.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 
 class NewSendChannelFromObserverTests {
@@ -21,7 +23,7 @@ class NewSendChannelFromObserverTests {
         }
 
         GlobalScope.newSendChannelFromObserver(observer).apply {
-            repeat(3){ send(it) }
+            repeat(3) { send(it) }
             close()
         }
 
@@ -59,15 +61,51 @@ class NewSendChannelFromObserverTests {
 
             val send1Result = runCatching { send("") }
             assertTrue(send1Result.isSuccess, "Error during observer.onNext should not fail channel.send")
-            assertTrue(isClosedForSend,"Channel should be closed after onNext error")
+            assertTrue(isClosedForSend, "Channel should be closed after onNext error")
 
             val send2Result = runCatching { send("") }
             assertTrue(send2Result.isFailure, "Expecting error after sending a value to failed channel")
-            assertEquals(statusException,send2Result.exceptionOrNull())
+            assertEquals(statusException, send2Result.exceptionOrNull())
         }
 
         verify(exactly = 1) { observer.onNext(allAny()) }
         verify(exactly = 1) { observer.onError(statusException) }
         verify(inverse = true) { observer.onCompleted() }
+    }
+}
+
+class BindToClientCancellationTests {
+
+    @Test
+    fun `Observer invoking cancellation handler cancels coroutine scope`() {
+
+        val cancellationHandler = slot<Runnable>()
+        val serverCallStreamObserver = mockk<ServerCallStreamObserver<*>>().apply {
+            every { setOnCancelHandler(capture(cancellationHandler)) } just Runs
+        }
+
+        try {
+
+            runBlocking {
+                bindToClientCancellation(serverCallStreamObserver)
+                launch {
+                    cancellationHandler.captured.run()
+                    launch {
+                        fail("Child job was executed, Scope has not been cancelled")
+                    }
+                    yield()
+                    fail("Job continued after suspension, Scope has not been cancelled")
+                }
+            }
+            fail("Job did not fail")
+        } catch (e: Throwable) {
+            when (e) {
+                is AssertionError -> throw e
+                else -> assertEquals(
+                    "kotlinx.coroutines.JobCancellationException",
+                    e.javaClass.name
+                )
+            }
+        }
     }
 }
