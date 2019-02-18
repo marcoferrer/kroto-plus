@@ -81,6 +81,12 @@ object GrpcCoroutinesGenerator : Generator {
             .addFunction(buildNewStubMethod())
             .addType(buildClientStubImpl())
             .addType(buildServiceBaseImpl())
+            .addProperty(
+                PropertySpec.builder("SERVICE_NAME", String::class.asClassName())
+                    .addModifiers(KModifier.CONST)
+                    .initializer("%T.SERVICE_NAME", enclosingServiceClassName)
+                    .build()
+            )
             .build()
 
     private fun ProtoService.buildServiceBaseImpl(): TypeSpec {
@@ -429,9 +435,8 @@ object GrpcCoroutinesGenerator : Generator {
                 .getter(
                     FunSpec.getterBuilder()
                         .addCode(
-                            "return callOptions.getOption(%T) ?: %T.Unconfined",
-                            ClassName(CommonPackages.krotoCoroutineLib,"CALL_OPTION_COROUTINE_CONTEXT"),
-                            CommonClassNames.dispatchers
+                            "return callOptions.getOption(%T)",
+                            ClassName(CommonPackages.krotoCoroutineLib,"CALL_OPTION_COROUTINE_CONTEXT")
                         )
                         .build()
                 )
@@ -460,12 +465,6 @@ object GrpcCoroutinesGenerator : Generator {
                     .returns(stubClassName)
                     .addParameter("channel", CommonClassNames.grpcChannel)
                     .addCode("return %T(channel)", stubClassName)
-                    .build()
-            )
-            .addProperty(
-                PropertySpec.builder("SERVICE_NAME", String::class.asClassName())
-                    .addModifiers(KModifier.CONST)
-                    .initializer("%T.SERVICE_NAME", enclosingServiceClassName)
                     .build()
             )
             .build()

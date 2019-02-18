@@ -28,7 +28,7 @@ fun <T : AbstractStub<T>, ReqT, RespT> T.bidiCallChannel(
     val responseObserverChannel = InboundStreamChannel<RespT>()
     val requestObserver = block(responseObserverChannel)
 
-    val requestObserverChannel = CoroutineScope(coroutineContext ?: EmptyCoroutineContext)
+    val requestObserverChannel = CoroutineScope(coroutineContext)
         .newSendChannelFromObserver(requestObserver)
 
     return ClientBidiCallChannelImpl(
