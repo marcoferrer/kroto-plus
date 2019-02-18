@@ -68,7 +68,7 @@ internal class ClientResponseObserverChannel<ReqT, RespT>(
 
     private val isMessagePreloaded = AtomicBoolean()
 
-    lateinit var requestStream: ClientCallStreamObserver<ReqT>
+    private lateinit var requestStream: ClientCallStreamObserver<ReqT>
 
     @ExperimentalCoroutinesApi
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
