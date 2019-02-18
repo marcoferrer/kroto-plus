@@ -24,7 +24,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @return [Job] Returns a handle to the [Job] that is executing the [ProducerScope] block
  */
 @ExperimentalCoroutinesApi
-public suspend fun <T> CoroutineScope.launchProducerJob(
+public fun <T> CoroutineScope.launchProducerJob(
     channel: SendChannel<T>,
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend ProducerScope<T>.()->Unit
@@ -56,14 +56,13 @@ internal fun <ReqT, RespT> CoroutineScope.newManagedServerResponseChannel(
 
     val responseChannel = newSendChannelFromObserver(responseObserver)
 
-    responseObserver.apply {
-        enableManualFlowControl(requestChannel,isMessagePreloaded)
-        setOnCancelHandler {
-            responseChannel.close(Status.CANCELLED.asRuntimeException())
-        }
-    }
+    responseObserver.enableManualFlowControl(requestChannel,isMessagePreloaded)
 
     return responseChannel
+}
+
+internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamObserver<*>){
+    observer.setOnCancelHandler { this@bindToClientCancellation.cancel() }
 }
 
 internal val StreamObserver<*>.completionHandler: CompletionHandler
