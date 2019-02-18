@@ -431,7 +431,6 @@ object GrpcCoroutinesGenerator : Generator {
                 PropertySpec
                 .builder("coroutineContext", CommonClassNames.coroutineContext)
                 .addModifiers(KModifier.OVERRIDE)
-                .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
                 .getter(
                     FunSpec.getterBuilder()
                         .addCode(
