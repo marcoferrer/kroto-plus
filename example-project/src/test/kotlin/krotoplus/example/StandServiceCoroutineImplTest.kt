@@ -15,19 +15,21 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.consumeEachIndexed
 
 
-class TestStandService {
+class StandServiceCoroutineImplTest {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
 
     @BeforeTest
     fun bindService() {
-        grpcServerRule.serviceRegistry?.addService(StandService())
+        grpcServerRule.serviceRegistry?.addService(StandServiceCoroutineImpl())
     }
 
     @Test
     fun `Test Unary Service Response`() = runBlocking {
-        val standStub = StandServiceGrpc.newStub(grpcServerRule.channel)
+        val standStub = StandServiceCoroutineGrpc
+            .newStub(grpcServerRule.channel!!)
+            .withCoroutineContext()
 
         standStub.getStandByName { name = "Gold Experience" }.let { response ->
 
