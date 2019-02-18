@@ -47,7 +47,7 @@ class TestSomeRandomClass {
 
         MockStandService.getStandByCharacterResponseQueue.apply {
 
-            addMessage(stands["Star Platinum"]!!)
+            addMessage(stands.getValue("Star Platinum"))
 
             addMessage {
                 name = "The World"

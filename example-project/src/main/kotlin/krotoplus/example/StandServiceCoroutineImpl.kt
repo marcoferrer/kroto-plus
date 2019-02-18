@@ -6,7 +6,7 @@ import jojo.bizarre.adventure.stand.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
-class StandService : StandServiceCoroutineGrpc.StandServiceImplBase(){
+class StandServiceCoroutineImpl : StandServiceCoroutineGrpc.StandServiceImplBase(){
 
     override suspend fun getStandByName(
         request: StandServiceProto.GetStandByNameRequest
