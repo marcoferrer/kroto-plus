@@ -3,7 +3,7 @@ description = "Kroto+ Extendable Messages"
 apply from: "$rootDir/publishing.gradle"
 
 dependencies{
-    implementation "io.grpc:grpc-protobuf:${versions.grpc}",
-                   "io.grpc:grpc-stub:${versions.grpc}"
-    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    implementation "io.grpc:grpc-protobuf:${Versions.grpc}",
+                   "io.grpc:grpc-stub:${Versions.grpc}"
+    implementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
 }

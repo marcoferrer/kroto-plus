@@ -16,12 +16,12 @@ sourceSets{
 }
 
 dependencies{
-    compileOnly "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    compileOnly "com.google.protobuf:protobuf-java:${Versions.protobuf}"
 }
 
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}" }
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}" }
 
     //noinspection GroovyAssignabilityCheck
     plugins {

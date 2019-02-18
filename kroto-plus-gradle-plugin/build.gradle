@@ -16,7 +16,7 @@ gradlePlugin {
 }
 
 dependencies{
-    implementation "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    implementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
     protobuf project(":protoc-gen-kroto-plus")
 }
 
@@ -38,7 +38,7 @@ pluginBundle {
 
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}"}
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}"}
 
     //noinspection GroovyAssignabilityCheck
     plugins {
