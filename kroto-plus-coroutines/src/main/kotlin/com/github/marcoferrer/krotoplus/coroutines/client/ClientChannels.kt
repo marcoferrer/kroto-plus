@@ -13,21 +13,52 @@ import kotlinx.coroutines.channels.SendChannel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
+/**
+ *
+ */
+interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, ReceiveChannel<RespT>{
 
-data class ClientBidiCallChannel<ReqT, RespT>(
-    val requestChannel: SendChannel<ReqT>,
-    val responseChannel: ReceiveChannel<RespT>
-) : SendChannel<ReqT> by requestChannel,
+    public val requestChannel: SendChannel<ReqT>
+
+    public val responseChannel: ReceiveChannel<RespT>
+
+    public operator fun component1(): SendChannel<ReqT> = requestChannel
+
+    public operator fun component2(): ReceiveChannel<RespT> = responseChannel
+}
+
+internal class ClientBidiCallChannelImpl<ReqT, RespT>(
+    public override val requestChannel: SendChannel<ReqT>,
+    public override val responseChannel: ReceiveChannel<RespT>
+) : ClientBidiCallChannel<ReqT, RespT>,
+    SendChannel<ReqT> by requestChannel,
     ReceiveChannel<RespT> by responseChannel
 
+/**
+ *
+ */
+interface ClientStreamingCallChannel<ReqT, RespT> : SendChannel<ReqT> {
 
-data class ClientStreamingCallChannel<ReqT, RespT>(
-    val requestChannel: SendChannel<ReqT> = Channel(),
-    val response: Deferred<RespT>
-) : SendChannel<ReqT> by requestChannel
+    public val requestChannel: SendChannel<ReqT>
+
+    public val response: Deferred<RespT>
+
+    public operator fun component1(): SendChannel<ReqT> = requestChannel
+
+    public operator fun component2(): Deferred<RespT> = response
+}
+
+internal class ClientStreamingCallChannelImpl<ReqT, RespT>(
+    public override val requestChannel: SendChannel<ReqT>,
+    public override val response: Deferred<RespT>
+) : ClientStreamingCallChannel<ReqT, RespT>,
+    SendChannel<ReqT> by requestChannel
 
 
-class ClientResponseObserverChannel<ReqT, RespT>(
+/**
+ *
+ */
+internal class ClientResponseObserverChannel<ReqT, RespT>(
     override val coroutineContext: CoroutineContext,
     private val responseChannelDelegate: Channel<RespT> = Channel(capacity = 1)
 ) : ClientResponseObserver<ReqT, RespT>,
@@ -37,7 +68,7 @@ class ClientResponseObserverChannel<ReqT, RespT>(
 
     private val isMessagePreloaded = AtomicBoolean()
 
-    lateinit var requestStream: ClientCallStreamObserver<ReqT>
+    private lateinit var requestStream: ClientCallStreamObserver<ReqT>
 
     @ExperimentalCoroutinesApi
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {

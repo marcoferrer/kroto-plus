@@ -81,6 +81,12 @@ object GrpcCoroutinesGenerator : Generator {
             .addFunction(buildNewStubMethod())
             .addType(buildClientStubImpl())
             .addType(buildServiceBaseImpl())
+            .addProperty(
+                PropertySpec.builder("SERVICE_NAME", String::class.asClassName())
+                    .addModifiers(KModifier.CONST)
+                    .initializer("%T.SERVICE_NAME", enclosingServiceClassName)
+                    .build()
+            )
             .build()
 
     private fun ProtoService.buildServiceBaseImpl(): TypeSpec {
@@ -95,7 +101,6 @@ object GrpcCoroutinesGenerator : Generator {
                 PropertySpec
                     .builder("coroutineContext", CommonClassNames.coroutineContext)
                     .addModifiers(KModifier.OVERRIDE)
-                    .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
                     .getter(
                         FunSpec.getterBuilder()
                             .addCode("return %T.Default", CommonClassNames.dispatchers)
@@ -355,53 +360,12 @@ object GrpcCoroutinesGenerator : Generator {
         }
 
     fun ProtoService.buildResponseLambdaOverloads(): List<FunSpec> =
-        methodDefinitions.partition { it.isUnary || it.isClientStream }
-            .let { (completableResponseMethods, streamingResponseMethods) ->
-
-                mutableListOf<FunSpec>().apply {
-//                    completableResponseMethods
-//                        .distinctBy { it.responseType }
-//                        .mapTo(this) { it.buildCompletableDeferredLambdaExt() }
-
-                    streamingResponseMethods
-                        .distinctBy { it.responseType }
-                        .mapTo(this) { it.buildChannelLambdaExt() }
-                }
-            }
-
-    fun ProtoMethod.buildCompletableDeferredLambdaExt(): FunSpec {
-
-        val receiverClassName = ParameterizedTypeName
-            .get(CommonClassNames.completableDeferred, responseClassName)
-
-        val jvmNameSuffix = responseType.canonicalJavaName
-            .replace(responseType.javaPackage.orEmpty(), "")
-            .replace(".", "")
-
-        return FunSpec.builder("complete")
-            .addModifiers(KModifier.INLINE)
-            .receiver(receiverClassName)
-            .addParameter(
-                "block", LambdaTypeName.get(
-                    receiver = (responseType as ProtoMessage).builderClassName,
-                    returnType = UNIT
-                )
-            )
-            .returns(BOOLEAN)
-            .addAnnotation(
-                AnnotationSpec
-                    .builder(JvmName::class.asClassName())
-                    .addMember("\"complete$jvmNameSuffix\"")
-                    .build()
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement("val response = %T.newBuilder().apply(block).build()", responseClassName)
-                    .addStatement("return complete(response)")
-                    .build()
-            )
-            .build()
-    }
+        methodDefinitions
+            .asSequence()
+            .filter { it.isServerStream || it.isBidi }
+            .distinctBy { it.responseType }
+            .map { it.buildChannelLambdaExt() }
+            .toList()
 
     fun ProtoMethod.buildChannelLambdaExt(): FunSpec {
 
@@ -471,9 +435,8 @@ object GrpcCoroutinesGenerator : Generator {
                 .getter(
                     FunSpec.getterBuilder()
                         .addCode(
-                            "return callOptions.getOption(%T) ?: %T.Unconfined",
-                            ClassName(CommonPackages.krotoCoroutineLib,"CALL_OPTION_COROUTINE_CONTEXT"),
-                            CommonClassNames.dispatchers
+                            "return callOptions.getOption(%T)",
+                            ClassName(CommonPackages.krotoCoroutineLib,"CALL_OPTION_COROUTINE_CONTEXT")
                         )
                         .build()
                 )
@@ -502,12 +465,6 @@ object GrpcCoroutinesGenerator : Generator {
                     .returns(stubClassName)
                     .addParameter("channel", CommonClassNames.grpcChannel)
                     .addCode("return %T(channel)", stubClassName)
-                    .build()
-            )
-            .addProperty(
-                PropertySpec.builder("SERVICE_NAME", String::class.asClassName())
-                    .addModifiers(KModifier.CONST)
-                    .initializer("%T.SERVICE_NAME", enclosingServiceClassName)
                     .build()
             )
             .build()
@@ -672,7 +629,6 @@ object GrpcCoroutinesGenerator : Generator {
     fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
-//            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
             .returns(ParameterizedTypeName.get(CommonClassNames.receiveChannel, responseClassName))
             .addParameter("request",requestClassName)
             .addStatement(

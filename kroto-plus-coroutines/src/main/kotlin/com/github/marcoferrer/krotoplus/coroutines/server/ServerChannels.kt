@@ -10,8 +10,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
-@ExperimentalCoroutinesApi
-class ServerRequestStreamChannel<ReqT, RespT>(
+internal class ServerRequestStreamChannel<ReqT, RespT>(
     override val coroutineContext: CoroutineContext,
     private val delegateChannel: Channel<ReqT>,
     private val isMessagePreloaded: AtomicBoolean,

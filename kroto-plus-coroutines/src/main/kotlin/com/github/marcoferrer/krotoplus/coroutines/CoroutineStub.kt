@@ -3,11 +3,12 @@ package com.github.marcoferrer.krotoplus.coroutines
 import io.grpc.CallOptions
 import io.grpc.stub.AbstractStub
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
-val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext?> =
-    CallOptions.Key.create<CoroutineContext>("coroutineContext")
+val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext> =
+    CallOptions.Key.createWithDefault<CoroutineContext>("coroutineContext", EmptyCoroutineContext)
 
-val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext?
+val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext
     get() = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
 
 fun <T : AbstractStub<T>> T.withCoroutineContext(coroutineContext: CoroutineContext): T =

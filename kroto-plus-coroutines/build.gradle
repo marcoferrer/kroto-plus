@@ -25,7 +25,6 @@ compileTestKotlin {
 
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
-    implementation "io.grpc:grpc-protobuf:${Versions.grpc}",
-                   "io.grpc:grpc-stub:${Versions.grpc}"
-    testImplementation "io.mockk:mockk:1.8.13.kotlin13"
+    implementation "io.grpc:grpc-stub:${Versions.grpc}"
+    testImplementation "io.mockk:mockk:${Versions.mockk}"
 }

@@ -10,68 +10,66 @@ import kotlinx.coroutines.channels.ReceiveChannel
 
 public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
     request: ReqT,
-    method: MethodDescriptor<ReqT,RespT>
+    method: MethodDescriptor<ReqT, RespT>
 ): RespT = suspendCancellableCoroutine { cont: CancellableContinuation<RespT> ->
-    asyncUnaryCall<ReqT, RespT>(
-        channel.newCall(method, callOptions),
-        request,
-        SuspendingUnaryObserver(cont)
-    )
+
+    with(newRpcScope(cont.context + coroutineContext, method)) {
+        asyncUnaryCall<ReqT, RespT>(
+            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
+            request,
+            SuspendingUnaryObserver(cont)
+        )
+    }
 }
 
-public fun <ReqT, RespT, T> T.clientCallServerStreaming(
+public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallServerStreaming(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
-): ReceiveChannel<RespT>
-        where T : CoroutineScope, T : AbstractStub<T> {
+): ReceiveChannel<RespT> {
 
-    val rpcScope = newRpcScope(method, io.grpc.Context.current())
-    val rpcContext = rpcScope.coroutineContext
-    val responseObserverChannel = ClientResponseObserverChannel<ReqT, RespT>(rpcContext)
+    with(newRpcScope(coroutineContext, method)) rpcScope@{
+        val responseObserverChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext)
 
-    asyncServerStreamingCall<ReqT, RespT>(
-        channel.newCall(method, callOptions.withCoroutineContext(rpcContext)),
-        request,
-        responseObserverChannel
-    )
-
-    return responseObserverChannel
+        asyncServerStreamingCall<ReqT, RespT>(
+            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
+            request,
+            responseObserverChannel
+        )
+        return responseObserverChannel
+    }
 }
 
-@ObsoleteCoroutinesApi
-public fun <ReqT, RespT, T> T.clientCallBidiStreaming(
-    method: MethodDescriptor<ReqT,RespT>
-): ClientBidiCallChannel<ReqT, RespT>
-        where T : CoroutineScope, T : AbstractStub<T> {
+public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallBidiStreaming(
+    method: MethodDescriptor<ReqT, RespT>
+): ClientBidiCallChannel<ReqT, RespT> {
 
-    val rpcScope = newRpcScope(method, io.grpc.Context.current())
-    val rpcContext = rpcScope.coroutineContext
-    val responseChannel = ClientResponseObserverChannel<ReqT, RespT>(rpcContext)
-    val requestObserver = asyncBidiStreamingCall<ReqT,RespT>(
-        channel.newCall(method, callOptions.withCoroutineContext(rpcContext)),
-        responseChannel
-    )
-    val requestChannel = rpcScope.newSendChannelFromObserver(requestObserver)
+    with(newRpcScope(coroutineContext, method)){
+        val responseChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext)
+        val requestObserver = asyncBidiStreamingCall<ReqT, RespT>(
+            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
+            responseChannel
+        )
+        val requestChannel = newSendChannelFromObserver(requestObserver)
 
-    return ClientBidiCallChannel(requestChannel, responseChannel)
+        return ClientBidiCallChannelImpl(requestChannel, responseChannel)
+    }
 }
 
-@ObsoleteCoroutinesApi
-public fun <ReqT, RespT, T> T.clientCallClientStreaming(
-    method: MethodDescriptor<ReqT,RespT>
-): ClientStreamingCallChannel<ReqT, RespT>
-        where T : CoroutineScope, T : AbstractStub<T> {
+public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallClientStreaming(
+    method: MethodDescriptor<ReqT, RespT>
+): ClientStreamingCallChannel<ReqT, RespT> {
 
-    val rpcScope = newRpcScope(method, io.grpc.Context.current())
-    val rpcContext = rpcScope.coroutineContext
-    val completableResponse = CompletableDeferred<RespT>()
-    val requestObserver = asyncClientStreamingCall<ReqT, RespT>(
-        channel.newCall(method, callOptions.withCoroutineContext(rpcContext)), completableResponse.toStreamObserver()
-    )
-    val requestChannel = rpcScope.newSendChannelFromObserver(requestObserver)
-    return ClientStreamingCallChannel(
-        requestChannel,
-        completableResponse
-    )
+    with(newRpcScope(coroutineContext, method)) rpcScope@{
+        val completableResponse = CompletableDeferred<RespT>()
+        val requestObserver = asyncClientStreamingCall<ReqT, RespT>(
+            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
+            completableResponse.toStreamObserver()
+        )
+        val requestChannel = newSendChannelFromObserver(requestObserver)
+        return ClientStreamingCallChannelImpl(
+            requestChannel,
+            completableResponse
+        )
+    }
 }
 

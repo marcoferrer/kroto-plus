@@ -24,7 +24,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @return [Job] Returns a handle to the [Job] that is executing the [ProducerScope] block
  */
 @ExperimentalCoroutinesApi
-public suspend fun <T> CoroutineScope.launchProducerJob(
+public fun <T> CoroutineScope.launchProducerJob(
     channel: SendChannel<T>,
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend ProducerScope<T>.()->Unit
@@ -56,26 +56,47 @@ internal fun <ReqT, RespT> CoroutineScope.newManagedServerResponseChannel(
 
     val responseChannel = newSendChannelFromObserver(responseObserver)
 
-    responseObserver.apply {
-        enableManualFlowControl(requestChannel,isMessagePreloaded)
-        setOnCancelHandler {
-            responseChannel.close(Status.CANCELLED.asRuntimeException())
-        }
-    }
+    responseObserver.enableManualFlowControl(requestChannel,isMessagePreloaded)
 
     return responseChannel
 }
 
+internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamObserver<*>){
+    observer.setOnCancelHandler { this@bindToClientCancellation.cancel() }
+}
+
 internal val StreamObserver<*>.completionHandler: CompletionHandler
     get() = {
-        if(it != null)
-            onError(it.toRpcException()) else
-            onCompleted()
+        // If the call was cancelled already
+        // the stream observer will throw
+        runCatching {
+            if(it != null)
+                onError(it.toRpcException()) else
+                onCompleted()
+        }
     }
 
 internal val SendChannel<*>.completionHandler: CompletionHandler
     get() = {
-        close(it?.toRpcException())
+        if(!isClosedForSend){
+            close(it?.toRpcException())
+        }
+    }
+
+internal val SendChannel<*>.abandonedRpcHandler: CompletionHandler
+    get() = { completionError ->
+        if(!isClosedForSend){
+
+            val rpcException = completionError
+                ?.toRpcException()
+                ?.let { it as? StatusRuntimeException }
+                ?.takeUnless { it.status.code == Status.UNKNOWN.code }
+                ?: Status.UNKNOWN
+                    .withDescription("Abandoned Rpc")
+                    .asRuntimeException()
+
+            close(rpcException)
+        }
     }
 
 internal fun Throwable.toRpcException(): Throwable =
@@ -90,7 +111,8 @@ internal fun Throwable.toRpcException(): Throwable =
 internal fun MethodDescriptor<*, *>.getCoroutineName(): CoroutineName =
     CoroutineName(fullMethodName)
 
-internal fun CoroutineScope.newRpcScope(
+internal fun newRpcScope(
+    coroutineContext: CoroutineContext,
     methodDescriptor: MethodDescriptor<*, *>,
     grpcContext: io.grpc.Context = io.grpc.Context.current()
 ): CoroutineScope = CoroutineScope(
@@ -108,3 +130,27 @@ internal fun <T> CoroutineScope.newProducerScope(channel: SendChannel<T>): Produ
         override val channel: SendChannel<T>
             get() = channel
     }
+
+internal inline fun <T> StreamObserver<T>.handleUnaryRpc(block: ()->T){
+    runCatching { onNext(block()) }
+        .onSuccess { onCompleted() }
+        .onFailure { onError(it.toRpcException()) }
+}
+
+@Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
+internal suspend inline fun <T> SendChannel<T>.handleStreamingRpc(block: suspend (SendChannel<T>)->Unit){
+    runCatching { block(this) }
+        .onSuccess { close() }
+        .onFailure { close(it.toRpcException()) }
+}
+
+@Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
+internal suspend inline fun <ReqT, RespT> handleBidiStreamingRpc(
+    requestChannel: ReceiveChannel<ReqT>,
+    responseChannel: SendChannel<RespT>,
+    block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
+) {
+    runCatching { block(requestChannel,responseChannel) }
+        .onSuccess { responseChannel.close() }
+        .onFailure { responseChannel.close(it.toRpcException()) }
+}
