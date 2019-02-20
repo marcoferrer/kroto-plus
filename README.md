@@ -17,10 +17,11 @@ cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
 
-## Version 0.2.2-RC1
+## Version 0.2.2-RC2
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
   * Full Client & Server Stub Generation 🎉
+  * gRPC Coroutines API refinements and fixes
 * **In Progress:** Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 
 ## Getting Started
