@@ -293,7 +293,7 @@ Child coroutines will inherit this ```ThreadContextElement``` and the dispatcher
 There are also overloads generated for bridging Client, Server, and Bidirectional streaming methods with coroutine ```Channels``` 
 The included example project contains full samples. [TestRpcCoroutineSupport](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestRpcCoroutineSupport.kt)
 ```kotlin
-    suspend fun CoroutineScope.findStrongestAttack(): StandProto.Attack {
+    suspend fun findStrongestAttack(): StandProto.Attack = coroutineScope {
         
         val standService = StandServiceGrpc.newStub(managedChannel)
         val characterService = CharacterServiceGrpc.newStub(managedChannel)
