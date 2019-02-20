@@ -1,6 +1,7 @@
 package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
@@ -97,10 +98,8 @@ object GrpcStubExtsGenerator : Generator {
             .addCode(method.requestValueCodeBlock())
             .addStatement("return %N(request)", method.functionName)
             .returns(
-                ParameterizedTypeName.get(
-                    ClassName("com.google.common.util.concurrent", "ListenableFuture"),
-                    method.responseClassName
-                )
+                ClassName("com.google.common.util.concurrent", "ListenableFuture")
+                    .parameterizedBy(method.responseClassName)
             )
             .also { fileSpecBuilder.addFunction(it.build()) }
 
@@ -115,8 +114,6 @@ object GrpcStubExtsGenerator : Generator {
 
     private fun buildSuspendingUnaryOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder) {
 
-        fileSpecBuilder.addStaticImport("com.github.marcoferrer.krotoplus.coroutines", "suspendingUnaryCallObserver")
-
         FunSpec.builder(method.functionName)
             .addModifiers(KModifier.SUSPEND)
             .receiver(method.protoService.asyncStubClassName)
@@ -127,7 +124,8 @@ object GrpcStubExtsGenerator : Generator {
             }
             .returns(method.responseClassName)
             .addStatement(
-                "return suspendingUnaryCallObserver{ observer -> %N(request,observer) }",
+                "return %T{ observer -> %N(request,observer) }",
+                CommonClassNames.suspendingUnaryCallObserver,
                 method.functionName
             )
             .also { fileSpecBuilder.addFunction(it.build()) }
@@ -156,10 +154,8 @@ object GrpcStubExtsGenerator : Generator {
 
     private fun buildServerStreamingOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder) {
 
-        val inboundChannelClassName =
-            ClassName("com.github.marcoferrer.krotoplus.coroutines", "InboundStreamChannel")
-
-        val returnType = ParameterizedTypeName.get(inboundChannelClassName, method.responseClassName)
+        val returnType = CommonClassNames.inboundStreamChannel
+            .parameterizedBy(method.responseClassName)
 
         FunSpec.builder(method.functionName)
             .receiver(method.protoService.asyncStubClassName)
@@ -180,27 +176,20 @@ object GrpcStubExtsGenerator : Generator {
 
     private fun buildBidiStreamingOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder) {
 
-        fileSpecBuilder.addStaticImport("com.github.marcoferrer.krotoplus.coroutines", "bidiCallChannel")
-
         FunSpec.builder(method.functionName)
             .receiver(method.protoService.asyncStubClassName)
             .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
             .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
-            .addAnnotation(
-                ClassName(
-                    "com.github.marcoferrer.krotoplus.coroutines",
-                    "ExperimentalKrotoPlusCoroutinesApi"
-                )
-            )
+            .addAnnotation(CommonClassNames.experimentalKrotoPlusCoroutinesApi)
             .returns(
-                ParameterizedTypeName.get(
-                    ClassName("com.github.marcoferrer.krotoplus.coroutines", "ClientBidiCallChannel"),
+                CommonClassNames.clientBidiCallChannel.parameterizedBy(
                     method.requestClassName,
                     method.responseClassName
                 )
             )
             .addStatement(
-                "return bidiCallChannel{ responseObserver -> %N(responseObserver) }",
+                "return %T{ responseObserver -> %N(responseObserver) }",
+                CommonClassNames.bidiCallChannel,
                 method.functionName
             )
             .also { fileSpecBuilder.addFunction(it.build()) }

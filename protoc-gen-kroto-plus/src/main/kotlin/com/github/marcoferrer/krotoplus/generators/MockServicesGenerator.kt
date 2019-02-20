@@ -1,8 +1,10 @@
 package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.config.MockServicesGenOptions
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.*
+import com.github.marcoferrer.krotoplus.utils.CommonClassNames
 import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
@@ -13,8 +15,12 @@ object MockServicesGenerator : Generator {
     override val isEnabled: Boolean
         get() = context.config.mockServicesCount > 0
 
-    private val responseQueueClassName =
-        ClassName("com.github.marcoferrer.krotoplus.test", "ResponseQueue")
+    private const val testLibPackage = "com.github.marcoferrer.krotoplus.test"
+    private object TestLibClassNames {
+        val handleUnaryCall = ClassName(testLibPackage, "handleUnaryCall")
+        val responseQueueClassName = ClassName(testLibPackage, "ResponseQueue")
+        val mockServiceHelper = ClassName(testLibPackage, "MockServiceHelper")
+    }
 
     private val responseQueueExts = mutableSetOf<ResponseQueueExtSpecs>()
 
@@ -72,8 +78,7 @@ object MockServicesGenerator : Generator {
             val name = propertyName.takeIf { it.isNotEmpty() } ?: "MockServiceList"
 
             val propSpec = PropertySpec.builder(
-                name, ParameterizedTypeName
-                    .get(List::class.asClassName(), BindableService::class.asClassName())
+                name, List::class.asClassName().parameterizedBy(BindableService::class.asClassName())
             )
                 .initializer(initializerTemplate)
                 .build()
@@ -114,12 +119,7 @@ object MockServicesGenerator : Generator {
         val objectBuilder = if (options.implementAsObject)
             classBuilder else TypeSpec.companionObjectBuilder()
 
-        objectBuilder.addSuperinterface(
-            ClassName(
-                "com.github.marcoferrer.krotoplus.test",
-                "MockServiceHelper"
-            )
-        )
+        objectBuilder.addSuperinterface(TestLibClassNames.mockServiceHelper)
 
         //TODO Add Support for mocking streaming calls
         val propToFunSpecsMap = methodDefinitions.asSequence()
@@ -139,7 +139,7 @@ object MockServicesGenerator : Generator {
             objectBuilder
                 .build()
                 .takeIf { it.propertySpecs.isNotEmpty() }
-                ?.let { classBuilder.companionObject(it) }
+                ?.let { classBuilder.addType(it) }
         }
 
         return classBuilder
@@ -149,10 +149,6 @@ object MockServicesGenerator : Generator {
 
                 FileSpec.builder(protoFile.javaPackage, mockClassNameString)
                     .addComment(AutoGenerationDisclaimer)
-                    .addStaticImport(
-                        "com.github.marcoferrer.krotoplus.test",
-                        "handleUnaryCall"
-                    )
                     .addType(typeSpec)
             }
     }
@@ -166,15 +162,15 @@ object MockServicesGenerator : Generator {
     private fun ProtoMethod.getMethodTypes() =
         MethodTypes(
             queuePropertyName = "${functionName}ResponseQueue",
-            queueTypeName = ParameterizedTypeName.get(responseQueueClassName, responseClassName),
-            observerTypeName = ParameterizedTypeName.get(ClassName("io.grpc.stub", "StreamObserver"), responseClassName)
+            queueTypeName = TestLibClassNames.responseQueueClassName.parameterizedBy(responseClassName),
+            observerTypeName = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
         )
 
     private fun propSpecFrom(methodTypes: MethodTypes): PropertySpec {
         val (queuePropertyName, queueTypeName, _) = methodTypes
 
         return PropertySpec.builder(queuePropertyName, queueTypeName)
-            .initializer("%T()", responseQueueClassName)
+            .initializer("%T()", TestLibClassNames.responseQueueClassName)
             .addAnnotation(kotlin.jvm.JvmStatic::class.asClassName())
             .build()
     }
@@ -189,7 +185,8 @@ object MockServicesGenerator : Generator {
             .addParameter("request", requestClassName)
             .addParameter("responseObserver", observerTypeName)
             .addStatement(
-                "handleUnaryCall(responseObserver, %N, %T.getDefaultInstance())",
+                "%T(responseObserver, %N, %T.getDefaultInstance())",
+                TestLibClassNames.handleUnaryCall,
                 queuePropertyName,
                 responseClassName
             )
@@ -213,7 +210,9 @@ object MockServicesGenerator : Generator {
             .asSequence().map { it.responseType }.distinct().filterIsInstance<ProtoMessage>()
             .forEach { protoType ->
 
-                val queueClassName = ParameterizedTypeName.get(responseQueueClassName, protoType.className)
+                val queueClassName = TestLibClassNames.responseQueueClassName
+                    .parameterizedBy(protoType.className)
+
                 val builderLambdaTypeName = LambdaTypeName.get(
                     receiver = protoType.builderClassName,
                     returnType = UNIT

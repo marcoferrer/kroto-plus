@@ -24,25 +24,34 @@ object CommonClassNames{
     val sendChannel: ClassName = SendChannel::class.asClassName()
     val dispatchers: ClassName = Dispatchers::class.asClassName()
     val completableDeferred: ClassName = CompletableDeferred::class.asClassName()
+
+    val launch = ClassName(kotlinxCoroutines,"launch")
+    val obsoleteCoroutinesApi = ClassName(kotlinxCoroutines, "ObsoleteCoroutinesApi")
+    val experimentalCoroutinesApi = ClassName(kotlinxCoroutines, "ExperimentalCoroutinesApi")
+
+    val grpcChannel = ClassName("io.grpc","Channel")
+    val grpcCallOptions = ClassName("io.grpc","CallOptions")
+    val grpcAbstractStub = ClassName("io.grpc.stub", "AbstractStub")
     val streamObserver: ClassName = ClassName("io.grpc.stub", "StreamObserver")
-    val serverCalls = ClassName(krotoCoroutineLib,"ServerCalls")
-    val launch: ClassName = ClassName(kotlinxCoroutines,"launch")
-    val grpcChannel: ClassName = ClassName("io.grpc","Channel")
-    val grpcCallOptions: ClassName = ClassName("io.grpc","CallOptions")
-    val grpcContextElement: ClassName = ClassName(krotoCoroutineLib,"GrpcContextElement")
-    val obsoleteCoroutinesApi: ClassName = ClassName(kotlinxCoroutines, "ObsoleteCoroutinesApi")
-    val experimentalCoroutinesApi: ClassName = ClassName(kotlinxCoroutines, "ExperimentalCoroutinesApi")
+
+    val experimentalKrotoPlusCoroutinesApi = ClassName(krotoCoroutineLib, "ExperimentalKrotoPlusCoroutinesApi")
+
+    val grpcContextElement = ClassName(krotoCoroutineLib,"GrpcContextElement")
+    val suspendingUnaryCallObserver: ClassName = ClassName(krotoCoroutineLib,"suspendingUnaryCallObserver")
+    val bidiCallChannel: ClassName = ClassName(krotoCoroutineLib,"bidiCallChannel")
+    val clientBidiCallChannel: ClassName = ClassName(krotoCoroutineLib,"ClientBidiCallChannel")
+    val inboundStreamChannel: ClassName = ClassName(krotoCoroutineLib,"InboundStreamChannel")
 
     object ClientCalls {
-        val clientCallUnary: ClassName = ClassName("$krotoCoroutineLib.client", "clientCallUnary")
-        val clientCallServerStreaming: ClassName = ClassName("$krotoCoroutineLib.client", "clientCallServerStreaming")
-        val clientCallBidiStreaming: ClassName = ClassName("$krotoCoroutineLib.client", "clientCallBidiStreaming")
-        val clientCallClientStreaming: ClassName = ClassName("$krotoCoroutineLib.client", "clientCallClientStreaming")
+        val clientCallUnary = ClassName("$krotoCoroutineLib.client", "clientCallUnary")
+        val clientCallServerStreaming = ClassName("$krotoCoroutineLib.client", "clientCallServerStreaming")
+        val clientCallBidiStreaming = ClassName("$krotoCoroutineLib.client", "clientCallBidiStreaming")
+        val clientCallClientStreaming = ClassName("$krotoCoroutineLib.client", "clientCallClientStreaming")
     }
 
     object ClientChannels {
-        val clientBidiCallChannel: ClassName = ClassName("$krotoCoroutineLib.client", "ClientBidiCallChannel")
-        val clientStreamingCallChannel: ClassName = ClassName("$krotoCoroutineLib.client", "ClientStreamingCallChannel")
+        val clientBidiCallChannel = ClassName("$krotoCoroutineLib.client", "ClientBidiCallChannel")
+        val clientStreamingCallChannel = ClassName("$krotoCoroutineLib.client", "ClientStreamingCallChannel")
     }
 
     object ServerCalls {
