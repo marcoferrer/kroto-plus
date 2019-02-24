@@ -36,6 +36,7 @@ object CommonClassNames{
 
     val experimentalKrotoPlusCoroutinesApi = ClassName(krotoCoroutineLib, "ExperimentalKrotoPlusCoroutinesApi")
 
+    val listenableFuture = ClassName("com.google.common.util.concurrent", "ListenableFuture")
     val grpcContextElement = ClassName(krotoCoroutineLib,"GrpcContextElement")
     val suspendingUnaryCallObserver: ClassName = ClassName(krotoCoroutineLib,"suspendingUnaryCallObserver")
     val bidiCallChannel: ClassName = ClassName(krotoCoroutineLib,"bidiCallChannel")

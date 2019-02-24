@@ -6,6 +6,7 @@ import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGener
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
 import com.github.marcoferrer.krotoplus.utils.CommonClassNames
+import com.github.marcoferrer.krotoplus.utils.addFunctions
 import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
@@ -19,11 +20,13 @@ object GrpcStubExtsGenerator : Generator {
     override fun invoke(): PluginProtos.CodeGeneratorResponse {
         val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
 
-        for (service in context.schema.protoServices) {
-            for (options in context.config.grpcStubExtsList) {
+        for (options in context.config.grpcStubExtsList) {
+            val fileBuilder = FileBuilder(options)
 
-                if (options.filter.matches(service.protoFile.name)) {
-                    buildFileSpec(service, options)?.let { responseBuilder.addFile(it) }
+            for (service in context.schema.protoServices) {
+
+                fileBuilder.buildFileSpec(service)?.let { fileSpec ->
+                    responseBuilder.addFile(fileSpec)
                 }
             }
         }
@@ -31,175 +34,182 @@ object GrpcStubExtsGenerator : Generator {
         return responseBuilder.build()
     }
 
-    private fun buildFileSpec(
-        service: ProtoService,
-        options: GrpcStubExtsGenOptions
-    ): PluginProtos.CodeGeneratorResponse.File? {
-        val filename = "${service.name}RpcOverloads"
-        val fileSpecBuilder = FileSpec
-            .builder(service.protoFile.javaPackage, filename)
-            .addComment(AutoGenerationDisclaimer)
-            .addAnnotation(
-                AnnotationSpec.builder(JvmName::class.asClassName())
-                    .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
-                    .addMember("%S", "-$filename")
-                    .build()
-            )
+    class FileBuilder(val options: GrpcStubExtsGenOptions){
 
-        for (method in service.methodDefinitions)
-            buildFunSpecs(method, options, fileSpecBuilder)
+        fun buildFileSpec(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? {
 
-        return fileSpecBuilder.build()
-            .takeIf { it.members.isNotEmpty() }
-            ?.toResponseFileProto()
-    }
+            if (!options.filter.matches(service.protoFile.name))
+                return null
 
-    private fun buildFunSpecs(
-        method: ProtoMethod,
-        options: GrpcStubExtsGenOptions,
-        fileSpecBuilder: FileSpec.Builder
-    ) {
-        when {
-            //Unary
-            method.isUnary ->
-                buildUnaryOverloads(method, options, fileSpecBuilder)
-
-            //Server Streaming //TODO Add support for Blocking Server Streaming
-            options.supportCoroutines && method.isServerStream ->
-                buildServerStreamingOverloads(method, fileSpecBuilder)
-
-            //Bidi && Client Streaming
-            options.supportCoroutines && (method.isBidi || method.isClientStream) ->
-                buildBidiStreamingOverloads(method, fileSpecBuilder)
-        }
-    }
-
-    private fun buildUnaryOverloads(
-        method: ProtoMethod,
-        options: GrpcStubExtsGenOptions,
-        fileSpecBuilder: FileSpec.Builder
-    ) {
-
-        val funSpecBuilder = FunSpec.builder(method.functionName)
-
-        if (method.isNotEmptyInput) {
-            funSpecBuilder
-                .addModifiers(KModifier.INLINE)
-                .addParameter(
-                    "block", LambdaTypeName.get(
-                        receiver = method.requestClassName.nestedClass("Builder"),
-                        returnType = UNIT
-                    )
+            val filename = "${service.name}RpcOverloads"
+            val fileSpecBuilder = FileSpec
+                .builder(service.protoFile.javaPackage, filename)
+                .addComment(AutoGenerationDisclaimer)
+                .addAnnotation(
+                    AnnotationSpec.builder(JvmName::class.asClassName())
+                        .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
+                        .addMember("%S", "-$filename")
+                        .build()
                 )
+
+            val stubExtsSpecs = service.buildStubExts()
+
+            return fileSpecBuilder
+                .takeIf { stubExtsSpecs.isNotEmpty() }
+                ?.apply { addFunctions(stubExtsSpecs) }
+                ?.build()
+                ?.toResponseFileProto()
         }
 
-        funSpecBuilder
-            .receiver(method.protoService.futureStubClassName)
-            .addCode(method.requestValueCodeBlock())
-            .addStatement("return %N(request)", method.functionName)
-            .returns(
-                ClassName("com.google.common.util.concurrent", "ListenableFuture")
-                    .parameterizedBy(method.responseClassName)
-            )
-            .also { fileSpecBuilder.addFunction(it.build()) }
+        private fun ProtoService.buildStubExts(): List<FunSpec> {
 
-        funSpecBuilder
-            .receiver(method.protoService.blockingStubClassName)
-            .returns(method.responseClassName)
-            .also { fileSpecBuilder.addFunction(it.build()) }
+            val funSpecs = mutableListOf<FunSpec>()
+            for(method in methodDefinitions){
+                when {
+                    //Unary
+                    method.isUnary ->
+                        funSpecs += method.buildUnaryOverloads()
 
-        if (options.supportCoroutines)
-            buildSuspendingUnaryOverloads(method, fileSpecBuilder)
-    }
+                    //Server Streaming //TODO Add support for Blocking Server Streaming
+                    options.supportCoroutines && method.isServerStream ->
+                        funSpecs += method.buildServerStreamingOverloads()
 
-    private fun buildSuspendingUnaryOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder) {
-
-        FunSpec.builder(method.functionName)
-            .addModifiers(KModifier.SUSPEND)
-            .receiver(method.protoService.asyncStubClassName)
-            .apply {
-                if (method.isNotEmptyInput)
-                    addParameter("request", method.requestClassName) else
-                    addCode(method.requestValueCodeBlock())
+                    //Bidi && Client Streaming
+                    options.supportCoroutines && (method.isBidi || method.isClientStream) ->
+                        funSpecs += method.buildBidiStreamingOverloads()
+                }
             }
-            .returns(method.responseClassName)
-            .addStatement(
-                "return %T{ observer -> %N(request,observer) }",
-                CommonClassNames.suspendingUnaryCallObserver,
-                method.functionName
-            )
-            .also { fileSpecBuilder.addFunction(it.build()) }
 
-        if (method.isNotEmptyInput) {
-            FunSpec.builder(method.functionName)
+            return funSpecs
+        }
+
+        private fun ProtoMethod.buildUnaryOverloads(): List<FunSpec> {
+
+            val funSpecBuilder = FunSpec.builder(functionName)
+                .addCode(requestValueCodeBlock())
+                .addStatement("return %N(request)", functionName)
+
+            if (isNotEmptyInput) {
+                funSpecBuilder
+                    .addModifiers(KModifier.INLINE)
+                    .addParameter(
+                        "block", LambdaTypeName.get(
+                            receiver = requestClassName.nestedClass("Builder"),
+                            returnType = UNIT
+                        )
+                    )
+            }
+
+            val funSpecs = mutableListOf<FunSpec>()
+
+            // Future Stub Ext
+            funSpecs += funSpecBuilder
+                .receiver(protoService.futureStubClassName)
+                .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
+                .build()
+
+            // Blocking Stub Ext
+            funSpecs += funSpecBuilder
+                .receiver(protoService.blockingStubClassName)
+                .returns(responseClassName)
+                .build()
+
+            if (options.supportCoroutines) {
+                funSpecs += buildUnaryCoroutineExt()
+
+                if(isNotEmptyInput){
+                    funSpecs += buildUnaryCoroutineExtOverload()
+                }
+            }
+
+            return funSpecs
+        }
+
+        private fun ProtoMethod.buildUnaryCoroutineExt(): FunSpec =
+            FunSpec.builder(functionName)
                 .addModifiers(KModifier.SUSPEND)
-                .receiver(method.protoService.asyncStubClassName)
+                .receiver(protoService.asyncStubClassName)
                 .apply {
-                    if (method.isNotEmptyInput) {
+                    if (isNotEmptyInput)
+                        addParameter("request", requestClassName) else
+                        addCode(requestValueCodeBlock())
+                }
+                .returns(responseClassName)
+                .addStatement(
+                    "return %T{ observer -> %N(request,observer) }",
+                    CommonClassNames.suspendingUnaryCallObserver,
+                    functionName
+                )
+                .build()
+
+        private fun ProtoMethod.buildUnaryCoroutineExtOverload(): FunSpec =
+            FunSpec.builder(functionName)
+                .addModifiers(KModifier.SUSPEND)
+                .receiver(protoService.asyncStubClassName)
+                .apply {
+                    if (isNotEmptyInput) {
                         addModifiers(KModifier.INLINE)
                         addParameter(
                             "block", LambdaTypeName.get(
-                                receiver = method.requestClassName.nestedClass("Builder"),
+                                receiver = requestClassName.nestedClass("Builder"),
                                 returnType = UNIT
                             )
                         )
                     }
                 }
-                .returns(method.responseClassName)
-                .addCode(method.requestValueCodeBlock())
-                .addStatement("return %N(request)", method.functionName)
-                .also { fileSpecBuilder.addFunction(it.build()) }
-        }
-    }
-
-    private fun buildServerStreamingOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder) {
-
-        val returnType = CommonClassNames.inboundStreamChannel
-            .parameterizedBy(method.responseClassName)
-
-        FunSpec.builder(method.functionName)
-            .receiver(method.protoService.asyncStubClassName)
-            .apply {
-                if (method.isNotEmptyInput)
-                    addParameter("request", method.requestClassName) else
-                    addCode(method.requestValueCodeBlock())
-            }
-            .returns(returnType)
-            .addStatement(
-                "return %T().also { observer -> %N(request,observer) }",
-                returnType,
-                method.functionName
-            )
-            .also { fileSpecBuilder.addFunction(it.build()) }
-    }
+                .returns(responseClassName)
+                .addCode(requestValueCodeBlock())
+                .addStatement("return %N(request)", functionName)
+                .build()
 
 
-    private fun buildBidiStreamingOverloads(method: ProtoMethod, fileSpecBuilder: FileSpec.Builder) {
+        private fun ProtoMethod.buildServerStreamingOverloads(): FunSpec {
 
-        FunSpec.builder(method.functionName)
-            .receiver(method.protoService.asyncStubClassName)
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
-            .addAnnotation(CommonClassNames.experimentalKrotoPlusCoroutinesApi)
-            .returns(
-                CommonClassNames.clientBidiCallChannel.parameterizedBy(
-                    method.requestClassName,
-                    method.responseClassName
+            val returnType = CommonClassNames.inboundStreamChannel
+                .parameterizedBy(responseClassName)
+
+            return FunSpec.builder(functionName)
+                .receiver(protoService.asyncStubClassName)
+                .apply {
+                    if (isNotEmptyInput)
+                        addParameter("request", requestClassName) else
+                        addCode(requestValueCodeBlock())
+                }
+                .returns(returnType)
+                .addStatement(
+                    "return %T().also { observer -> %N(request,observer) }",
+                    returnType,
+                    functionName
                 )
-            )
-            .addStatement(
-                "return %T{ responseObserver -> %N(responseObserver) }",
-                CommonClassNames.bidiCallChannel,
-                method.functionName
-            )
-            .also { fileSpecBuilder.addFunction(it.build()) }
-    }
+                .build()
+        }
 
-    private fun ProtoMethod.requestValueCodeBlock(): CodeBlock {
-        val requestValueTemplate = if (isEmptyInput)
-            "val request = %T.getDefaultInstance()\n" else
-            "val request = %T.newBuilder().apply(block).build()\n"
+        private fun ProtoMethod.buildBidiStreamingOverloads(): FunSpec =
+            FunSpec.builder(functionName)
+                .receiver(protoService.asyncStubClassName)
+                .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
+                .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
+                .addAnnotation(CommonClassNames.experimentalKrotoPlusCoroutinesApi)
+                .returns(
+                    CommonClassNames.clientBidiCallChannel.parameterizedBy(
+                        requestClassName,
+                        responseClassName
+                    )
+                )
+                .addStatement(
+                    "return %T{ responseObserver -> %N(responseObserver) }",
+                    CommonClassNames.bidiCallChannel,
+                    functionName
+                )
+                .build()
 
-        return CodeBlock.of(requestValueTemplate, requestClassName)
+        private fun ProtoMethod.requestValueCodeBlock(): CodeBlock {
+            val requestValueTemplate = if (isEmptyInput)
+                "val request = %T.getDefaultInstance()\n" else
+                "val request = %T.newBuilder().apply(block).build()\n"
+
+            return CodeBlock.of(requestValueTemplate, requestClassName)
+        }
+
     }
 }
