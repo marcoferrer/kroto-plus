@@ -29,9 +29,11 @@ object CommonClassNames{
     val obsoleteCoroutinesApi = ClassName(kotlinxCoroutines, "ObsoleteCoroutinesApi")
     val experimentalCoroutinesApi = ClassName(kotlinxCoroutines, "ExperimentalCoroutinesApi")
 
+
     val grpcChannel = ClassName("io.grpc","Channel")
     val grpcCallOptions = ClassName("io.grpc","CallOptions")
     val grpcAbstractStub = ClassName("io.grpc.stub", "AbstractStub")
+    val grpcStubRpcMethod = ClassName("io.grpc.stub.annotations","RpcMethod")
     val streamObserver: ClassName = ClassName("io.grpc.stub", "StreamObserver")
 
     val experimentalKrotoPlusCoroutinesApi = ClassName(krotoCoroutineLib, "ExperimentalKrotoPlusCoroutinesApi")

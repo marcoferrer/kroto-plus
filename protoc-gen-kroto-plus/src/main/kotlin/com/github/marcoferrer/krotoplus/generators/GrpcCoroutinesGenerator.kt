@@ -543,15 +543,15 @@ object GrpcCoroutinesGenerator : Generator {
             }
         }
 
-    fun ProtoMethod.buildRpcMethodAnnotation(): AnnotationSpec =
-        AnnotationSpec.builder(ClassName("io.grpc.stub.annotations","RpcMethod"))
+    private fun ProtoMethod.buildRpcMethodAnnotation(): AnnotationSpec =
+        AnnotationSpec.builder(CommonClassNames.grpcStubRpcMethod)
             .addMember("fullMethodName = \"\$SERVICE_NAME/${descriptorProto.name}\"")
             .addMember("requestType = %T::class", requestClassName)
             .addMember("responseType = %T::class", responseClassName)
             .addMember("methodType = %T.%N", MethodType::class, type.name)
             .build()
 
-    fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
+    private fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
             .addModifiers(KModifier.SUSPEND)

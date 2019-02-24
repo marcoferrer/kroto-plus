@@ -1,7 +1,6 @@
 package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
@@ -10,6 +9,8 @@ import com.github.marcoferrer.krotoplus.utils.addFunctions
 import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import io.grpc.MethodDescriptor.*
 
 
 object GrpcStubExtsGenerator : Generator {
@@ -25,8 +26,8 @@ object GrpcStubExtsGenerator : Generator {
 
             for (service in context.schema.protoServices) {
 
-                fileBuilder.buildFileSpec(service)?.let { fileSpec ->
-                    responseBuilder.addFile(fileSpec)
+                fileBuilder.buildFile(service)?.let { file ->
+                    responseBuilder.addFile(file)
                 }
             }
         }
@@ -36,54 +37,71 @@ object GrpcStubExtsGenerator : Generator {
 
     class FileBuilder(val options: GrpcStubExtsGenOptions){
 
-        fun buildFileSpec(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? {
+        fun buildFile(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? =
 
-            if (!options.filter.matches(service.protoFile.name))
-                return null
+            with(service){
+                if (!options.filter.matches(protoFile.name))
+                    return null
 
-            val filename = "${service.name}RpcOverloads"
-            val fileSpecBuilder = FileSpec
-                .builder(service.protoFile.javaPackage, filename)
-                .addComment(AutoGenerationDisclaimer)
-                .addAnnotation(
-                    AnnotationSpec.builder(JvmName::class.asClassName())
-                        .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
-                        .addMember("%S", "-$filename")
-                        .build()
-                )
 
-            val stubExtsSpecs = service.buildStubExts()
+                val filename = "${name}RpcOverloads"
+                val fileSpecBuilder = FileSpec
+                    .builder(protoFile.javaPackage, filename)
+                    .addComment(AutoGenerationDisclaimer)
+                    .addAnnotation(
+                        AnnotationSpec.builder(JvmName::class.asClassName())
+                            .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
+                            .addMember("%S", "-$filename")
+                            .build()
+                    )
 
-            return fileSpecBuilder
-                .takeIf { stubExtsSpecs.isNotEmpty() }
-                ?.apply { addFunctions(stubExtsSpecs) }
-                ?.build()
-                ?.toResponseFileProto()
-        }
+                fileSpecBuilder.apply {
+                    addFunctions(buildDefaultStubExts())
 
-        private fun ProtoService.buildStubExts(): List<FunSpec> {
+                    if(options.supportCoroutines){
+                        addFunctions(buildStubCoroutineExts())
+                        addFunctions(buildClientStubRpcRequestOverloads())
+                    }
+                }
 
-            val funSpecs = mutableListOf<FunSpec>()
-            for(method in methodDefinitions){
-                when {
-                    //Unary
-                    method.isUnary ->
-                        funSpecs += method.buildUnaryOverloads()
+                return fileSpecBuilder
+                    .build()
+                    .takeIf { it.members.isNotEmpty() }
+                    ?.toResponseFileProto()
+            }
 
-                    //Server Streaming //TODO Add support for Blocking Server Streaming
-                    options.supportCoroutines && method.isServerStream ->
-                        funSpecs += method.buildServerStreamingOverloads()
+        private fun ProtoService.buildDefaultStubExts(): List<FunSpec> =
+            methodDefinitions
+                .filter { it.isUnary }
+                .flatMap { it.buildUnaryDefaultOverloads() }
 
-                    //Bidi && Client Streaming
-                    options.supportCoroutines && (method.isBidi || method.isClientStream) ->
-                        funSpecs += method.buildBidiStreamingOverloads()
+        private fun ProtoService.buildStubCoroutineExts(): List<FunSpec> =
+            methodDefinitions.map { method ->
+                when(method.type){
+                    MethodType.UNARY -> method.buildStubUnaryMethod()
+                    MethodType.CLIENT_STREAMING -> method.buildStubClientStreamingMethod()
+                    MethodType.SERVER_STREAMING -> method.buildStubServerStreamingMethod()
+                    MethodType.BIDI_STREAMING -> method.buildStubBidiStreamingMethod()
+                    MethodType.UNKNOWN -> throw IllegalStateException("Unknown method type")
                 }
             }
 
-            return funSpecs
-        }
+        fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
+            methodDefinitions.mapNotNull {
+                when{
 
-        private fun ProtoMethod.buildUnaryOverloads(): List<FunSpec> {
+                    it.type == MethodType.UNARY && it.isNotEmptyInput ->
+                        it.buildUnaryCoroutineExtOverload()
+
+                    it.type == MethodType.SERVER_STREAMING ->
+                        it.buildStubServerStreamingMethodOverload()
+
+                    else -> null
+                }
+            }
+
+
+        private fun ProtoMethod.buildUnaryDefaultOverloads(): List<FunSpec> {
 
             val funSpecBuilder = FunSpec.builder(functionName)
                 .addCode(requestValueCodeBlock())
@@ -114,31 +132,19 @@ object GrpcStubExtsGenerator : Generator {
                 .returns(responseClassName)
                 .build()
 
-            if (options.supportCoroutines) {
-                funSpecs += buildUnaryCoroutineExt()
-
-                if(isNotEmptyInput){
-                    funSpecs += buildUnaryCoroutineExtOverload()
-                }
-            }
-
             return funSpecs
         }
 
-        private fun ProtoMethod.buildUnaryCoroutineExt(): FunSpec =
+        private fun ProtoMethod.newDefaultUnaryExtBuilder(): FunSpec =
             FunSpec.builder(functionName)
-                .addModifiers(KModifier.SUSPEND)
-                .receiver(protoService.asyncStubClassName)
-                .apply {
-                    if (isNotEmptyInput)
-                        addParameter("request", requestClassName) else
-                        addCode(requestValueCodeBlock())
-                }
-                .returns(responseClassName)
-                .addStatement(
-                    "return %T{ observer -> %N(request,observer) }",
-                    CommonClassNames.suspendingUnaryCallObserver,
-                    functionName
+                .addModifiers(KModifier.INLINE)
+                .addCode(requestValueCodeBlock())
+                .addStatement("return %N(request)", functionName)
+                .addParameter(
+                    "block", LambdaTypeName.get(
+                        receiver = requestClassName.nestedClass("Builder"),
+                        returnType = UNIT
+                    )
                 )
                 .build()
 
@@ -162,44 +168,90 @@ object GrpcStubExtsGenerator : Generator {
                 .addStatement("return %N(request)", functionName)
                 .build()
 
+        fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
+            FunSpec.builder(functionName)
+                .receiver(protoService.asyncStubClassName)
+                .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
+                .apply {
+                    if (isNotEmptyInput) {
+                        addModifiers(KModifier.INLINE)
+                        addParameter(
+                            "block", LambdaTypeName.get(
+                                receiver = requestClassName.nestedClass("Builder"),
+                                returnType = UNIT
+                            )
+                        )
+                    }
+                    addCode(requestValueCodeBlock())
+                }
+                .addStatement("return %N(request)",functionName)
+                .build()
 
-        private fun ProtoMethod.buildServerStreamingOverloads(): FunSpec {
 
-            val returnType = CommonClassNames.inboundStreamChannel
-                .parameterizedBy(responseClassName)
-
-            return FunSpec.builder(functionName)
+        private fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
+            FunSpec.builder(functionName)
+                .addModifiers(KModifier.SUSPEND)
+                .returns(responseClassName)
                 .receiver(protoService.asyncStubClassName)
                 .apply {
                     if (isNotEmptyInput)
                         addParameter("request", requestClassName) else
                         addCode(requestValueCodeBlock())
                 }
-                .returns(returnType)
                 .addStatement(
-                    "return %T().also { observer -> %N(request,observer) }",
-                    returnType,
-                    functionName
+                    "return %T(request, %T.%N())",
+                    CommonClassNames.ClientCalls.clientCallUnary,
+                    protoService.enclosingServiceClassName,
+                    methodDefinitionGetterName
                 )
                 .build()
-        }
 
-        private fun ProtoMethod.buildBidiStreamingOverloads(): FunSpec =
+        private fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
-                .receiver(protoService.asyncStubClassName)
                 .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-                .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
-                .addAnnotation(CommonClassNames.experimentalKrotoPlusCoroutinesApi)
+                .receiver(protoService.asyncStubClassName)
                 .returns(
-                    CommonClassNames.clientBidiCallChannel.parameterizedBy(
+                    CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
                         requestClassName,
                         responseClassName
                     )
                 )
                 .addStatement(
-                    "return %T{ responseObserver -> %N(responseObserver) }",
-                    CommonClassNames.bidiCallChannel,
-                    functionName
+                    "return %T(%T.%N())",
+                    CommonClassNames.ClientCalls.clientCallClientStreaming,
+                    protoService.enclosingServiceClassName,
+                    methodDefinitionGetterName
+                )
+                .build()
+
+
+        private fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
+            FunSpec.builder(functionName)
+                .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
+                .addParameter("request",requestClassName)
+                .addStatement(
+                    "return %T(request, %T.%N())",
+                    CommonClassNames.ClientCalls.clientCallServerStreaming,
+                    protoService.enclosingServiceClassName,
+                    methodDefinitionGetterName
+                )
+                .build()
+
+        private fun ProtoMethod.buildStubBidiStreamingMethod(): FunSpec =
+            FunSpec.builder(functionName)
+                .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
+                .receiver(protoService.asyncStubClassName)
+                .returns(
+                    CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(
+                        requestClassName,
+                        responseClassName
+                    )
+                )
+                .addStatement(
+                    "return %T(%T.%N())",
+                    CommonClassNames.ClientCalls.clientCallBidiStreaming,
+                    protoService.enclosingServiceClassName,
+                    methodDefinitionGetterName
                 )
                 .build()
 
@@ -210,6 +262,12 @@ object GrpcStubExtsGenerator : Generator {
 
             return CodeBlock.of(requestValueTemplate, requestClassName)
         }
+
+        private val ProtoMethod.requestValueBuilderCodeBlock: CodeBlock
+            inline get() = CodeBlock.of(
+                "val request = %T.newBuilder().apply(block).build()\n",
+                requestClassName
+            )
 
     }
 }
