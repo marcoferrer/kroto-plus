@@ -1,5 +1,6 @@
 package com.github.marcoferrer.krotoplus.generators
 
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.*
 import com.github.marcoferrer.krotoplus.utils.*
@@ -140,10 +141,7 @@ object GrpcCoroutinesGenerator : Generator {
     fun ProtoMethod.buildUnaryBaseImpl(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
-            .addParameter(
-                ParameterSpec.builder("request", requestClassName)
-                    .build()
-            )
+            .addParameter("request", requestClassName)
             .returns(responseClassName)
             .addCode(
                 CodeBlock.builder()
@@ -162,8 +160,8 @@ object GrpcCoroutinesGenerator : Generator {
             .addModifiers(KModifier.OVERRIDE)
             .addParameter("request", requestClassName)
             .addParameter(
-                "responseObserver", ParameterizedTypeName
-                    .get(CommonClassNames.streamObserver, responseClassName)
+                name = "responseObserver",
+                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
             )
             .addCode(
                 CodeBlock.builder()
@@ -185,11 +183,8 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter(
-                ParameterSpec.builder(
-                    "requestChannel", ParameterizedTypeName
-                        .get(CommonClassNames.receiveChannel, requestClassName)
-                )
-                    .build()
+                name = "requestChannel",
+                type = CommonClassNames.receiveChannel.parameterizedBy(requestClassName)
             )
             .returns(responseClassName)
             .addCode(
@@ -207,10 +202,10 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
             .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
-            .returns(ParameterizedTypeName.get(CommonClassNames.streamObserver, requestClassName))
+            .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
             .addParameter(
-                "responseObserver", ParameterizedTypeName
-                    .get(CommonClassNames.streamObserver, responseClassName)
+                name ="responseObserver",
+                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
             )
             .addCode(
                 CodeBlock.builder()
@@ -219,7 +214,7 @@ object GrpcCoroutinesGenerator : Generator {
                         CommonClassNames.ServerCalls.serverCallClientStreaming,
                         protoService.enclosingServiceClassName,
                         methodDefinitionGetterName,
-                        ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName)
+                        CommonClassNames.receiveChannel.parameterizedBy(requestClassName)
                     )
                     .indent()
                     .addStatement("%N(requestChannel)", functionName)
@@ -233,15 +228,10 @@ object GrpcCoroutinesGenerator : Generator {
     fun ProtoMethod.buildServerStreamingBaseImpl(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
+            .addParameter("request", requestClassName)
             .addParameter(
-                ParameterSpec.builder("request", requestClassName)
-                    .build()
-            )
-            .addParameter(
-                ParameterSpec.builder(
-                    "responseChannel", ParameterizedTypeName
-                        .get(CommonClassNames.sendChannel, responseClassName)
-                ).build()
+                name = "responseChannel",
+                type = CommonClassNames.sendChannel.parameterizedBy(responseClassName)
             )
             .addCode(
                 CodeBlock.builder()
@@ -262,8 +252,8 @@ object GrpcCoroutinesGenerator : Generator {
             .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .addParameter("request", requestClassName)
             .addParameter(
-                "responseObserver", ParameterizedTypeName
-                    .get(CommonClassNames.streamObserver, responseClassName)
+                name = "responseObserver",
+                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
             )
             .addCode(
                 CodeBlock.builder()
@@ -272,7 +262,7 @@ object GrpcCoroutinesGenerator : Generator {
                         CommonClassNames.ServerCalls.serverCallServerStreaming,
                         protoService.enclosingServiceClassName,
                         methodDefinitionGetterName,
-                        ParameterizedTypeName.get(CommonClassNames.sendChannel, responseClassName)
+                        CommonClassNames.sendChannel.parameterizedBy(responseClassName)
                     )
                     .indent()
                     .addStatement("%N(request, responseChannel)", functionName)
@@ -286,15 +276,12 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter(
-                ParameterSpec.builder("requestChannel", ParameterizedTypeName
-                    .get(CommonClassNames.receiveChannel, requestClassName))
-                    .build()
+                name = "requestChannel",
+                type = CommonClassNames.receiveChannel.parameterizedBy(requestClassName)
             )
             .addParameter(
-                ParameterSpec.builder(
-                    "responseChannel", ParameterizedTypeName
-                        .get(CommonClassNames.sendChannel, responseClassName)
-                ).build()
+                name = "responseChannel",
+                type = CommonClassNames.sendChannel.parameterizedBy(responseClassName)
             )
             .addCode(
                 CodeBlock.builder()
@@ -313,10 +300,10 @@ object GrpcCoroutinesGenerator : Generator {
             .addModifiers(KModifier.OVERRIDE)
             .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
             .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
-            .returns(ParameterizedTypeName.get(CommonClassNames.streamObserver, requestClassName))
+            .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
             .addParameter(
-                "responseObserver", ParameterizedTypeName
-                    .get(CommonClassNames.streamObserver, responseClassName)
+                name = "responseObserver",
+                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
             )
             .addCode(
                 CodeBlock.builder()
@@ -325,8 +312,8 @@ object GrpcCoroutinesGenerator : Generator {
                         CommonClassNames.ServerCalls.serverCallBidiStreaming,
                         protoService.enclosingServiceClassName,
                         methodDefinitionGetterName,
-                        ParameterizedTypeName.get(CommonClassNames.receiveChannel, requestClassName),
-                        ParameterizedTypeName.get(CommonClassNames.sendChannel, responseClassName)
+                        CommonClassNames.receiveChannel.parameterizedBy(requestClassName),
+                        CommonClassNames.sendChannel.parameterizedBy(responseClassName)
                     )
                     .indent()
                     .addStatement("%N(requestChannel, responseChannel)", functionName)
@@ -369,8 +356,8 @@ object GrpcCoroutinesGenerator : Generator {
 
     fun ProtoMethod.buildChannelLambdaExt(): FunSpec {
 
-        val receiverClassName = ParameterizedTypeName
-            .get(CommonClassNames.sendChannel, responseClassName)
+        val receiverClassName = CommonClassNames.sendChannel
+            .parameterizedBy(responseClassName)
 
         val jvmNameSuffix = responseType.canonicalJavaName
             .replace(responseType.javaPackage.orEmpty(), "")
@@ -406,12 +393,7 @@ object GrpcCoroutinesGenerator : Generator {
         val paramNameCallOptions = "callOptions"
 
         return TypeSpec.classBuilder(stubName)
-            .superclass(
-                ParameterizedTypeName.get(
-                    ClassName("io.grpc.stub", "AbstractStub"),
-                    stubClassName
-                )
-            )
+            .superclass(CommonClassNames.grpcAbstractStub.parameterizedBy(stubClassName))
             .addSuperinterface(CommonClassNames.coroutineScope)
             .addSuperclassConstructorParameter(paramNameChannel)
             .addSuperclassConstructorParameter(paramNameCallOptions)
@@ -452,7 +434,7 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .addFunctions(buildClientStubRpcMethods())
             .addFunctions(buildClientStubRpcRequestOverloads())
-            .companionObject(buildClientStubCompanion())
+            .addType(buildClientStubCompanion())
             .build()
 
     }
@@ -490,10 +472,11 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
             .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .returns(ParameterizedTypeName.get(
-                CommonClassNames.ClientChannels.clientBidiCallChannel,
-                requestClassName,
-                responseClassName)
+            .returns(
+                CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(
+                    requestClassName,
+                    responseClassName
+                )
             )
             .addStatement(
                 "return %T(%T.%N())",
@@ -517,7 +500,7 @@ object GrpcCoroutinesGenerator : Generator {
                     .addMember("\"send$jvmNameSuffix\"")
                     .build()
             )
-            .receiver(ParameterizedTypeName.get(CommonClassNames.sendChannel, className))
+            .receiver(CommonClassNames.sendChannel.parameterizedBy(className))
             .addParameter(
                 "block", LambdaTypeName.get(
                     receiver = className.nestedClass("Builder"),
@@ -598,7 +581,7 @@ object GrpcCoroutinesGenerator : Generator {
     fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.INLINE)
-            .returns(ParameterizedTypeName.get(CommonClassNames.receiveChannel,responseClassName))
+            .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addParameter("block", LambdaTypeName.get(
                 receiver = requestClassName.nestedClass("Builder"),
                 returnType = UNIT
@@ -611,10 +594,11 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
             .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .returns(ParameterizedTypeName.get(
-                CommonClassNames.ClientChannels.clientStreamingCallChannel,
-                requestClassName,
-                responseClassName)
+            .returns(
+                CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
+                    requestClassName,
+                    responseClassName
+                )
             )
             .addStatement(
                 "return %T(%T.%N())",
@@ -628,7 +612,7 @@ object GrpcCoroutinesGenerator : Generator {
     fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
-            .returns(ParameterizedTypeName.get(CommonClassNames.receiveChannel, responseClassName))
+            .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addParameter("request",requestClassName)
             .addStatement(
                 "return %T(request, %T.%N())",
