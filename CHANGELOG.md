@@ -1,3 +1,10 @@
+## Version 0.2.2-RC3
+_2018-\*\*-\*\*_
+
+#### Proto Builders (DSL)
+* Fix: Resolve ```@DslMarker``` insertion regression introduced in `0.2.2-RC1`
+
+
 ## Version 0.2.2-RC2
 _2018-02-17_
 
