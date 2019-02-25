@@ -1,17 +1,16 @@
-package com.github.marcoferrer.krotoplus.coroutines
+package com.github.marcoferrer.krotoplus.coroutines.call
 
 import io.grpc.stub.CallStreamObserver
 import io.mockk.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.SendChannel
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
 
 
 class NextValueWithBackPressureTests {
 
-    private val mockObserver = object: FlowControlledObserver{}
+    private val mockObserver = object: FlowControlledObserver {}
 
     @Test
     fun `Test channel is closed`() {

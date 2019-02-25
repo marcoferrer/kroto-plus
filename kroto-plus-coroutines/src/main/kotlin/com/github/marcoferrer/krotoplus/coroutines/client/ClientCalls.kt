@@ -1,6 +1,9 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.*
+import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
+import com.github.marcoferrer.krotoplus.coroutines.call.newSendChannelFromObserver
+import com.github.marcoferrer.krotoplus.coroutines.call.toStreamObserver
 import io.grpc.MethodDescriptor
 import io.grpc.stub.AbstractStub
 import io.grpc.stub.ClientCalls.*

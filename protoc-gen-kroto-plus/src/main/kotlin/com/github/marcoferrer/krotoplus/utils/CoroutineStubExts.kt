@@ -11,6 +11,9 @@ val ClassName.requestParamSpec: ParameterSpec
 val ClassName.requestValueBuilderCodeBlock: CodeBlock
     inline get() = CodeBlock.of("val request = %T.newBuilder().apply(block).build()\n", this)
 
+val ClassName.requestValueDefaultCodeBlock: CodeBlock
+    inline get() = CodeBlock.of("val request = %T.getDefaultInstance()\n", this)
+
 val ClassName.builderLambdaTypeName: LambdaTypeName
     inline get() = LambdaTypeName.get(
         receiver = nestedClass("Builder"),

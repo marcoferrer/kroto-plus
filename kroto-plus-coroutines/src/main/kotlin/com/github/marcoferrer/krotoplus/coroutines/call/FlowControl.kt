@@ -1,4 +1,4 @@
-package com.github.marcoferrer.krotoplus.coroutines
+package com.github.marcoferrer.krotoplus.coroutines.call
 
 import io.grpc.stub.CallStreamObserver
 import kotlinx.coroutines.*
@@ -23,12 +23,22 @@ internal interface FlowControlledObserver {
                     // onReadyHandler from requesting a new message while we have
                     // a message preloaded.
                     isMessagePreloaded.set(true)
-                    launch {
-                        channel.send(value)
-                        callStreamObserver.request(1)
 
-                        // Allow the onReadyHandler to begin requesting messages again.
-                        isMessagePreloaded.set(false)
+                    // Using [CoroutineStart.UNDISPATCHED] ensure that
+                    // values are sent in the proper order (FIFO).
+                    // This also prevents a race between [StreamObserver.onNext] and
+                    // [StreamObserver.onComplete] by making sure all preloaded messages
+                    // have been submitted before invoking [Channel.close]
+                    launch(start = CoroutineStart.UNDISPATCHED) {
+                        try {
+                            channel.send(value)
+                            callStreamObserver.request(1)
+
+                            // Allow the onReadyHandler to begin requesting messages again.
+                            isMessagePreloaded.set(false)
+                        }catch (e: Throwable){
+                            channel.close(e)
+                        }
                     }
                 }
             }

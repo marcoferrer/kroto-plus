@@ -1,6 +1,6 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
-import com.github.marcoferrer.krotoplus.coroutines.*
+import com.github.marcoferrer.krotoplus.coroutines.call.*
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -24,8 +24,6 @@ public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
     }
 }
 
-@ExperimentalCoroutinesApi
-@ObsoleteCoroutinesApi
 public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -44,7 +42,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
     }
 }
 
-@ExperimentalCoroutinesApi
+@UseExperimental(ExperimentalCoroutinesApi::class)
 public fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -79,8 +77,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
 }
 
 
-@ObsoleteCoroutinesApi
-@ExperimentalCoroutinesApi
+@UseExperimental(ExperimentalCoroutinesApi::class)
 public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -114,7 +111,11 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
         )
 
         launch {
-            handleBidiStreamingRpc(requestChannel, responseChannel, block)
+            handleBidiStreamingRpc(
+                requestChannel,
+                responseChannel,
+                block
+            )
         }.invokeOnCompletion(responseChannel.abandonedRpcHandler)
 
         return requestChannel

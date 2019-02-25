@@ -98,30 +98,44 @@ object GrpcStubExtsGenerator : Generator {
 
         private fun ProtoMethod.buildUnaryDefaultOverloads(): List<FunSpec> {
 
-            val funSpecBuilder = newDefaultUnaryExtBuilder()
             val funSpecs = mutableListOf<FunSpec>()
 
             // Future Stub Ext
-            funSpecs += funSpecBuilder
+            funSpecs += FunSpec.builder(functionName)
+                .addModifiers(KModifier.INLINE)
+                .addCode(requestClassName.requestValueBuilderCodeBlock)
+                .addStatement("return %N(request)", functionName)
+                .addParameter("block", requestClassName.builderLambdaTypeName)
+                .receiver(protoService.futureStubClassName)
+                .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
+                .build()
+
+            // Future Stub NoArg Ext
+            funSpecs += FunSpec.builder(functionName)
+                .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
                 .receiver(protoService.futureStubClassName)
                 .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
                 .build()
 
             // Blocking Stub Ext
-            funSpecs += funSpecBuilder
+            funSpecs += FunSpec.builder(functionName)
+                .addModifiers(KModifier.INLINE)
+                .addCode(requestClassName.requestValueBuilderCodeBlock)
+                .addStatement("return %N(request)", functionName)
+                .addParameter("block", requestClassName.builderLambdaTypeName)
+                .receiver(protoService.blockingStubClassName)
+                .returns(responseClassName)
+                .build()
+
+            // Blocking Stub NoArg Ext
+            funSpecs += FunSpec.builder(functionName)
+                .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
                 .receiver(protoService.blockingStubClassName)
                 .returns(responseClassName)
                 .build()
 
             return funSpecs
         }
-
-        private fun ProtoMethod.newDefaultUnaryExtBuilder(): FunSpec.Builder =
-            FunSpec.builder(functionName)
-                .addModifiers(KModifier.INLINE)
-                .addCode(requestClassName.requestValueBuilderCodeBlock)
-                .addStatement("return %N(request)", functionName)
-                .addParameter("block", requestClassName.builderLambdaTypeName)
 
         private fun ProtoMethod.buildUnaryCoroutineExtOverload(): FunSpec =
             FunSpec.builder(functionName)
@@ -160,7 +174,6 @@ object GrpcStubExtsGenerator : Generator {
 
         private fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
-                .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
                 .receiver(protoService.asyncStubClassName)
                 .returns(
                     CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
@@ -192,7 +205,6 @@ object GrpcStubExtsGenerator : Generator {
 
         private fun ProtoMethod.buildStubBidiStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
-                .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
                 .receiver(protoService.asyncStubClassName)
                 .returns(
                     CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(

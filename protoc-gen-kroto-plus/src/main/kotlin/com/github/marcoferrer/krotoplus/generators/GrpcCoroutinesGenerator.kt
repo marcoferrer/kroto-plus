@@ -201,7 +201,6 @@ object GrpcCoroutinesGenerator : Generator {
     private fun ProtoMethod.buildClientStreamingMethodBaseImplDelegate(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
-            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
             .addParameter(
                 name ="responseObserver",
@@ -248,8 +247,6 @@ object GrpcCoroutinesGenerator : Generator {
     private fun ProtoMethod.buildServerStreamingMethodBaseImplDelegate(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .addParameter("request", requestClassName)
             .addParameter(
                 name = "responseObserver",
@@ -298,8 +295,6 @@ object GrpcCoroutinesGenerator : Generator {
     private fun ProtoMethod.buildBidiMethodBaseImplDelegate(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
             .addParameter(
                 name = "responseObserver",
@@ -471,7 +466,6 @@ object GrpcCoroutinesGenerator : Generator {
     private fun ProtoMethod.buildStubBidiStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
             .returns(
                 CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(
                     requestClassName,
@@ -582,7 +576,6 @@ object GrpcCoroutinesGenerator : Generator {
     private fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
             .returns(
                 CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
                     requestClassName,
