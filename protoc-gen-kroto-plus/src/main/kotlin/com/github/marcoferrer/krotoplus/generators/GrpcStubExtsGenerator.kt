@@ -35,38 +35,35 @@ object GrpcStubExtsGenerator : Generator {
 
     class FileBuilder(val options: GrpcStubExtsGenOptions) {
 
-        fun buildFile(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? =
+        fun buildFile(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? = with(service) {
+            if (!options.filter.matches(protoFile.name))
+                return null
 
-            with(service) {
-                if (!options.filter.matches(protoFile.name))
-                    return null
+            val filename = "${name}RpcOverloads"
+            val fileSpecBuilder = FileSpec
+                .builder(protoFile.javaPackage, filename)
+                .addComment(AutoGenerationDisclaimer)
+                .addAnnotation(
+                    AnnotationSpec.builder(JvmName::class.asClassName())
+                        .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
+                        .addMember("%S", "-$filename")
+                        .build()
+                )
 
+            fileSpecBuilder.apply {
+                addFunctions(buildDefaultStubExts())
 
-                val filename = "${name}RpcOverloads"
-                val fileSpecBuilder = FileSpec
-                    .builder(protoFile.javaPackage, filename)
-                    .addComment(AutoGenerationDisclaimer)
-                    .addAnnotation(
-                        AnnotationSpec.builder(JvmName::class.asClassName())
-                            .useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
-                            .addMember("%S", "-$filename")
-                            .build()
-                    )
-
-                fileSpecBuilder.apply {
-                    addFunctions(buildDefaultStubExts())
-
-                    if (options.supportCoroutines) {
-                        addFunctions(buildStubCoroutineExts())
-                        addFunctions(buildClientStubRpcRequestOverloads())
-                    }
+                if (options.supportCoroutines) {
+                    addFunctions(buildStubCoroutineExts())
+                    addFunctions(buildClientStubRpcRequestOverloads())
                 }
-
-                return fileSpecBuilder
-                    .build()
-                    .takeIf { it.members.isNotEmpty() }
-                    ?.toResponseFileProto()
             }
+
+            return fileSpecBuilder
+                .build()
+                .takeIf { it.members.isNotEmpty() }
+                ?.toResponseFileProto()
+        }
 
         private fun ProtoService.buildDefaultStubExts(): List<FunSpec> =
             methodDefinitions
@@ -84,7 +81,7 @@ object GrpcStubExtsGenerator : Generator {
                 }
             }
 
-        fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
+        private fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
             methodDefinitions.mapNotNull {
                 when {
 
@@ -137,7 +134,7 @@ object GrpcStubExtsGenerator : Generator {
                 .addStatement("return %N(request)", functionName)
                 .build()
 
-        fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
+        private fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
             FunSpec.builder(functionName)
                 .receiver(protoService.asyncStubClassName)
                 .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
