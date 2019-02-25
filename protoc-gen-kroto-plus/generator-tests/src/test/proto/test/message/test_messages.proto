@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package validate.test;
+
+option java_package = "test.message";
+option java_outer_classname = "TestMessages";
+
+message L1Message1{
+
+    string field = 1;
+
+    message L2Nested1{
+        string field =1;
+        L1Message1 message_field =2;
+    }
+
+    message L2Nested2{
+        string field = 1;
+        L2Nested1 message_field =2;
+    }
+}
+
+message L1Message2{
+
+    string field = 1;
+
+    message L2Nested1{
+        string field = 1;
+        L3Nested1 message_field =2;
+        message L3Nested1{
+            string field = 1;
+            L1Message1 message_field =2;
+        }
+    }
+
+    message L2Nested2{
+        string field = 1;
+
+        message L3Nested1{
+            string field = 1;
+        }
+
+        message L3Nested2{
+            string field = 1;
+
+            message L4Nested1{
+                string field = 1;
+
+                message L5Nested1{
+                    string field = 1;
+                }
+            }
+        }
+    }
+}
+
+enum TestEnum {
+    UNKNOWN = 0;
+    FIRST = 1;
+    SECOND = 2;
+}
+
+message TestRepeated {
+    repeated TestEnum enum_field = 1;
+    repeated int64 int64_field = 2;
+    repeated fixed64 fixed64_field = 3;
+    repeated sfixed64 sfixed64_field = 4;
+    repeated sint64 sint64_field = 5;
+    repeated uint64 uint64_field = 6;
+    repeated int32 int32_field = 7;
+    repeated uint32 uint32_field = 8;
+    repeated sfixed32 sfixed32_field = 9;
+    repeated sint32 sint32_field = 10;
+    repeated fixed32 fixed32_field = 11;
+    repeated double double_field = 12;
+    repeated float float_field = 13;
+    repeated bool bool_field = 14;
+    repeated string string_field = 15;
+    repeated bytes bytes_field = 16;
+    repeated L1Message1 message_field = 17;
+}

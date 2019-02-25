@@ -1,0 +1,44 @@
+apply plugin: 'com.google.protobuf'
+
+dependencies{
+    
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
+    testImplementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
+    testImplementation "io.grpc:grpc-protobuf:${Versions.grpc}"
+    testImplementation "io.grpc:grpc-stub:${Versions.grpc}"
+    testImplementation "io.grpc:grpc-netty:${Versions.grpc}"
+
+    testImplementation project(':kroto-plus-message')
+    testImplementation project(':kroto-plus-coroutines')
+    testImplementation project(':kroto-plus-test')
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}"}
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${Versions.grpc}" }
+        kroto {
+            path = "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-jvm8.jar"
+        }
+    }
+
+    generateProtoTasks {
+        def krotoConfig = file("krotoPlusConfig.asciipb")
+
+        all().each{ task ->
+            task.inputs.files krotoConfig
+            task.dependsOn ':protoc-gen-kroto-plus:bootJar'
+
+            task.plugins {
+                grpc { outputSubDir = "java" }
+                kroto {
+                    outputSubDir = "java"
+                    option "ConfigPath=$krotoConfig"
+                }
+            }
+        }
+    }
+}
