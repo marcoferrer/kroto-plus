@@ -1,4 +1,4 @@
-package com.github.marcoferrer.krotoplus.coroutines
+package com.github.marcoferrer.krotoplus.coroutines.call
 
 import io.grpc.Status
 import io.grpc.stub.ServerCallStreamObserver

@@ -5,6 +5,7 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+@KrotoPlusInternalApi
 class SuspendingUnaryObserver<RespT>(
     @Volatile @JvmField private var cont: Continuation<RespT>?
 ) : StreamObserver<RespT> {

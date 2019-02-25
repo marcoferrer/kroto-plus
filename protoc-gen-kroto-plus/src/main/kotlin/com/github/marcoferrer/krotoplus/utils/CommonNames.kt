@@ -29,13 +29,18 @@ object CommonClassNames{
     val obsoleteCoroutinesApi = ClassName(kotlinxCoroutines, "ObsoleteCoroutinesApi")
     val experimentalCoroutinesApi = ClassName(kotlinxCoroutines, "ExperimentalCoroutinesApi")
 
+
     val grpcChannel = ClassName("io.grpc","Channel")
     val grpcCallOptions = ClassName("io.grpc","CallOptions")
+    val grpcServerServiceDefinition = ClassName("io.grpc", "ServerServiceDefinition")
     val grpcAbstractStub = ClassName("io.grpc.stub", "AbstractStub")
+    val grpcStubRpcMethod = ClassName("io.grpc.stub.annotations","RpcMethod")
+
     val streamObserver: ClassName = ClassName("io.grpc.stub", "StreamObserver")
 
     val experimentalKrotoPlusCoroutinesApi = ClassName(krotoCoroutineLib, "ExperimentalKrotoPlusCoroutinesApi")
 
+    val listenableFuture = ClassName("com.google.common.util.concurrent", "ListenableFuture")
     val grpcContextElement = ClassName(krotoCoroutineLib,"GrpcContextElement")
     val suspendingUnaryCallObserver: ClassName = ClassName(krotoCoroutineLib,"suspendingUnaryCallObserver")
     val bidiCallChannel: ClassName = ClassName(krotoCoroutineLib,"bidiCallChannel")

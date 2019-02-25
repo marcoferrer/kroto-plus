@@ -119,7 +119,7 @@ object GrpcCoroutinesGenerator : Generator {
             .addFunction(
                 FunSpec.builder("bindService")
                     .addModifiers(KModifier.OVERRIDE)
-                    .returns(ClassName("io.grpc", "ServerServiceDefinition"))
+                    .returns(CommonClassNames.grpcServerServiceDefinition)
                     .addCode("return %N.bindService()", delegateValName)
                     .build()
             )
@@ -131,14 +131,14 @@ object GrpcCoroutinesGenerator : Generator {
     }
 
 
-    fun ProtoService.buildServiceBaseImplDelegate(): TypeSpec =
+    private fun ProtoService.buildServiceBaseImplDelegate(): TypeSpec =
         TypeSpec.classBuilder(serviceDelegateName)
             .addModifiers(KModifier.PRIVATE, KModifier.INNER)
             .superclass(serviceJavaBaseImplClassName)
             .addFunctions(buildBaseImplRpcMethodDelegates())
             .build()
 
-    fun ProtoMethod.buildUnaryBaseImpl(): FunSpec =
+    private fun ProtoMethod.buildUnaryBaseImpl(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter("request", requestClassName)
@@ -155,7 +155,7 @@ object GrpcCoroutinesGenerator : Generator {
             .build()
 
 
-    fun ProtoMethod.buildUnaryBaseImplDelegate(): FunSpec =
+    private fun ProtoMethod.buildUnaryBaseImplDelegate(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
             .addParameter("request", requestClassName)
@@ -179,7 +179,7 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoMethod.buildClientStreamingBaseImpl(): FunSpec =
+    private fun ProtoMethod.buildClientStreamingBaseImpl(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter(
@@ -198,10 +198,9 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoMethod.buildClientStreamingMethodBaseImplDelegate(): FunSpec =
+    private fun ProtoMethod.buildClientStreamingMethodBaseImplDelegate(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
-            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
             .addParameter(
                 name ="responseObserver",
@@ -225,7 +224,7 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoMethod.buildServerStreamingBaseImpl(): FunSpec =
+    private fun ProtoMethod.buildServerStreamingBaseImpl(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter("request", requestClassName)
@@ -245,11 +244,9 @@ object GrpcCoroutinesGenerator : Generator {
             .build()
 
 
-    fun ProtoMethod.buildServerStreamingMethodBaseImplDelegate(): FunSpec =
+    private fun ProtoMethod.buildServerStreamingMethodBaseImplDelegate(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .addParameter("request", requestClassName)
             .addParameter(
                 name = "responseObserver",
@@ -272,7 +269,7 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoMethod.buildBidiBaseImpl(): FunSpec =
+    private fun ProtoMethod.buildBidiBaseImpl(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter(
@@ -295,11 +292,9 @@ object GrpcCoroutinesGenerator : Generator {
             .build()
 
 
-    fun ProtoMethod.buildBidiMethodBaseImplDelegate(): FunSpec =
+    private fun ProtoMethod.buildBidiMethodBaseImplDelegate(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.OVERRIDE)
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
-            .addAnnotation(CommonClassNames.experimentalCoroutinesApi)
             .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
             .addParameter(
                 name = "responseObserver",
@@ -324,7 +319,7 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoService.buildBaseImplRpcMethods(): List<FunSpec> =
+    private fun ProtoService.buildBaseImplRpcMethods(): List<FunSpec> =
         methodDefinitions.map { method ->
             when(method.type){
                 MethodType.UNARY -> method.buildUnaryBaseImpl()
@@ -335,7 +330,7 @@ object GrpcCoroutinesGenerator : Generator {
             }
         }
 
-    fun ProtoService.buildBaseImplRpcMethodDelegates(): List<FunSpec> =
+    private fun ProtoService.buildBaseImplRpcMethodDelegates(): List<FunSpec> =
         methodDefinitions.map { method ->
             when(method.type){
                 MethodType.UNARY -> method.buildUnaryBaseImplDelegate()
@@ -346,7 +341,7 @@ object GrpcCoroutinesGenerator : Generator {
             }
         }
 
-    fun ProtoService.buildResponseLambdaOverloads(): List<FunSpec> =
+    private fun ProtoService.buildResponseLambdaOverloads(): List<FunSpec> =
         methodDefinitions
             .asSequence()
             .filter { it.isServerStream || it.isBidi }
@@ -354,7 +349,7 @@ object GrpcCoroutinesGenerator : Generator {
             .map { it.buildChannelLambdaExt() }
             .toList()
 
-    fun ProtoMethod.buildChannelLambdaExt(): FunSpec {
+    private fun ProtoMethod.buildChannelLambdaExt(): FunSpec {
 
         val receiverClassName = CommonClassNames.sendChannel
             .parameterizedBy(responseClassName)
@@ -387,7 +382,7 @@ object GrpcCoroutinesGenerator : Generator {
             .build()
     }
 
-    fun ProtoService.buildClientStubImpl(): TypeSpec {
+    private fun ProtoService.buildClientStubImpl(): TypeSpec {
 
         val paramNameChannel = "channel"
         val paramNameCallOptions = "callOptions"
@@ -439,7 +434,7 @@ object GrpcCoroutinesGenerator : Generator {
 
     }
 
-    fun ProtoService.buildClientStubCompanion(): TypeSpec =
+    private fun ProtoService.buildClientStubCompanion(): TypeSpec =
         TypeSpec.companionObjectBuilder()
             .addFunction(
                 FunSpec.builder("newStub")
@@ -450,14 +445,14 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoService.buildNewStubMethod(): FunSpec =
+    private fun ProtoService.buildNewStubMethod(): FunSpec =
         FunSpec.builder("newStub")
             .returns(stubClassName)
             .addParameter("channel",CommonClassNames.grpcChannel)
             .addCode("return %T.newStub(channel)",stubClassName)
             .build()
 
-    fun ProtoService.buildClientStubRpcMethods(): List<FunSpec> =
+    private fun ProtoService.buildClientStubRpcMethods(): List<FunSpec> =
         methodDefinitions.map { method ->
             when(method.type){
                 MethodType.UNARY -> method.buildStubUnaryMethod()
@@ -468,10 +463,9 @@ object GrpcCoroutinesGenerator : Generator {
             }
         }
 
-    fun ProtoMethod.buildStubBidiStreamingMethod(): FunSpec =
+    private fun ProtoMethod.buildStubBidiStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
             .returns(
                 CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(
                     requestClassName,
@@ -486,7 +480,7 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoMessage.buildSendChannelLambdaExt(suffix: String = ""): FunSpec {
+    private fun ProtoMessage.buildSendChannelLambdaExt(suffix: String = ""): FunSpec {
 
         val jvmNameSuffix = canonicalJavaName
             .replace(javaPackage.orEmpty(), "")
@@ -501,13 +495,8 @@ object GrpcCoroutinesGenerator : Generator {
                     .build()
             )
             .receiver(CommonClassNames.sendChannel.parameterizedBy(className))
-            .addParameter(
-                "block", LambdaTypeName.get(
-                    receiver = className.nestedClass("Builder"),
-                    returnType = UNIT
-                )
-            )
-            .addStatement("val request = %T.newBuilder().apply(block).build()", className)
+            .addParameter("block", className.builderLambdaTypeName)
+            .addCode(className.requestValueBuilderCodeBlock)
             .addStatement("send(request)")
             .build()
     }
@@ -516,7 +505,7 @@ object GrpcCoroutinesGenerator : Generator {
         getSendChannelMessageTypes()
             .map { it.buildSendChannelLambdaExt() }
 
-    fun ProtoService.getSendChannelMessageTypes(): List<ProtoMessage> =
+    private fun ProtoService.getSendChannelMessageTypes(): List<ProtoMessage> =
         methodDefinitions
             .asSequence()
             .filter { it.isClientStream || it.isBidi }
@@ -524,7 +513,7 @@ object GrpcCoroutinesGenerator : Generator {
             .mapNotNull { (it.requestType as? ProtoMessage) }
             .toList()
 
-    fun List<ProtoMessage>.buildSendChannelExtFiles(): List<FileSpec> =
+    private fun List<ProtoMessage>.buildSendChannelExtFiles(): List<FileSpec> =
         distinct()
             .groupBy( { it.protoFile }, { it.buildSendChannelLambdaExt() })
             .map { (protoFile, funSpecs) ->
@@ -534,7 +523,7 @@ object GrpcCoroutinesGenerator : Generator {
                     .build()
             }
 
-    fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
+    private fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
         methodDefinitions.mapNotNull {
             when(it.type){
                 MethodType.UNARY -> it.buildStubUnaryMethodOverload()
@@ -543,20 +532,20 @@ object GrpcCoroutinesGenerator : Generator {
             }
         }
 
-    fun ProtoMethod.buildRpcMethodAnnotation(): AnnotationSpec =
-        AnnotationSpec.builder(ClassName("io.grpc.stub.annotations","RpcMethod"))
+    private fun ProtoMethod.buildRpcMethodAnnotation(): AnnotationSpec =
+        AnnotationSpec.builder(CommonClassNames.grpcStubRpcMethod)
             .addMember("fullMethodName = \"\$SERVICE_NAME/${descriptorProto.name}\"")
             .addMember("requestType = %T::class", requestClassName)
             .addMember("responseType = %T::class", responseClassName)
             .addMember("methodType = %T.%N", MethodType::class, type.name)
             .build()
 
-    fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
+    private fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
             .addModifiers(KModifier.SUSPEND)
             .returns(responseClassName)
-            .addParameter("request",requestClassName)
+            .addParameter(requestClassName.requestParamSpec)
             .addStatement(
                 "return %T(request, %T.%N())",
                 CommonClassNames.ClientCalls.clientCallUnary,
@@ -565,35 +554,28 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .build()
 
-    fun ProtoMethod.buildStubUnaryMethodOverload(): FunSpec =
+    private fun ProtoMethod.buildStubUnaryMethodOverload(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.INLINE)
             .returns(responseClassName)
-            .addParameter("block", LambdaTypeName.get(
-                    receiver = requestClassName.nestedClass("Builder"),
-                    returnType = UNIT
-            ))
-            .addStatement("val request = %T.newBuilder().apply(block).build()",requestClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
             .addStatement("return %N(request)",functionName)
             .build()
 
 
-    fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
+    private fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
         FunSpec.builder(functionName)
             .addModifiers(KModifier.INLINE)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-            .addParameter("block", LambdaTypeName.get(
-                receiver = requestClassName.nestedClass("Builder"),
-                returnType = UNIT
-            ))
-            .addStatement("val request = %T.newBuilder().apply(block).build()",requestClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
             .addStatement("return %N(request)",functionName)
             .build()
 
-    fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
+    private fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
-            .addAnnotation(CommonClassNames.obsoleteCoroutinesApi)
             .returns(
                 CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
                     requestClassName,
@@ -609,11 +591,11 @@ object GrpcCoroutinesGenerator : Generator {
             .build()
 
 
-    fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
+    private fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-            .addParameter("request",requestClassName)
+            .addParameter(requestClassName.requestParamSpec)
             .addStatement(
                 "return %T(request, %T.%N())",
                 CommonClassNames.ClientCalls.clientCallServerStreaming,

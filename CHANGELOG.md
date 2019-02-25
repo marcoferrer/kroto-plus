@@ -1,6 +1,20 @@
 ## Version 0.2.2-RC3
 _2018-\*\*-\*\*_
 
+#### Coroutines
+* Fix: Race condition between `StreamObserver.onNext` and `StreamObserver.onCompleted` when target channel is full 
+* Fix: Reduce `@KrotoPlusInternalApi` experimental level to `Experimental.Level.ERROR` to prevent external usage  
+* Fix: Remove redundant usages of `@ObsoleteCoroutinesApi` in call builders
+* Fix: Remove unused experimental class `CompletableDeferredObserver`
+* Fix: Annotate `SuspendingUnaryObserver` as an internal API 
+* Fix: Remove unnecessary creation of `CoroutineScope` in `newSendChannelFromObserver` 
+* New: Use `Message.getDefaultInstance()` as default value of stub request parameters
+* Deprecated: Legacy service stub rpc builders in favor of new back-pressure supporting stub APIs  
+
+#### gRPC Stub Extension 
+* New: Refactored code gen to support new coroutines APIs
+* New: Generate no-arg extensions for all rpc methods with non streaming request parameters. Default request is now set to `Message.getDefaultInstance()`
+
 #### Proto Builders (DSL)
 * Fix: Resolve ```@DslMarker``` insertion regression introduced in `0.2.2-RC1`
 
