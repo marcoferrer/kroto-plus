@@ -32,7 +32,7 @@ object ProtoBuildersGenerator : Generator {
             }
 
         // Build DSL Insertions
-        context.schema.protoTypes.asSequence()
+        context.schema.protoTypes.values.asSequence()
             .filterIsInstance<ProtoMessage>()
             .filterNot { it.isMapEntry }
             .forEach { protoMessage ->

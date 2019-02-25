@@ -8,6 +8,7 @@ pluginManagement{
 }
 
 include 'protoc-gen-kroto-plus'
+include 'protoc-gen-kroto-plus:generator-tests'
 include 'protoc-gen-grpc-coroutines'
 include 'protoc-gen-kroto-plus:docs'
 include 'kroto-plus-message'
