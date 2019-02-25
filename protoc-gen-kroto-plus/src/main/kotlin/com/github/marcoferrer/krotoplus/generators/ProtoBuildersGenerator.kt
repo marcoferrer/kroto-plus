@@ -131,7 +131,7 @@ object ProtoBuildersGenerator : Generator {
 
             // Or Default Spec
             FunSpec.builder("orDefault")
-                .receiver(protoType.className.asNullable())
+                .receiver(protoType.className.copy(nullable = true))
                 .returns(protoType.className)
                 .addStatement("return this ?: %T.getDefaultInstance()", protoType.className)
                 .also {
@@ -188,7 +188,7 @@ object ProtoBuildersGenerator : Generator {
     private fun FileSpec.Builder.buildDslMarkerInterface(protoFile: ProtoFile) {
 
         val dslMarker = TypeSpec
-            .annotationBuilder(protoFile.dslAnnotationClassName.simpleName())
+            .annotationBuilder(protoFile.dslAnnotationClassName.simpleName)
             .addAnnotation(DslMarker::class)
             .addAnnotation(
                 AnnotationSpec.builder(Target::class)
@@ -201,7 +201,7 @@ object ProtoBuildersGenerator : Generator {
             .build()
             .also { this@buildDslMarkerInterface.addType(it) }
 
-        TypeSpec.interfaceBuilder(protoFile.dslBuilderClassName.simpleName())
+        TypeSpec.interfaceBuilder(protoFile.dslBuilderClassName.simpleName)
             .addAnnotation(
                 AnnotationSpec
                     .builder(ClassName(protoFile.javaPackage, dslMarker.name!!))
