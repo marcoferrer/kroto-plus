@@ -4,9 +4,7 @@ import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
-import com.github.marcoferrer.krotoplus.utils.CommonClassNames
-import com.github.marcoferrer.krotoplus.utils.addFunctions
-import com.github.marcoferrer.krotoplus.utils.matches
+import com.github.marcoferrer.krotoplus.utils.*
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -35,11 +33,11 @@ object GrpcStubExtsGenerator : Generator {
         return responseBuilder.build()
     }
 
-    class FileBuilder(val options: GrpcStubExtsGenOptions){
+    class FileBuilder(val options: GrpcStubExtsGenOptions) {
 
         fun buildFile(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? =
 
-            with(service){
+            with(service) {
                 if (!options.filter.matches(protoFile.name))
                     return null
 
@@ -58,7 +56,7 @@ object GrpcStubExtsGenerator : Generator {
                 fileSpecBuilder.apply {
                     addFunctions(buildDefaultStubExts())
 
-                    if(options.supportCoroutines){
+                    if (options.supportCoroutines) {
                         addFunctions(buildStubCoroutineExts())
                         addFunctions(buildClientStubRpcRequestOverloads())
                     }
@@ -77,7 +75,7 @@ object GrpcStubExtsGenerator : Generator {
 
         private fun ProtoService.buildStubCoroutineExts(): List<FunSpec> =
             methodDefinitions.map { method ->
-                when(method.type){
+                when (method.type) {
                     MethodType.UNARY -> method.buildStubUnaryMethod()
                     MethodType.CLIENT_STREAMING -> method.buildStubClientStreamingMethod()
                     MethodType.SERVER_STREAMING -> method.buildStubServerStreamingMethod()
@@ -88,7 +86,7 @@ object GrpcStubExtsGenerator : Generator {
 
         fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
             methodDefinitions.mapNotNull {
-                when{
+                when {
 
                     it.type == MethodType.UNARY && it.isNotEmptyInput ->
                         it.buildUnaryCoroutineExtOverload()
@@ -103,21 +101,7 @@ object GrpcStubExtsGenerator : Generator {
 
         private fun ProtoMethod.buildUnaryDefaultOverloads(): List<FunSpec> {
 
-            val funSpecBuilder = FunSpec.builder(functionName)
-                .addCode(requestValueCodeBlock())
-                .addStatement("return %N(request)", functionName)
-
-            if (isNotEmptyInput) {
-                funSpecBuilder
-                    .addModifiers(KModifier.INLINE)
-                    .addParameter(
-                        "block", LambdaTypeName.get(
-                            receiver = requestClassName.nestedClass("Builder"),
-                            returnType = UNIT
-                        )
-                    )
-            }
-
+            val funSpecBuilder = newDefaultUnaryExtBuilder()
             val funSpecs = mutableListOf<FunSpec>()
 
             // Future Stub Ext
@@ -135,36 +119,21 @@ object GrpcStubExtsGenerator : Generator {
             return funSpecs
         }
 
-        private fun ProtoMethod.newDefaultUnaryExtBuilder(): FunSpec =
+        private fun ProtoMethod.newDefaultUnaryExtBuilder(): FunSpec.Builder =
             FunSpec.builder(functionName)
                 .addModifiers(KModifier.INLINE)
-                .addCode(requestValueCodeBlock())
+                .addCode(requestClassName.requestValueBuilderCodeBlock)
                 .addStatement("return %N(request)", functionName)
-                .addParameter(
-                    "block", LambdaTypeName.get(
-                        receiver = requestClassName.nestedClass("Builder"),
-                        returnType = UNIT
-                    )
-                )
-                .build()
+                .addParameter("block", requestClassName.builderLambdaTypeName)
 
         private fun ProtoMethod.buildUnaryCoroutineExtOverload(): FunSpec =
             FunSpec.builder(functionName)
                 .addModifiers(KModifier.SUSPEND)
                 .receiver(protoService.asyncStubClassName)
-                .apply {
-                    if (isNotEmptyInput) {
-                        addModifiers(KModifier.INLINE)
-                        addParameter(
-                            "block", LambdaTypeName.get(
-                                receiver = requestClassName.nestedClass("Builder"),
-                                returnType = UNIT
-                            )
-                        )
-                    }
-                }
+                .addModifiers(KModifier.INLINE)
+                .addParameter("block", requestClassName.builderLambdaTypeName)
                 .returns(responseClassName)
-                .addCode(requestValueCodeBlock())
+                .addCode(requestClassName.requestValueBuilderCodeBlock)
                 .addStatement("return %N(request)", functionName)
                 .build()
 
@@ -172,32 +141,18 @@ object GrpcStubExtsGenerator : Generator {
             FunSpec.builder(functionName)
                 .receiver(protoService.asyncStubClassName)
                 .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-                .apply {
-                    if (isNotEmptyInput) {
-                        addModifiers(KModifier.INLINE)
-                        addParameter(
-                            "block", LambdaTypeName.get(
-                                receiver = requestClassName.nestedClass("Builder"),
-                                returnType = UNIT
-                            )
-                        )
-                    }
-                    addCode(requestValueCodeBlock())
-                }
-                .addStatement("return %N(request)",functionName)
+                .addModifiers(KModifier.INLINE)
+                .addParameter("block", requestClassName.builderLambdaTypeName)
+                .addCode(requestClassName.requestValueBuilderCodeBlock)
+                .addStatement("return %N(request)", functionName)
                 .build()
-
 
         private fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
             FunSpec.builder(functionName)
                 .addModifiers(KModifier.SUSPEND)
                 .returns(responseClassName)
                 .receiver(protoService.asyncStubClassName)
-                .apply {
-                    if (isNotEmptyInput)
-                        addParameter("request", requestClassName) else
-                        addCode(requestValueCodeBlock())
-                }
+                .addParameter(requestClassName.requestParamSpec)
                 .addStatement(
                     "return %T(request, %T.%N())",
                     CommonClassNames.ClientCalls.clientCallUnary,
@@ -228,7 +183,8 @@ object GrpcStubExtsGenerator : Generator {
         private fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
                 .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-                .addParameter("request",requestClassName)
+                .receiver(protoService.asyncStubClassName)
+                .addParameter(requestClassName.requestParamSpec)
                 .addStatement(
                     "return %T(request, %T.%N())",
                     CommonClassNames.ClientCalls.clientCallServerStreaming,
@@ -254,20 +210,6 @@ object GrpcStubExtsGenerator : Generator {
                     methodDefinitionGetterName
                 )
                 .build()
-
-        private fun ProtoMethod.requestValueCodeBlock(): CodeBlock {
-            val requestValueTemplate = if (isEmptyInput)
-                "val request = %T.getDefaultInstance()\n" else
-                "val request = %T.newBuilder().apply(block).build()\n"
-
-            return CodeBlock.of(requestValueTemplate, requestClassName)
-        }
-
-        private val ProtoMethod.requestValueBuilderCodeBlock: CodeBlock
-            inline get() = CodeBlock.of(
-                "val request = %T.newBuilder().apply(block).build()\n",
-                requestClassName
-            )
 
     }
 }

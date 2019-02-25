@@ -119,7 +119,7 @@ object GrpcCoroutinesGenerator : Generator {
             .addFunction(
                 FunSpec.builder("bindService")
                     .addModifiers(KModifier.OVERRIDE)
-                    .returns(ClassName("io.grpc", "ServerServiceDefinition"))
+                    .returns(CommonClassNames.grpcServerServiceDefinition)
                     .addCode("return %N.bindService()", delegateValName)
                     .build()
             )
@@ -501,13 +501,8 @@ object GrpcCoroutinesGenerator : Generator {
                     .build()
             )
             .receiver(CommonClassNames.sendChannel.parameterizedBy(className))
-            .addParameter(
-                "block", LambdaTypeName.get(
-                    receiver = className.nestedClass("Builder"),
-                    returnType = UNIT
-                )
-            )
-            .addStatement("val request = %T.newBuilder().apply(block).build()", className)
+            .addParameter("block", className.builderLambdaTypeName)
+            .addCode(className.requestValueBuilderCodeBlock)
             .addStatement("send(request)")
             .build()
     }
@@ -556,7 +551,7 @@ object GrpcCoroutinesGenerator : Generator {
             .addAnnotation(buildRpcMethodAnnotation())
             .addModifiers(KModifier.SUSPEND)
             .returns(responseClassName)
-            .addParameter("request",requestClassName)
+            .addParameter(requestClassName.requestParamSpec)
             .addStatement(
                 "return %T(request, %T.%N())",
                 CommonClassNames.ClientCalls.clientCallUnary,
@@ -569,11 +564,8 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND, KModifier.INLINE)
             .returns(responseClassName)
-            .addParameter("block", LambdaTypeName.get(
-                    receiver = requestClassName.nestedClass("Builder"),
-                    returnType = UNIT
-            ))
-            .addStatement("val request = %T.newBuilder().apply(block).build()",requestClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
             .addStatement("return %N(request)",functionName)
             .build()
 
@@ -582,11 +574,8 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addModifiers(KModifier.INLINE)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-            .addParameter("block", LambdaTypeName.get(
-                receiver = requestClassName.nestedClass("Builder"),
-                returnType = UNIT
-            ))
-            .addStatement("val request = %T.newBuilder().apply(block).build()",requestClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
             .addStatement("return %N(request)",functionName)
             .build()
 
@@ -613,7 +602,7 @@ object GrpcCoroutinesGenerator : Generator {
         FunSpec.builder(functionName)
             .addAnnotation(buildRpcMethodAnnotation())
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-            .addParameter("request",requestClassName)
+            .addParameter(requestClassName.requestParamSpec)
             .addStatement(
                 "return %T(request, %T.%N())",
                 CommonClassNames.ClientCalls.clientCallServerStreaming,
