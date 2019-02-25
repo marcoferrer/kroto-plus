@@ -5,7 +5,8 @@ apply from: "$rootDir/publishing.gradle"
 def experimentalFlags = [
     "-Xuse-experimental=kotlin.Experimental",
     "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
-    "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi"
+    "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi",
+    "-Xuse-experimental=com.github.marcoferrer.krotoplus.coroutines.KrotoPlusInternalApi"
 ]
 
 compileKotlin {

@@ -1,12 +1,10 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
-import com.github.marcoferrer.krotoplus.coroutines.FlowControlledObserver
-import com.github.marcoferrer.krotoplus.coroutines.enableManualFlowControl
+import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledObserver
+import com.github.marcoferrer.krotoplus.coroutines.call.enableManualFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -16,7 +14,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  *
  */
-interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, ReceiveChannel<RespT>{
+public interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, ReceiveChannel<RespT>{
 
     public val requestChannel: SendChannel<ReqT>
 
@@ -37,7 +35,7 @@ internal class ClientBidiCallChannelImpl<ReqT, RespT>(
 /**
  *
  */
-interface ClientStreamingCallChannel<ReqT, RespT> : SendChannel<ReqT> {
+public interface ClientStreamingCallChannel<ReqT, RespT> : SendChannel<ReqT> {
 
     public val requestChannel: SendChannel<ReqT>
 

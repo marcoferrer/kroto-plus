@@ -6,4 +6,5 @@ package com.github.marcoferrer.krotoplus.coroutines
 public annotation class ExperimentalKrotoPlusCoroutinesApi
 
 @Retention(value = AnnotationRetention.SOURCE)
+@Experimental(level = Experimental.Level.ERROR)
 public annotation class KrotoPlusInternalApi

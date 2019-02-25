@@ -3,7 +3,10 @@ package com.github.marcoferrer.krotoplus.coroutines
 import io.grpc.stub.*
 import kotlinx.coroutines.channels.*
 
-@Deprecated("Deprecated in favor of back-pressure supporting implementation. Use coroutine stub generator")
+@Deprecated(
+    message = "Deprecated in favor of back-pressure supporting APIs.",
+    level = DeprecationLevel.WARNING
+)
 class InboundStreamChannel<T>(
         capacity: Int = Channel.UNLIMITED,
         val channel: Channel<T> = Channel(capacity)

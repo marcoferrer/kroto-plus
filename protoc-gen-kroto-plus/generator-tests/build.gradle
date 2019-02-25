@@ -8,7 +8,8 @@ dependencies{
     testImplementation "io.grpc:grpc-protobuf:${Versions.grpc}"
     testImplementation "io.grpc:grpc-stub:${Versions.grpc}"
     testImplementation "io.grpc:grpc-netty:${Versions.grpc}"
-
+    testImplementation "io.grpc:grpc-testing:${Versions.grpc}"
+    
     testImplementation project(':kroto-plus-message')
     testImplementation project(':kroto-plus-coroutines')
     testImplementation project(':kroto-plus-test')
