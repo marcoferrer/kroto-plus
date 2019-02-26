@@ -36,8 +36,12 @@ message L1Message2{
     message L2Nested2{
         string field = 1;
 
+        L3Nested1 nested_message = 2;
+
         message L3Nested1{
             string field = 1;
+
+            L3Nested2 another_nested_message = 2;
         }
 
         message L3Nested2{
