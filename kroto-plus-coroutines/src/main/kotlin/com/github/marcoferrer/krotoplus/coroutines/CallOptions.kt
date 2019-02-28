@@ -21,17 +21,20 @@ import io.grpc.stub.AbstractStub
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext> =
+public val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext> =
     CallOptions.Key.createWithDefault<CoroutineContext>("coroutineContext", EmptyCoroutineContext)
 
-val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext
+public val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext
     get() = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
 
-fun <T : AbstractStub<T>> T.withCoroutineContext(coroutineContext: CoroutineContext): T =
+public fun <T : AbstractStub<T>> T.withCoroutineContext(coroutineContext: CoroutineContext): T =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
 
-suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T =
+public suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
 
-fun CallOptions.withCoroutineContext(coroutineContext: CoroutineContext): CallOptions =
+public fun CallOptions.withCoroutineContext(coroutineContext: CoroutineContext): CallOptions =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
+
+public suspend fun CallOptions.withCoroutineContext(): CallOptions =
+    this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
