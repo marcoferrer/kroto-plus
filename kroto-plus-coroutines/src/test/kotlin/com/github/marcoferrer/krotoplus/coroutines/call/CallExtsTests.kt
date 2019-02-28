@@ -104,8 +104,8 @@ class NewManagedServerResponseChannelTests {
     }
 
     @Test
-    fun `Test manual flow control is enabled`()= runBlocking {
-        newManagedServerResponseChannel<Unit,Unit>(observer,AtomicBoolean())
+    fun `Test manual flow control is enabled`() {
+        GlobalScope.newManagedServerResponseChannel<Unit,Unit>(observer,AtomicBoolean()).close()
         verify(exactly = 1) { observer.disableAutoInboundFlowControl() }
         verify(exactly = 1) { observer.setOnReadyHandler(any()) }
     }
