@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.call
 
+import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.ServerCallStreamObserver
@@ -158,6 +159,52 @@ class NewManagedServerResponseChannelTests {
         verify(exactly = 0) { observer.onCompleted() }
     }
 
+}
+
+class MethodDescriptorExtTests {
+
+    @Test
+    fun `Test CoroutineName from MethodDescriptor`(){
+        val methodName = "test_method_name"
+        val descriptor = mockk<MethodDescriptor<Unit,Unit>>().apply {
+            every { fullMethodName } returns methodName
+        }
+        val coroutineName = descriptor.getCoroutineName()
+        assertEquals(methodName, coroutineName.name)
+    }
+}
+
+class HandleUnaryRpcBlockTests {
+
+    @Test
+    fun `Test block completed successfully`(){
+        val observer = mockk<StreamObserver<Unit>>().apply {
+            every { onNext(Unit) } just Runs
+            every { onCompleted() } just Runs
+        }
+
+        observer.handleUnaryRpc { Unit }
+
+        verify(exactly = 1) { observer.onNext(Unit) }
+        verify(exactly = 1) { observer.onCompleted() }
+    }
+
+
+    @Test
+    fun `Test block completed exceptionally`(){
+        val observer = mockk<StreamObserver<Unit>>().apply {
+            every {
+                val matcher = match<StatusRuntimeException> {
+                    it.status.code == Status.UNKNOWN.code
+                }
+                onError(matcher)
+            } just Runs
+        }
+
+        observer.handleUnaryRpc { error("failed") }
+
+        verify(exactly = 1) { observer.onError(any()) }
+    }
 }
 
 class BindToClientCancellationTests {
