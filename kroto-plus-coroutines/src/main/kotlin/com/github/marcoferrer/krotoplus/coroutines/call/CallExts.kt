@@ -46,7 +46,7 @@ internal fun <RespT> CoroutineScope.newSendChannelFromObserver(
 internal fun <ReqT, RespT> CoroutineScope.newManagedServerResponseChannel(
     responseObserver: ServerCallStreamObserver<RespT>,
     isMessagePreloaded: AtomicBoolean,
-    requestChannel: Channel<ReqT> = Channel()
+    requestChannel: Channel<ReqT> = Channel(capacity = 1)
 ): SendChannel<RespT> {
 
     val responseChannel = newSendChannelFromObserver(responseObserver)

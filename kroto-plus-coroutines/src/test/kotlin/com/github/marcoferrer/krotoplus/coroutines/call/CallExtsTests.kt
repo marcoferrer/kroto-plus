@@ -17,14 +17,14 @@
 package com.github.marcoferrer.krotoplus.coroutines.call
 
 import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
 import io.mockk.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
 import org.junit.Test
+import java.lang.IllegalArgumentException
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.*
 
 
@@ -88,6 +88,76 @@ class NewSendChannelFromObserverTests {
         verify(exactly = 1) { observer.onError(statusException) }
         verify(inverse = true) { observer.onCompleted() }
     }
+}
+
+class NewManagedServerResponseChannelTests {
+
+    lateinit var observer: ServerCallStreamObserver<Unit>
+
+    @BeforeTest
+    fun setup(){
+        observer = mockk<ServerCallStreamObserver<Unit>>().apply {
+            every { disableAutoInboundFlowControl() } just Runs
+            every { setOnReadyHandler(any()) } just Runs
+        }
+    }
+
+    @Test
+    fun `Test manual flow control is enabled`()= runBlocking {
+        newManagedServerResponseChannel<Unit,Unit>(observer,AtomicBoolean())
+        verify(exactly = 1) { observer.disableAutoInboundFlowControl() }
+        verify(exactly = 1) { observer.setOnReadyHandler(any()) }
+    }
+
+    @Test
+    fun `Test channel propagates values to observer onNext`() = runBlocking {
+        observer.apply {
+            every { onNext(Unit) } just Runs
+            every { onCompleted() } just Runs
+        }
+
+        with(newManagedServerResponseChannel<Unit,Unit>(observer,AtomicBoolean())){
+            repeat(3){
+                send(Unit)
+            }
+            close()
+        }
+
+        verify(exactly = 3) { observer.onNext(Unit) }
+        verify(exactly = 1) { observer.onCompleted() }
+    }
+
+    @Test
+    fun `Test channel propagates errors to observer onError`(){
+
+        observer.apply {
+
+            every {
+                val matcher = match<StatusRuntimeException> {
+                    it.status.code == Status.UNKNOWN.code
+                }
+                onError(matcher)
+            } just Runs
+
+            every { onNext(Unit) } just Runs
+            every { onCompleted() } just Runs
+        }
+
+        val error = IllegalArgumentException("error")
+        assertFailsWith(IllegalArgumentException::class, error.message){
+            runBlocking {
+                newManagedServerResponseChannel<Unit, Unit>(observer, AtomicBoolean()).apply {
+                    send(Unit)
+                    close(error)
+                }
+            }
+        }
+
+        verify(exactly = 1) { observer.onNext(Unit) }
+        verify(exactly = 1) { observer.onError(any()) }
+        verify(exactly = 0) { observer.onCompleted() }
+    }
+
 }
 
 class BindToClientCancellationTests {
