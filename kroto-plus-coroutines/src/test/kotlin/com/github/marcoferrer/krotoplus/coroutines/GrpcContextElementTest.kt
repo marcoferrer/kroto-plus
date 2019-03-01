@@ -25,20 +25,29 @@ import kotlin.test.assertNull
 
 class GrpcContextElementTest {
 
-    data class Person(val name: String)
+    val KEY_DATA = Context.key<Data>("data")
+    val data = Data("value")
+
+    data class Data(val field: String)
+
+    @Test
+    fun `Test thread context element from grpc context`(){
+
+        val ctx = Context.current().withValue(KEY_DATA, data)
+
+        assertEquals(ctx, ctx.asContextElement().context)
+    }
 
     @Test
     fun `Test Grpc Context Element Attach`() = runBlocking<Unit> {
 
-        val KEY_PERSON = Context.key<Person>("person")
-        val bill = Person("Bill")
-        val ctx = Context.current().withValue(KEY_PERSON, bill)
+        val ctx = Context.current().withValue(KEY_DATA, data)
         ctx.attach()
 
         GlobalScope.launch {
             // Yield so that we can make sure we suspend at least once
             yield()
-            assertNull(KEY_PERSON.get())
+            assertNull(KEY_DATA.get())
         }
 
         val grpcContextElement = ctx.asContextElement()
@@ -50,8 +59,8 @@ class GrpcContextElementTest {
                 (coroutineContext[GrpcContextElement] as GrpcContextElement)
                     .context
 
-            assertEquals(bill, KEY_PERSON.get())
-            assertEquals(bill, KEY_PERSON.get(expectedGrpcContext))
+            assertEquals(data, KEY_DATA.get())
+            assertEquals(data, KEY_DATA.get(expectedGrpcContext))
 
             GlobalScope.launch {
                 assertNotEquals(expectedGrpcContext, Context.current())
