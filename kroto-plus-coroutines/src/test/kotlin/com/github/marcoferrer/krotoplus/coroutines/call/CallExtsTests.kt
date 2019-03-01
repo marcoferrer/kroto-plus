@@ -23,6 +23,9 @@ import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
 import io.mockk.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import org.junit.Test
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -189,7 +192,6 @@ class HandleUnaryRpcBlockTests {
         verify(exactly = 1) { observer.onCompleted() }
     }
 
-
     @Test
     fun `Test block completed exceptionally`(){
         val observer = mockk<StreamObserver<Unit>>().apply {
@@ -204,6 +206,102 @@ class HandleUnaryRpcBlockTests {
         observer.handleUnaryRpc { error("failed") }
 
         verify(exactly = 1) { observer.onError(any()) }
+    }
+}
+
+class HandleStreamingRpcTests {
+
+    @Test
+    fun `Test block completed successfully`(){
+
+        val channel = mockk<SendChannel<Unit>>().apply {
+            coEvery { send(Unit) } just Runs
+            every { close() } returns true
+        }
+
+        runBlocking {
+            channel.handleStreamingRpc {
+                it.send(Unit)
+                assertEquals(channel, it)
+            }
+        }
+
+        coVerify(exactly = 1) { channel.send(Unit) }
+        verify(exactly = 1) { channel.close() }
+    }
+
+    @Test
+    fun `Test block completed exceptionally`(){
+        val channel = mockk<SendChannel<Unit>>().apply {
+            every {
+                val matcher = match<StatusRuntimeException> {
+                    it.status.code == Status.UNKNOWN.code
+                }
+                close(matcher)
+            } returns true
+        }
+
+        runBlocking {
+            channel.handleStreamingRpc { error("failed") }
+        }
+
+        verify(exactly = 1) { channel.close(any()) }
+    }
+}
+
+class HandleBidiStreamingRpcTests {
+
+    @Test
+    fun `Test block completed successfully`(){
+
+        val reqChannel = mockk<ReceiveChannel<String>>().apply {
+            coEvery { receive() } returns "request"
+        }
+        val respChannel = mockk<SendChannel<String>>().apply {
+            coEvery { send("response") } just Runs
+            every { close() } returns true
+        }
+
+        runBlocking {
+            handleBidiStreamingRpc(reqChannel,respChannel) { req, resp ->
+                req.receive()
+                respChannel.send("response")
+                assertEquals(reqChannel, req)
+                assertEquals(respChannel, resp)
+            }
+        }
+
+        coVerify(exactly = 1) { reqChannel.receive() }
+        coVerify(exactly = 1) { respChannel.send("response") }
+        verify(exactly = 1) { respChannel.close() }
+    }
+
+    @Test
+    fun `Test block completed exceptionally`(){
+        val reqChannel = mockk<ReceiveChannel<String>>().apply {
+            coEvery { receive() } throws ClosedReceiveChannelException("closed")
+        }
+        val respChannel = mockk<SendChannel<String>>().apply {
+            every {
+                val matcher = match<StatusRuntimeException> {
+                    it.status.code == Status.UNKNOWN.code
+                }
+                close(matcher)
+            } returns true
+        }
+
+        runBlocking {
+            handleBidiStreamingRpc(reqChannel,respChannel) { req, resp ->
+                assertEquals(reqChannel, req)
+                assertEquals(respChannel, resp)
+                resp.send("response")
+                req.receive()
+                resp.send("response")
+            }
+        }
+
+        coVerify(exactly = 1) { respChannel.send("response") }
+        verify(exactly = 1) { respChannel.close(any()) }
     }
 }
 

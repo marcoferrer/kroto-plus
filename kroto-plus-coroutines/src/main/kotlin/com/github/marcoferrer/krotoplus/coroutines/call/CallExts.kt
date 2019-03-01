@@ -132,18 +132,16 @@ internal inline fun <T> StreamObserver<T>.handleUnaryRpc(block: ()->T){
         .onFailure { onError(it.toRpcException()) }
 }
 
-@Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
-internal suspend inline fun <T> SendChannel<T>.handleStreamingRpc(block: suspend (SendChannel<T>)->Unit){
+internal inline fun <T> SendChannel<T>.handleStreamingRpc(block: (SendChannel<T>)->Unit){
     runCatching { block(this) }
         .onSuccess { close() }
         .onFailure { close(it.toRpcException()) }
 }
 
-@Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
-internal suspend inline fun <ReqT, RespT> handleBidiStreamingRpc(
+internal inline fun <ReqT, RespT> handleBidiStreamingRpc(
     requestChannel: ReceiveChannel<ReqT>,
     responseChannel: SendChannel<RespT>,
-    block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
+    block: (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ) {
     runCatching { block(requestChannel,responseChannel) }
         .onSuccess { responseChannel.close() }

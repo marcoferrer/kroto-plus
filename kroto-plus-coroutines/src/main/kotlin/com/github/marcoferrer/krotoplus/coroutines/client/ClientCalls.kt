@@ -27,51 +27,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 
 
-///**
-// * Executes a unary call with a response {@link StreamObserver}.  The {@code call} should not be
-// * already started.  After calling this method, {@code call} should no longer be used.
-// */
-//public static <ReqT, RespT> void asyncUnaryCall(
-//ClientCall<ReqT, RespT> call, ReqT req, StreamObserver<RespT> responseObserver) {
-//    asyncUnaryRequestCall(call, req, responseObserver, false);
-//}
-//
-///**
-// * Executes a server-streaming call with a response {@link StreamObserver}.  The {@code call}
-// * should not be already started.  After calling this method, {@code call} should no longer be
-// * used.
-// */
-//public static <ReqT, RespT> void asyncServerStreamingCall(
-//ClientCall<ReqT, RespT> call, ReqT req, StreamObserver<RespT> responseObserver) {
-//    asyncUnaryRequestCall(call, req, responseObserver, true);
-//}
-//
-///**
-// * Executes a client-streaming call returning a {@link StreamObserver} for the request messages.
-// * The {@code call} should not be already started.  After calling this method, {@code call}
-// * should no longer be used.
-// *
-// * @return request stream observer.
-// */
-//public static <ReqT, RespT> StreamObserver<ReqT> asyncClientStreamingCall(
-//ClientCall<ReqT, RespT> call,
-//StreamObserver<RespT> responseObserver) {
-//    return asyncStreamingRequestCall(call, responseObserver, false);
-//}
-//
-///**
-// * Executes a bidirectional-streaming call.  The {@code call} should not be already started.
-// * After calling this method, {@code call} should no longer be used.
-// *
-// * @return request stream observer.
-// */
-
-/**
- * Executes a suspending unary call
- *
- * Executes a unary call with a response {@link StreamObserver}.  The {@code call} should not be
- * already started.  After calling this method, {@code call} should no longer be used.
- */
 public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
