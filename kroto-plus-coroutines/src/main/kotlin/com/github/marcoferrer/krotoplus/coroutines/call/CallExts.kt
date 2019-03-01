@@ -23,8 +23,10 @@ import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
+import io.grpc.ClientCall
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -58,6 +60,17 @@ internal fun <ReqT, RespT> CoroutineScope.newManagedServerResponseChannel(
 
 internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamObserver<*>){
     observer.setOnCancelHandler { this@bindToClientCancellation.cancel() }
+}
+
+internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>){
+
+    requireNotNull(coroutineContext[Job]){
+        "Unable to bind cancellation to CoroutineScope. Job was null"
+    }.invokeOnCompletion {
+        if(it is CancellationException){
+            call.cancel(it.message,it.cause ?: it)
+        }
+    }
 }
 
 internal val StreamObserver<*>.completionHandler: CompletionHandler
