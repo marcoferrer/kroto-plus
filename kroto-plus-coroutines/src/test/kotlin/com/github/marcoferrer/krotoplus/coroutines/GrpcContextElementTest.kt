@@ -36,6 +36,7 @@ class GrpcContextElementTest {
         val ctx = Context.current().withValue(KEY_DATA, data)
 
         assertEquals(ctx, ctx.asContextElement().context)
+        assertEquals(Context.current(), GrpcContextElement().context)
     }
 
     @Test

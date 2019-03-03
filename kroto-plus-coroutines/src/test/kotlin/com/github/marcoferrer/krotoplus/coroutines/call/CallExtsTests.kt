@@ -16,6 +16,8 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.call
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
+import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -315,8 +317,7 @@ class BindToClientCancellationTests {
             every { setOnCancelHandler(capture(cancellationHandler)) } just Runs
         }
 
-        try {
-
+        assertCancellationError {
             runBlocking {
                 bindToClientCancellation(serverCallStreamObserver)
                 launch {
@@ -328,15 +329,81 @@ class BindToClientCancellationTests {
                     fail("Job continued after suspension, Scope has not been cancelled")
                 }
             }
-            fail("Job did not fail")
-        } catch (e: Throwable) {
-            when (e) {
-                is AssertionError -> throw e
-                else -> assertEquals(
-                    "kotlinx.coroutines.JobCancellationException",
-                    e.javaClass.name
-                )
+        }
+    }
+}
+
+class BindScopeCancellationToCallTests {
+
+    @Test
+    fun `Test call is cancelled by unhandled exception in scope`(){
+
+        val errorMessage = "scope_cancelled"
+        val call = mockk<ClientCall<*,*>>().apply {
+            every { cancel(any(), any()) } just Runs
+        }
+
+        assertFailsWith(IllegalStateException::class, errorMessage) {
+            runBlocking {
+                launch {
+                    bindScopeCancellationToCall(call)
+                    launch { error(errorMessage) }
+                    yield()
+                    launch { fail("Child job was executed, Scope has not been cancelled") }
+                    yield()
+                    fail("Job continued after suspension, Scope has not been cancelled")
+                }
+
             }
+        }
+
+        verify(exactly = 1) { call.cancel(errorMessage,any<IllegalStateException>()) }
+    }
+
+    @Test
+    fun `Test call is cancelled by normal scope cancellation`(){
+
+        val call = mockk<ClientCall<*,*>>().apply {
+            every { cancel(any(), any()) } just Runs
+        }
+
+        runBlocking {
+            launch {
+                bindScopeCancellationToCall(call)
+                launch { Unit }
+                yield()
+                cancel()
+                launch { fail("Child job was executed, Scope has not been cancelled") }
+                yield()
+                fail("Job continued after suspension, Scope has not been cancelled")
+            }
+        }
+
+        verify(exactly = 1) { call.cancel("Job was cancelled",any<CancellationException>()) }
+    }
+
+    @Test
+    fun `Test call is not cancelled by normal completion`(){
+
+        val call = mockk<ClientCall<*,*>>()
+
+        runBlocking {
+            launch {
+                bindScopeCancellationToCall(call)
+                launch { Unit }
+            }
+        }
+
+        verify(exactly = 0) { call.cancel(any(),any()) }
+    }
+
+    @Test
+    fun `Test binding fails if scope has no job`(){
+
+        val call = mockk<ClientCall<*,*>>()
+
+        assertFailsWith(IllegalStateException::class){
+            GlobalScope.bindScopeCancellationToCall(call)
         }
     }
 }
