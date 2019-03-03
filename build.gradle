@@ -33,6 +33,7 @@ subprojects{ subproject ->
     }
 
     apply plugin: 'idea'
+    apply plugin: 'jacoco'
     apply plugin: 'kotlin'
 
     group = 'com.github.marcoferrer.krotoplus'
@@ -54,4 +55,18 @@ subprojects{ subproject ->
         testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
     }
 
+    jacoco {
+        toolVersion = "0.8.3"
+    }
+
+    jacocoTestReport {
+        description 'Generates Code coverage report. Fails build if it does not meet minimum coverage.'
+        reports {
+            xml.enabled = true // required for SonarQube
+            xml.destination file("${buildDir}/reports/coverage/jacocoTestReport.xml")
+            html.enabled = true
+            html.destination file("${buildDir}/reports/coverage")
+            csv.enabled = false
+        }
+    }
 }

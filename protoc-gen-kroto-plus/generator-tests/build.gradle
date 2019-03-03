@@ -11,6 +11,8 @@ dependencies{
     testImplementation "io.grpc:grpc-netty:${Versions.grpc}"
     testImplementation "io.grpc:grpc-testing:${Versions.grpc}"
     
+    testProtobuf project(':test-api')
+    testImplementation project(':test-api:grpc')
     testImplementation project(':kroto-plus-message')
     testImplementation project(':kroto-plus-coroutines')
     testImplementation project(':kroto-plus-test')
@@ -21,7 +23,6 @@ protobuf {
 
     //noinspection GroovyAssignabilityCheck
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${Versions.grpc}" }
         kroto {
             path = "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-jvm8.jar"
         }
@@ -35,7 +36,6 @@ protobuf {
             task.dependsOn ':protoc-gen-kroto-plus:bootJar'
 
             task.plugins {
-                grpc { outputSubDir = "java" }
                 kroto {
                     outputSubDir = "java"
                     option "ConfigPath=$krotoConfig"

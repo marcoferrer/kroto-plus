@@ -1,0 +1,10 @@
+apply plugin: 'com.google.protobuf'
+
+protobuf {
+    generateProtoTasks {
+        all().each { task ->
+            task.enabled = false
+        }
+    }
+}
+
