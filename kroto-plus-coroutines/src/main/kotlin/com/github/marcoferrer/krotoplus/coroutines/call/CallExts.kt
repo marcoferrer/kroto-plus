@@ -64,11 +64,14 @@ internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamO
 
 internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>){
 
-    requireNotNull(coroutineContext[Job]){
-        "Unable to bind cancellation to CoroutineScope. Job was null"
-    }.invokeOnCompletion {
-        if(it is CancellationException){
-            call.cancel(it.message,it.cause ?: it)
+    val job = coroutineContext[Job]
+        ?: error("Unable to bind cancellation to call because scope does not have a job: $this")
+
+    job.apply {
+        invokeOnCompletion {
+            if(isCancelled){
+                call.cancel(it?.message,it?.cause ?: it)
+            }
         }
     }
 }
@@ -81,29 +84,6 @@ internal val StreamObserver<*>.completionHandler: CompletionHandler
             if(it != null)
                 onError(it.toRpcException()) else
                 onCompleted()
-        }
-    }
-
-internal val SendChannel<*>.completionHandler: CompletionHandler
-    get() = {
-        if(!isClosedForSend){
-            close(it?.toRpcException())
-        }
-    }
-
-internal val SendChannel<*>.abandonedRpcHandler: CompletionHandler
-    get() = { completionError ->
-        if(!isClosedForSend){
-
-            val rpcException = completionError
-                ?.toRpcException()
-                ?.let { it as? StatusRuntimeException }
-                ?.takeUnless { it.status.code == Status.UNKNOWN.code }
-                ?: Status.UNKNOWN
-                    .withDescription("Abandoned Rpc")
-                    .asRuntimeException()
-
-            close(rpcException)
         }
     }
 
@@ -140,15 +120,21 @@ internal fun <T> CoroutineScope.newProducerScope(channel: SendChannel<T>): Produ
     }
 
 internal inline fun <T> StreamObserver<T>.handleUnaryRpc(block: ()->T){
-    runCatching { onNext(block()) }
-        .onSuccess { onCompleted() }
-        .onFailure { onError(it.toRpcException()) }
+    try{
+        onNext(block())
+        onCompleted()
+    }catch (e: Throwable){
+        onError(e.toRpcException())
+    }
 }
 
 internal inline fun <T> SendChannel<T>.handleStreamingRpc(block: (SendChannel<T>)->Unit){
-    runCatching { block(this) }
-        .onSuccess { close() }
-        .onFailure { close(it.toRpcException()) }
+    try{
+        block(this)
+        close()
+    }catch (e: Throwable){
+        close(e.toRpcException())
+    }
 }
 
 internal inline fun <ReqT, RespT> handleBidiStreamingRpc(
@@ -156,7 +142,10 @@ internal inline fun <ReqT, RespT> handleBidiStreamingRpc(
     responseChannel: SendChannel<RespT>,
     block: (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ) {
-    runCatching { block(requestChannel,responseChannel) }
-        .onSuccess { responseChannel.close() }
-        .onFailure { responseChannel.close(it.toRpcException()) }
+    try{
+        block(requestChannel,responseChannel)
+        responseChannel.close()
+    }catch (e:Throwable){
+        responseChannel.close(e.toRpcException())
+    }
 }

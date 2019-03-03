@@ -17,10 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.*
-import com.github.marcoferrer.krotoplus.coroutines.call.bindScopeCancellationToCall
-import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
-import com.github.marcoferrer.krotoplus.coroutines.call.newSendChannelFromObserver
-import com.github.marcoferrer.krotoplus.coroutines.call.toStreamObserver
+import com.github.marcoferrer.krotoplus.coroutines.call.*
 import io.grpc.MethodDescriptor
 import io.grpc.stub.AbstractStub
 import io.grpc.stub.ClientCalls.*
@@ -36,6 +33,7 @@ public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
     with(newRpcScope(cont.context + coroutineContext, method)) {
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
         asyncUnaryCall<ReqT, RespT>(call, request, SuspendingUnaryObserver(cont))
+        cont.invokeOnCancellation { call.cancel(it?.message, it) }
         bindScopeCancellationToCall(call)
     }
 }
