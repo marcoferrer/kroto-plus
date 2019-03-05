@@ -60,12 +60,9 @@ subprojects{ subproject ->
     }
 
     jacocoTestReport {
-        description 'Generates Code coverage report. Fails build if it does not meet minimum coverage.'
         reports {
-            xml.enabled = true // required for SonarQube
-            xml.destination file("${buildDir}/reports/coverage/jacocoTestReport.xml")
             html.enabled = true
-            html.destination file("${buildDir}/reports/coverage")
+            html.destination file("$buildDir/reports/coverage")
             csv.enabled = false
         }
     }
