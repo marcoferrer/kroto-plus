@@ -16,11 +16,10 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.client
 
+
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatusCode
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
-import io.grpc.CallOptions
-import io.grpc.ClientCall
-import io.grpc.Status
+import io.grpc.*
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
@@ -34,14 +33,36 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
+
 class ClientCallUnaryTests {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
 
+    private val methodDescriptor = GreeterGrpc.getSayHelloMethod()
     private val service = spyk(object : GreeterGrpc.GreeterImplBase(){})
     private val request = HelloRequest.newBuilder().setName("request").build()
     private val response = HelloReply.newBuilder().setMessage("reply").build()
+
+    inner class RpcSpy{
+        val stub: GreeterGrpc.GreeterStub
+        lateinit var call: ClientCall<HelloRequest,HelloReply>
+
+        init {
+            val channelSpy = spyk(grpcServerRule.channel)
+            stub = GreeterGrpc.newStub(channelSpy)
+
+            every { channelSpy.newCall(methodDescriptor, any()) } answers {
+                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
+                    this@RpcSpy.call = it
+                }
+            }
+        }
+    }
+
+    private fun setupServerHandlerNoop(){
+        every { service.sayHello(request,any()) } just Runs
+    }
 
     @BeforeTest
     fun setupService(){
@@ -49,7 +70,7 @@ class ClientCallUnaryTests {
     }
 
     @Test
-    fun `Unary call success`(){
+    fun `Call succeeds on server response`(){
         val stub = GreeterGrpc.newStub(grpcServerRule.channel)
 
         every { service.sayHello(request,any()) } answers {
@@ -60,14 +81,14 @@ class ClientCallUnaryTests {
         }
 
         val result = runBlocking {
-            stub.clientCallUnary(request,GreeterGrpc.getSayHelloMethod())
+            stub.clientCallUnary(request, methodDescriptor)
         }
 
         assertEquals(response, result)
     }
 
     @Test
-    fun `Unary call fails`(){
+    fun `Call fails on server error`(){
         val stub = GreeterGrpc.newStub(grpcServerRule.channel)
         val expectedError = Status.INVALID_ARGUMENT.asRuntimeException()
 
@@ -78,56 +99,40 @@ class ClientCallUnaryTests {
 
         assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT){
             runBlocking {
-                stub.clientCallUnary(request,GreeterGrpc.getSayHelloMethod())
+                stub.clientCallUnary(request, methodDescriptor)
             }
         }
     }
 
     @Test
-    fun `Unary call is canceled when scope is canceled normally`(){
-        lateinit var callSpy: ClientCall<*,*>
-        val channelSpy = spyk(grpcServerRule.channel)
-        val stub = GreeterGrpc.newStub(channelSpy)
-
-        every { channelSpy.newCall(GreeterGrpc.getSayHelloMethod(),any()) } answers {
-            callSpy = spyk(grpcServerRule.channel.newCall(GreeterGrpc.getSayHelloMethod(),secondArg<CallOptions>()))
-
-            @Suppress("UNCHECKED_CAST")
-            callSpy as ClientCall<HelloRequest, HelloReply>
-        }
-        every { service.sayHello(request,any()) } just Runs
+    fun `Call is canceled when scope is canceled normally`(){
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        setupServerHandlerNoop()
 
         runBlocking {
             launch(Dispatchers.Default) {
                 launch(start = CoroutineStart.UNDISPATCHED) {
-                    stub.clientCallUnary(request,GreeterGrpc.getSayHelloMethod())
+                    stub.clientCallUnary(request, methodDescriptor)
                 }
                 cancel()
             }
         }
 
-        verify { callSpy.cancel(any(),any()) }
+        verify { rpcSpy.call.cancel(any(),any()) }
     }
 
     @Test
-    fun `Unary call is canceled when scope is canceled exceptionally`(){
-        lateinit var callSpy: ClientCall<*,*>
-        val channelSpy = spyk(grpcServerRule.channel)
-        val stub = GreeterGrpc.newStub(channelSpy)
-
-        every { channelSpy.newCall(GreeterGrpc.getSayHelloMethod(),any()) } answers {
-            callSpy = spyk(grpcServerRule.channel.newCall(GreeterGrpc.getSayHelloMethod(),secondArg<CallOptions>()))
-
-            @Suppress("UNCHECKED_CAST")
-            callSpy as ClientCall<HelloRequest, HelloReply>
-        }
-        every { service.sayHello(request,any()) } just Runs
+    fun `Call is canceled when scope is canceled exceptionally`(){
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        setupServerHandlerNoop()
 
         assertFailsWith(IllegalStateException::class,"cancel") {
             runBlocking {
                 launch(Dispatchers.Default) {
                     launch(start = CoroutineStart.UNDISPATCHED) {
-                        stub.clientCallUnary(request, GreeterGrpc.getSayHelloMethod())
+                        stub.clientCallUnary(request, methodDescriptor)
                     }
                     launch {
                         error("cancel")
@@ -136,50 +141,34 @@ class ClientCallUnaryTests {
             }
         }
 
-        verify { callSpy.cancel("Parent job is Cancelling",any()) }
+        verify { rpcSpy.call.cancel("Parent job is Cancelling",any()) }
     }
 
     @Test
-    fun `Unary call is still canceled when stub context job differs`(){
-        lateinit var callSpy: ClientCall<*,*>
-        val channelSpy = spyk(grpcServerRule.channel)
-        val stub = GreeterGrpc.newStub(channelSpy)
-
-        every { channelSpy.newCall(GreeterGrpc.getSayHelloMethod(),any()) } answers {
-            callSpy = spyk(grpcServerRule.channel.newCall(GreeterGrpc.getSayHelloMethod(),secondArg<CallOptions>()))
-
-            @Suppress("UNCHECKED_CAST")
-            callSpy as ClientCall<HelloRequest, HelloReply>
-        }
-        every { service.sayHello(request,any()) } just Runs
+    fun `Call is canceled when stub context job differs`(){
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        setupServerHandlerNoop()
 
         val job = Job()
         runBlocking {
             launch(Dispatchers.Default) {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     stub.withCoroutineContext(job)
-                        .clientCallUnary(request, GreeterGrpc.getSayHelloMethod())
+                        .clientCallUnary(request, methodDescriptor)
                 }
                 cancel()
             }
         }
 
-        verify { callSpy.cancel("Job was cancelled",any<CancellationException>()) }
+        verify { rpcSpy.call.cancel("Job was cancelled",any<CancellationException>()) }
     }
 
     @Test
-    fun `Unary call is canceled when stub context job is cancelled`(){
-        lateinit var callSpy: ClientCall<*,*>
-        val channelSpy = spyk(grpcServerRule.channel)
-        val stub = GreeterGrpc.newStub(channelSpy)
-
-        every { channelSpy.newCall(GreeterGrpc.getSayHelloMethod(),any()) } answers {
-            callSpy = spyk(grpcServerRule.channel.newCall(GreeterGrpc.getSayHelloMethod(),secondArg<CallOptions>()))
-
-            @Suppress("UNCHECKED_CAST")
-            callSpy as ClientCall<HelloRequest, HelloReply>
-        }
-        every { service.sayHello(request,any()) } just Runs
+    fun `Call is canceled when stub context job is cancelled`(){
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        setupServerHandlerNoop()
 
         val job = Job().apply { cancel() }
         assertFailsWithStatusCode(Status.Code.CANCELLED, "CANCELLED: Job was cancelled") {
@@ -187,13 +176,13 @@ class ClientCallUnaryTests {
                 launch(Dispatchers.Default) {
                     launch(start = CoroutineStart.UNDISPATCHED) {
                         stub.withCoroutineContext(job)
-                            .clientCallUnary(request, GreeterGrpc.getSayHelloMethod())
+                            .clientCallUnary(request, methodDescriptor)
                     }
                 }
             }
         }
 
-        verify { callSpy.cancel("Job was cancelled",any()) }
+        verify { rpcSpy.call.cancel("Job was cancelled",any()) }
     }
 
 }
