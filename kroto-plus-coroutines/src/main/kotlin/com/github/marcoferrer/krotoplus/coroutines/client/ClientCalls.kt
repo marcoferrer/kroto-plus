@@ -23,6 +23,7 @@ import io.grpc.stub.AbstractStub
 import io.grpc.stub.ClientCalls.*
 import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 
 
@@ -100,12 +101,15 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallBidiStreaming(
 
     with(newRpcScope(coroutineContext, method)) {
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
-        val responseChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext)
+        val responseDelegate = Channel<RespT>(capacity = 1)
+        val responseChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext, responseDelegate)
         val requestObserver = asyncBidiStreamingCall<ReqT, RespT>(
             call, responseChannel
         )
         bindScopeCancellationToCall(call)
         val requestChannel = newSendChannelFromObserver(requestObserver)
+        responseDelegate.invokeOnClose { requestChannel.close(it) }
+
         return ClientBidiCallChannelImpl(requestChannel, responseChannel)
     }
 }
@@ -115,7 +119,7 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallClientStreaming(
 ): ClientStreamingCallChannel<ReqT, RespT> {
 
     with(newRpcScope(coroutineContext, method)) {
-        val completableResponse = CompletableDeferred<RespT>()
+        val completableResponse = CompletableDeferred<RespT>(parent = coroutineContext[Job])
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
         val requestObserver = asyncClientStreamingCall<ReqT, RespT>(
             call, completableResponse.toStreamObserver()

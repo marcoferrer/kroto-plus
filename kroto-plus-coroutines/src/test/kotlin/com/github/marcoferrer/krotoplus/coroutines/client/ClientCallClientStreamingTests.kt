@@ -17,7 +17,6 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatusCode
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
@@ -44,6 +43,7 @@ class ClientCallClientStreamingTests {
 
     private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
     private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
+    private val noopExceptionHandler = CoroutineExceptionHandler{ _, _ -> /**NOOP**/ }
 
     inner class RpcSpy{
         val stub: GreeterGrpc.GreeterStub
@@ -69,7 +69,7 @@ class ClientCallClientStreamingTests {
                 var responseString = ""
                 override fun onNext(value: HelloRequest) {
                     responseString += "Req:#${value.name}/Resp:#${reqQty++}|"
-                    if(reqQty == 1){
+                    if(reqQty == 2){
                         responseObserver.onError(Status.INVALID_ARGUMENT.asRuntimeException())
                     }
                 }
@@ -103,7 +103,6 @@ class ClientCallClientStreamingTests {
             }
         }
     }
-
 
     private fun setupServerHandlerNoop(){
         every { service.sayHelloClientStreaming(any()) } answers {
@@ -160,27 +159,36 @@ class ClientCallClientStreamingTests {
         setupServerHandlerError()
 
         val (requestChannel, response) = stub
+            .withCoroutineContext(noopExceptionHandler)
             .clientCallClientStreaming(methodDescriptor)
 
+        var requestsSent = 0
         runBlocking {
             launch {
-                assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT) {
-                    repeat(3) {
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    repeat(2) {
+                        requestsSent++
                         requestChannel.send(
                             HelloRequest.newBuilder()
                                 .setName(it.toString())
                                 .build()
                         )
                     }
-                    requestChannel.close()
+                    assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT) {
+                        requestChannel.send(
+                            HelloRequest.newBuilder()
+                                .setName("request")
+                                .build()
+                        )
+                    }
                 }
-            }
-            assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT){
-                response.await().message
+                assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT) {
+                    response.await().message
+                }
             }
         }
 
-        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
+        assertEquals(2,requestsSent)
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
     }
 
