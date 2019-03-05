@@ -43,7 +43,6 @@ class ClientCallClientStreamingTests {
 
     private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
     private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
-    private val noopExceptionHandler = CoroutineExceptionHandler{ _, _ -> /**NOOP**/ }
 
     inner class RpcSpy{
         val stub: GreeterGrpc.GreeterStub
@@ -159,7 +158,6 @@ class ClientCallClientStreamingTests {
         setupServerHandlerError()
 
         val (requestChannel, response) = stub
-            .withCoroutineContext(noopExceptionHandler)
             .clientCallClientStreaming(methodDescriptor)
 
         var requestsSent = 0

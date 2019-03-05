@@ -37,7 +37,7 @@ import kotlin.test.*
 class NewSendChannelFromObserverTests {
 
     @Test
-    fun `Test channel send to observer success`() = runBlocking {
+    fun `Channel send to observer success`() = runBlocking {
 
         val observer = mockk<StreamObserver<Int>>().apply {
             every { onNext(allAny()) } just Runs
@@ -50,10 +50,11 @@ class NewSendChannelFromObserverTests {
         }
 
         verify(exactly = 3) { observer.onNext(allAny()) }
+        verify(exactly = 1) { observer.onCompleted() }
     }
 
     @Test
-    fun `Test channel close with error`() = runBlocking {
+    fun `Channel close with error`() = runBlocking {
 
         val statusException = Status.INVALID_ARGUMENT.asException()
         val observer = mockk<StreamObserver<String>>().apply {
@@ -61,25 +62,82 @@ class NewSendChannelFromObserverTests {
             every { onError(statusException) } just Runs
         }
 
-        GlobalScope.newSendChannelFromObserver(observer).apply {
+        val channel = GlobalScope.newSendChannelFromObserver(observer).apply {
             send("")
             close(statusException)
         }
 
+        assert(channel.isClosedForSend){ "Channel should be closed for send" }
         verify(exactly = 1) { observer.onNext(allAny()) }
-        verify(exactly = 1) { observer.onError(statusException) }
+        verify(atLeast = 1) { observer.onError(statusException) }
+        verify(exactly = 0) { observer.onCompleted() }
+    }
+
+
+    @Test
+    fun `Channel is closed when scope is cancelled normally`()  {
+
+        val observer = mockk<StreamObserver<String>>().apply {
+            every { onNext(allAny()) } just Runs
+            every { onError(any()) } just Runs
+        }
+
+        lateinit var channel: SendChannel<String>
+        runBlocking {
+            launch {
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    channel = newSendChannelFromObserver(observer).apply {
+                        send("")
+                    }
+                }
+                cancel()
+            }
+        }
+
+        assert(channel.isClosedForSend){ "Channel should be closed for send" }
+        verify(exactly = 1) { observer.onNext(allAny()) }
+        verify(exactly = 1) { observer.onError(any()) }
+        verify(exactly = 0) { observer.onCompleted() }
     }
 
     @Test
-    fun `Test channel close when observer onNext error `() = runBlocking {
+    fun `Channel is closed when scope is cancelled exceptionally`()  {
 
-        val statusException = Status.UNKNOWN.asException()
+        val observer = mockk<StreamObserver<String>>().apply {
+            every { onNext(allAny()) } just Runs
+            every { onError(any()) } just Runs
+        }
+
+        lateinit var channel: SendChannel<String>
+        assertFailsWith(IllegalStateException::class,"cancel"){
+            runBlocking {
+                launch {
+                    channel = newSendChannelFromObserver(observer).apply {
+                        send("")
+                    }
+                }
+                launch {
+                    error("cancel")
+                }
+            }
+        }
+
+        assert(channel.isClosedForSend){ "Channel should be closed for send" }
+        verify(exactly = 1) { observer.onNext(allAny()) }
+        verify(exactly = 1) { observer.onError(any()) }
+        verify(exactly = 0) { observer.onCompleted() }
+    }
+
+    @Test
+    fun `Channel close when observer onNext error `() = runBlocking {
+
+        val statusException = Status.INVALID_ARGUMENT.asException()
         val observer = mockk<StreamObserver<String>>().apply {
             every { onNext(allAny()) } throws statusException
             every { onError(statusException) } just Runs
         }
 
-        GlobalScope.newSendChannelFromObserver(observer).apply {
+        val channel = GlobalScope.newSendChannelFromObserver(observer).apply {
 
             val send1Result = runCatching { send("") }
             assertTrue(send1Result.isSuccess, "Error during observer.onNext should not fail channel.send")
@@ -90,9 +148,10 @@ class NewSendChannelFromObserverTests {
             assertEquals(statusException, send2Result.exceptionOrNull())
         }
 
+        assert(channel.isClosedForSend){ "Channel should be closed for send" }
         verify(exactly = 1) { observer.onNext(allAny()) }
-        verify(exactly = 1) { observer.onError(statusException) }
-        verify(inverse = true) { observer.onCompleted() }
+        verify(atLeast = 1) { observer.onError(statusException) }
+        verify(exactly = 0) { observer.onCompleted() }
     }
 }
 

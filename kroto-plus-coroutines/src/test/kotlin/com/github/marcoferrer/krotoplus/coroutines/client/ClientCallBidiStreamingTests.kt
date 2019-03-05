@@ -122,15 +122,10 @@ class ClientCallBidiStreamingTests {
         val stub = rpcSpy.stub
 
         setupServerHandlerSuccess()
+        val (requestChannel, responseChannel) = stub
+            .clientCallBidiStreaming(methodDescriptor)
 
-        lateinit var requestChannel: SendChannel<HelloRequest>
-        lateinit var responseChannel: ReceiveChannel<HelloReply>
         runBlocking(Dispatchers.Default) {
-            val callChannel = stub
-                .withCoroutineContext()
-                .clientCallBidiStreaming(methodDescriptor)
-            requestChannel = callChannel.requestChannel
-            responseChannel = callChannel.responseChannel
             launch {
                 repeat(3){
                     requestChannel.send(
