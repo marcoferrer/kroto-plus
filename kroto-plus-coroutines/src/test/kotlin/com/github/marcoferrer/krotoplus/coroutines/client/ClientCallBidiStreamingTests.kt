@@ -17,9 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatusCode
-import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import io.grpc.*
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
@@ -28,13 +26,10 @@ import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
 import io.mockk.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 
 class ClientCallBidiStreamingTests {
@@ -67,7 +62,7 @@ class ClientCallBidiStreamingTests {
             object : StreamObserver<HelloRequest>{
                 var reqQty = 0
                 override fun onNext(value: HelloRequest) {
-                    if(reqQty == 3){
+                    if(reqQty >= 3){
                         responseObserver.onError(Status.INVALID_ARGUMENT.asRuntimeException())
                     }else{
                         responseObserver.onNext(HelloReply.newBuilder()
@@ -143,6 +138,46 @@ class ClientCallBidiStreamingTests {
         }
 
         verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
+
+    @Test
+    fun `Call fails on server error`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+
+        setupServerHandlerError()
+        val (requestChannel, responseChannel) = stub
+            .clientCallBidiStreaming(methodDescriptor)
+
+        runBlocking(Dispatchers.Default) {
+            launch {
+                with(requestChannel){
+                    repeat(4) {
+                        send(HelloRequest.newBuilder()
+                            .setName(it.toString())
+                            .build())
+                    }
+                    assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+                        send(HelloRequest.newBuilder()
+                            .setName("fails")
+                            .build()
+                        )
+                    }
+                }
+            }
+            launch{
+                repeat(3) {
+                    assertEquals("Req:#$it/Resp:#$it", responseChannel.receive().message)
+                }
+                assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+                    responseChannel.receive().message
+                }
+            }
+        }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }

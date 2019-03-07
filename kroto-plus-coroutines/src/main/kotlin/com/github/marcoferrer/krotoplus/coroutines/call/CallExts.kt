@@ -35,14 +35,19 @@ internal fun <RespT> CoroutineScope.newSendChannelFromObserver(
     observer: StreamObserver<RespT>,
     capacity: Int = 1
 ): SendChannel<RespT> =
-    actor<RespT>(
+    actor(
         context = observer.exceptionHandler + Dispatchers.Unconfined,
         capacity = capacity,
         start = CoroutineStart.LAZY
     ) {
-        consumeEach { observer.onNext(it) }
-    }.apply {
-        invokeOnClose(observer.completionHandler)
+        try {
+            consumeEach { observer.onNext(it) }
+            observer.onCompleted()
+        }catch (e:Throwable){
+            observer.runCatching {
+                onError(e.toRpcException())
+            }
+        }
     }
 
 

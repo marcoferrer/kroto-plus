@@ -37,18 +37,35 @@ inline fun assertCancellationError(block: ()-> Unit){
     }
 }
 
-inline fun assertFailsWithStatusCode(
-    code: Status.Code,
+inline fun assertFailsWithStatus(
+    status: Status,
     message: String? = null,
     block: () -> Unit
 ){
     try{
         block()
+        fail("Block did not fail")
     }catch (e: Throwable){
         message?.let { assertEquals(it,e.message) }
         when(e){
-            is StatusRuntimeException -> assertEquals(code, e.status.code)
+            is StatusRuntimeException -> assertEquals(status.code, e.status.code)
             else -> throw e
+        }
+    }
+}
+
+//Default `assertFailsWith` isn't inline and doesnt support coroutines
+inline fun <reified T : Throwable> assertFails(message: String? = null, block: ()-> Unit){
+    try {
+        block()
+        fail("Block did not fail")
+    } catch (e: Throwable) {
+        message?.let { assertEquals(it,e.message) }
+        when {
+            e is AssertionError || e.cause is AssertionError -> throw e
+            else -> assert(e is T){
+                "Expecting ${T::class} exception: $e"
+            }
         }
     }
 }

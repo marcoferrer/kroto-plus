@@ -85,7 +85,6 @@ class LaunchProducerJobTests {
                 launch{
                     error("cancel")
                 }
-                cancel()
             }
         }
 

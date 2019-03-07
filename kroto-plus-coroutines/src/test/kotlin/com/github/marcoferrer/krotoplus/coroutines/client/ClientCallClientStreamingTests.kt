@@ -18,7 +18,7 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatusCode
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.*
 import io.grpc.examples.helloworld.GreeterGrpc
@@ -172,7 +172,7 @@ class ClientCallClientStreamingTests {
                                 .build()
                         )
                     }
-                    assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT) {
+                    assertFailsWithStatus(Status.INVALID_ARGUMENT) {
                         requestChannel.send(
                             HelloRequest.newBuilder()
                                 .setName("request")
@@ -180,7 +180,7 @@ class ClientCallClientStreamingTests {
                         )
                     }
                 }
-                assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT) {
+                assertFailsWithStatus(Status.INVALID_ARGUMENT) {
                     response.await().message
                 }
             }
@@ -204,8 +204,13 @@ class ClientCallClientStreamingTests {
 
         runBlocking {
             launch(Dispatchers.Default) {
-                launch(start = CoroutineStart.UNDISPATCHED) {
-                    assertFailsWithStatusCode(Status.Code.CANCELLED) {
+                val job = launch {
+                    launch(start = CoroutineStart.UNDISPATCHED){
+                        assertFailsWithStatus(Status.CANCELLED) {
+                            response.await().message
+                        }
+                    }
+                    assertFailsWithStatus(Status.CANCELLED) {
                         repeat(3) {
                             requestChannel.send(
                                 HelloRequest.newBuilder()
@@ -216,10 +221,8 @@ class ClientCallClientStreamingTests {
                     }
                 }
                 launch {
+                    job.start()
                     externalJob.cancel()
-                }
-                assertFailsWithStatusCode(Status.Code.CANCELLED) {
-                    response.await().message
                 }
             }
         }
@@ -247,16 +250,17 @@ class ClientCallClientStreamingTests {
                     val job = launch {
                         callChannel.response.await().message
                     }
-                    assertFailsWithStatusCode(Status.Code.CANCELLED) {
+                    assertFailsWithStatus(Status.CANCELLED) {
                         repeat(3) {
                             requestChannel.send(
                                 HelloRequest.newBuilder()
                                     .setName(it.toString())
                                     .build()
                             )
+                            delay(5)
                         }
                     }
-                    assertFailsWithStatusCode(Status.Code.CANCELLED) {
+                    assertFailsWithStatus(Status.CANCELLED) {
                         job.join()
                     }
                 }
@@ -286,7 +290,7 @@ class ClientCallClientStreamingTests {
 
                 launch(Dispatchers.Default) {
                     launch(start = CoroutineStart.UNDISPATCHED) {
-                        assertFailsWithStatusCode(Status.Code.CANCELLED) {
+                        assertFailsWithStatus(Status.CANCELLED) {
                             repeat(3) {
                                 requestChannel.send(
                                     HelloRequest.newBuilder()
@@ -300,7 +304,7 @@ class ClientCallClientStreamingTests {
                     launch {
                         error("cancel")
                     }
-                    assertFailsWithStatusCode(Status.Code.CANCELLED) {
+                    assertFailsWithStatus(Status.CANCELLED) {
                         callChannel.response.await().message
                     }
                 }

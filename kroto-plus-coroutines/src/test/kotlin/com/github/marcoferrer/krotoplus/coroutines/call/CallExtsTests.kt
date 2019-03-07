@@ -17,6 +17,8 @@
 package com.github.marcoferrer.krotoplus.coroutines.call
 
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
+import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
@@ -31,7 +33,12 @@ import kotlinx.coroutines.channels.SendChannel
 import org.junit.Test
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.test.*
+import kotlin.test.BeforeTest
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
+
+//import kotlin.test.*
 
 
 class NewSendChannelFromObserverTests {
@@ -109,7 +116,7 @@ class NewSendChannelFromObserverTests {
         }
 
         lateinit var channel: SendChannel<String>
-        assertFailsWith(IllegalStateException::class,"cancel"){
+        assertFails<IllegalStateException>("cancel"){
             runBlocking {
                 launch {
                     channel = newSendChannelFromObserver(observer).apply {
@@ -197,26 +204,27 @@ class NewManagedServerResponseChannelTests {
 
         observer.apply {
 
-            every {
-                val matcher = match<StatusRuntimeException> {
-                    it.status.code == Status.UNKNOWN.code
-                }
-                onError(matcher)
-            } just Runs
+            every { onError(matchStatus(Status.UNKNOWN)) } just Runs
 
             every { onNext(Unit) } just Runs
             every { onCompleted() } just Runs
         }
 
         val error = IllegalArgumentException("error")
-        assertFailsWith(IllegalArgumentException::class, error.message){
+//        assertFailsWith(IllegalArgumentException::class, error.message){
             runBlocking {
-                newManagedServerResponseChannel<Unit, Unit>(observer, AtomicBoolean()).apply {
+                val channel = newManagedServerResponseChannel<Unit, Unit>(observer, AtomicBoolean()).apply {
                     send(Unit)
                     close(error)
                 }
+
+                assertFails<IllegalArgumentException>("error") {
+                    channel.send(Unit)
+                }
+
+//                }
             }
-        }
+//        }
 
         verify(exactly = 1) { observer.onNext(Unit) }
         verify(exactly = 1) { observer.onError(any()) }
@@ -402,7 +410,7 @@ class BindScopeCancellationToCallTests {
             every { cancel(any(), any()) } just Runs
         }
 
-        assertFailsWith(IllegalStateException::class, errorMessage) {
+        assertFails<IllegalStateException>(errorMessage) {
             runBlocking {
                 launch {
                     bindScopeCancellationToCall(call)
@@ -461,7 +469,7 @@ class BindScopeCancellationToCallTests {
 
         val call = mockk<ClientCall<*,*>>()
 
-        assertFailsWith(IllegalStateException::class){
+        assertFails<IllegalStateException>{
             GlobalScope.bindScopeCancellationToCall(call)
         }
     }

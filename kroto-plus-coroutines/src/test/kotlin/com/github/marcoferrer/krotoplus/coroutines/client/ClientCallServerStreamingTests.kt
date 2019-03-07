@@ -18,7 +18,7 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 
 import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatusCode
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.*
 import io.grpc.examples.helloworld.GreeterGrpc
@@ -140,7 +140,7 @@ class ClientCallServerStreamingTests {
                 assertEquals("Request#$it:${expectedRequest.name}", responseChannel.receive().message)
             }
 
-            assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT) {
+            assertFailsWithStatus(Status.INVALID_ARGUMENT) {
                 responseChannel.receive()
             }
         }
@@ -158,7 +158,7 @@ class ClientCallServerStreamingTests {
 
         val externalJob = Job()
         lateinit var responseChannel: ReceiveChannel<HelloReply>
-        assertFailsWithStatusCode(Status.Code.CANCELLED, "CANCELLED: Job was cancelled") {
+        assertFailsWithStatus(Status.CANCELLED, "CANCELLED: Job was cancelled") {
             runBlocking {
                 launch(Dispatchers.Default) {
                     launch(start = CoroutineStart.UNDISPATCHED) {
@@ -190,7 +190,7 @@ class ClientCallServerStreamingTests {
         setupServerHandlerNoop()
 
         lateinit var responseChannel: ReceiveChannel<HelloReply>
-        assertFailsWithStatusCode(Status.Code.CANCELLED, "CANCELLED: Job was cancelled") {
+        assertFailsWithStatus(Status.CANCELLED, "CANCELLED: Job was cancelled") {
             runBlocking {
                 launch {
                     responseChannel = stub.clientCallServerStreaming(expectedRequest, methodDescriptor)

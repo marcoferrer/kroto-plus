@@ -17,7 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatusCode
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.*
 import io.grpc.examples.helloworld.GreeterGrpc
@@ -97,7 +97,7 @@ class ClientCallUnaryTests {
                 .onError(expectedError)
         }
 
-        assertFailsWithStatusCode(Status.Code.INVALID_ARGUMENT){
+        assertFailsWithStatus(Status.INVALID_ARGUMENT){
             runBlocking {
                 stub.clientCallUnary(request, methodDescriptor)
             }
@@ -171,13 +171,11 @@ class ClientCallUnaryTests {
         setupServerHandlerNoop()
 
         val job = Job().apply { cancel() }
-        assertFailsWithStatusCode(Status.Code.CANCELLED, "CANCELLED: Job was cancelled") {
+        assertFailsWithStatus(Status.CANCELLED, "CANCELLED: Job was cancelled") {
             runBlocking {
-                launch(Dispatchers.Default) {
-                    launch(start = CoroutineStart.UNDISPATCHED) {
-                        stub.withCoroutineContext(job)
-                            .clientCallUnary(request, methodDescriptor)
-                    }
+                launch {
+                    stub.withCoroutineContext(job)
+                        .clientCallUnary(request, methodDescriptor)
                 }
             }
         }
