@@ -35,19 +35,19 @@ internal fun <RespT> CoroutineScope.newSendChannelFromObserver(
     observer: StreamObserver<RespT>,
     capacity: Int = 1
 ): SendChannel<RespT> =
-    actor(
+    actor<RespT>(
         context = observer.exceptionHandler + Dispatchers.Unconfined,
         capacity = capacity,
         start = CoroutineStart.LAZY
     ) {
         try {
             consumeEach { observer.onNext(it) }
-            observer.onCompleted()
+            channel.close()
         }catch (e:Throwable){
-            observer.runCatching {
-                onError(e.toRpcException())
-            }
+            channel.close(e)
         }
+    }.apply{
+        invokeOnClose(observer.completionHandler)
     }
 
 
@@ -84,7 +84,7 @@ internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>){
 
 internal val StreamObserver<*>.exceptionHandler: CoroutineExceptionHandler
     get() = CoroutineExceptionHandler { _, e ->
-        runBlocking{ onError(e.toRpcException()) }
+        kotlin.runCatching { onError(e.toRpcException()) }
     }
 
 internal val StreamObserver<*>.completionHandler: CompletionHandler

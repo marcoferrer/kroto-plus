@@ -227,7 +227,9 @@ class ClientCallClientStreamingTests {
             }
         }
 
-        verify { rpcSpy.call.cancel(any(), any()) }
+        // First invocation comes from the requestChannel being closed and calling `onError`
+        // Second invocation comes from the scope cancellation handler
+        verify(exactly = 2) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
     }
 

@@ -203,29 +203,25 @@ class NewManagedServerResponseChannelTests {
     fun `Test channel propagates errors to observer onError`(){
 
         observer.apply {
-
             every { onError(matchStatus(Status.UNKNOWN)) } just Runs
-
             every { onNext(Unit) } just Runs
             every { onCompleted() } just Runs
         }
 
         val error = IllegalArgumentException("error")
-//        assertFailsWith(IllegalArgumentException::class, error.message){
-            runBlocking {
-                val channel = newManagedServerResponseChannel<Unit, Unit>(observer, AtomicBoolean()).apply {
-                    send(Unit)
-                    close(error)
-                }
-
-                assertFails<IllegalArgumentException>("error") {
-                    channel.send(Unit)
-                }
-
-//                }
+        lateinit var channel: SendChannel<Unit>
+        runBlocking {
+            channel = newManagedServerResponseChannel<Unit, Unit>(observer, AtomicBoolean()).apply {
+                send(Unit)
+                close(error)
             }
-//        }
 
+            assertFails<IllegalArgumentException>(error.message) {
+                channel.send(Unit)
+            }
+        }
+
+        assert(channel.isClosedForSend){ "Channel should be closed" }
         verify(exactly = 1) { observer.onNext(Unit) }
         verify(exactly = 1) { observer.onError(any()) }
         verify(exactly = 0) { observer.onCompleted() }
