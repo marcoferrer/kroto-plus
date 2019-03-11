@@ -17,7 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.*
@@ -190,7 +190,6 @@ class ClientCallClientStreamingTests {
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
     }
 
-
     @Test
     fun `Call is canceled when scope is canceled normally`() {
         val rpcSpy = RpcSpy()
@@ -240,7 +239,7 @@ class ClientCallClientStreamingTests {
         setupServerHandlerNoop()
 
         lateinit var requestChannel: SendChannel<HelloRequest>
-        assertCancellationError {
+        assertFails<CancellationException> {
             runBlocking {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     val callChannel = stub

@@ -17,25 +17,9 @@
 package com.github.marcoferrer.krotoplus.coroutines.utils
 
 import io.grpc.Status
-import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
-import kotlinx.coroutines.CancellationException
 import kotlin.test.assertEquals
 import kotlin.test.fail
-
-inline fun assertCancellationError(block: ()-> Unit){
-    try {
-        block()
-        fail("Block did not fail")
-    } catch (e: Throwable) {
-        when {
-            e is AssertionError || e.cause is AssertionError -> throw e
-            else -> assert(e is CancellationException){
-                "Expecting cancellation exception: $e"
-            }
-        }
-    }
-}
 
 inline fun assertFailsWithStatus(
     status: Status,
@@ -45,12 +29,9 @@ inline fun assertFailsWithStatus(
     try{
         block()
         fail("Block did not fail")
-    }catch (e: Throwable){
+    }catch (e: StatusRuntimeException){
         message?.let { assertEquals(it,e.message) }
-        when(e){
-            is StatusRuntimeException -> assertEquals(status.code, e.status.code)
-            else -> throw e
-        }
+        assertEquals(status.code, e.status.code)
     }
 }
 

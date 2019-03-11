@@ -16,43 +16,42 @@
 
 package com.github.marcoferrer.krotoplus.coroutines
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.take
 import kotlinx.coroutines.channels.toList
 import org.junit.Test
 import java.lang.IllegalStateException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
+
 
 class LaunchProducerJobTests {
 
     @Test
-    fun `Job produces values to channel and channel closes with no error`() = runBlocking{
+    fun `Job produces values to channel and channel closes with no error`() = runBlocking {
 
         val expectedSize = 5
         val channel = spyk(Channel<Unit>())
-        val job = launchProducerJob(channel){
+        val job = launchProducerJob(channel) {
             repeat(expectedSize) {
                 send(Unit)
             }
         }
 
         val result = async { channel.toList() }
-        assertEquals(expectedSize,result.await().size)
-        assert(channel.isClosedForSend){ "Channel is closed for send" }
-        assert(job.isCompleted){ "Producer Job is completed" }
+        assertEquals(expectedSize, result.await().size)
+        assert(channel.isClosedForSend) { "Channel is closed for send" }
+        assert(job.isCompleted) { "Producer Job is completed" }
         verify(atLeast = 1) { channel.close(null) }
     }
 
     @Test
-    fun `Channel is closed on normal scope cancellation`(){
+    fun `Channel is closed on normal scope cancellation`() {
         val channel = spyk(Channel<Unit>())
-        assertCancellationError {
+        assertFails<CancellationException> {
             runBlocking {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     launchProducerJob(channel) {
@@ -65,15 +64,15 @@ class LaunchProducerJobTests {
             }
         }
 
-        assert(channel.isClosedForSend){ "Channel should be closed for send" }
+        assert(channel.isClosedForSend) { "Channel should be closed for send" }
         verify(atLeast = 1) { channel.close(any<CancellationException>()) }
     }
 
     @Test
-    fun `Channel is closed on exceptional scope cancellation`(){
+    fun `Channel is closed on exceptional scope cancellation`() {
 
         val channel = spyk(Channel<Unit>())
-        assertFailsWith(IllegalStateException::class,"cancel"){
+        assertFailsWith(IllegalStateException::class, "cancel") {
             runBlocking {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     launchProducerJob(channel) {
@@ -82,13 +81,13 @@ class LaunchProducerJobTests {
                         }
                     }
                 }
-                launch{
+                launch {
                     error("cancel")
                 }
             }
         }
 
-        assert(channel.isClosedForSend){ "Channel should be closed for send" }
+        assert(channel.isClosedForSend) { "Channel should be closed for send" }
         verify(atLeast = 1) { channel.close(any<CancellationException>()) }
     }
 }

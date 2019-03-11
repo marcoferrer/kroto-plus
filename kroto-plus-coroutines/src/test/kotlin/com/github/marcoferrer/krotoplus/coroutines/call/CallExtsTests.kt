@@ -16,8 +16,8 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.call
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertCancellationError
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
@@ -37,8 +37,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
-
-//import kotlin.test.*
 
 
 class NewSendChannelFromObserverTests {
@@ -76,7 +74,7 @@ class NewSendChannelFromObserverTests {
 
         assert(channel.isClosedForSend){ "Channel should be closed for send" }
         verify(exactly = 1) { observer.onNext(allAny()) }
-        verify(atLeast = 1) { observer.onError(statusException) }
+        verify(exactly = 1) { observer.onError(statusException) }
         verify(exactly = 0) { observer.onCompleted() }
     }
 
@@ -136,28 +134,34 @@ class NewSendChannelFromObserverTests {
     }
 
     @Test
-    fun `Channel close when observer onNext error `() = runBlocking {
+    fun `Channel close when observer onNext error `() {
 
-        val statusException = Status.INVALID_ARGUMENT.asException()
+        val statusException = Status.INVALID_ARGUMENT.asRuntimeException()
         val observer = mockk<StreamObserver<String>>().apply {
-            every { onNext(allAny()) } throws statusException
+            every { onNext(any()) } throws statusException
             every { onError(statusException) } just Runs
         }
 
-        val channel = GlobalScope.newSendChannelFromObserver(observer).apply {
+        lateinit var channel: SendChannel<String>
+        assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+            runBlocking {
 
-            val send1Result = runCatching { send("") }
-            assertTrue(send1Result.isSuccess, "Error during observer.onNext should not fail channel.send")
-            assertTrue(isClosedForSend, "Channel should be closed after onNext error")
+                channel = newSendChannelFromObserver(observer).apply {
 
-            val send2Result = runCatching { send("") }
-            assertTrue(send2Result.isFailure, "Expecting error after sending a value to failed channel")
-            assertEquals(statusException, send2Result.exceptionOrNull())
+                    val send1Result = runCatching { send("") }
+                    assertTrue(send1Result.isSuccess, "Error during observer.onNext should not fail channel.send")
+                    assertTrue(isClosedForSend, "Channel should be closed after onNext error")
+
+                    val send2Result = runCatching { send("") }
+                    assertTrue(send2Result.isFailure, "Expecting error after sending a value to failed channel")
+                    assertEquals(statusException, send2Result.exceptionOrNull())
+                }
+            }
         }
 
-        assert(channel.isClosedForSend){ "Channel should be closed for send" }
+        assert(channel.isClosedForSend) { "Channel should be closed for send" }
         verify(exactly = 1) { observer.onNext(allAny()) }
-        verify(atLeast = 1) { observer.onError(statusException) }
+        verify(exactly = 1) { observer.onError(statusException) }
         verify(exactly = 0) { observer.onCompleted() }
     }
 }
@@ -380,7 +384,7 @@ class BindToClientCancellationTests {
             every { setOnCancelHandler(capture(cancellationHandler)) } just Runs
         }
 
-        assertCancellationError {
+        assertFails<CancellationException> {
             runBlocking {
                 bindToClientCancellation(serverCallStreamObserver)
                 launch {

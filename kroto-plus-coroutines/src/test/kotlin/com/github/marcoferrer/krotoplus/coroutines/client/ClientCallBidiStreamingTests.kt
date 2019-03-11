@@ -17,7 +17,10 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
+import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.*
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
@@ -26,10 +29,13 @@ import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
 import io.mockk.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 
 class ClientCallBidiStreamingTests {
@@ -151,7 +157,7 @@ class ClientCallBidiStreamingTests {
         val (requestChannel, responseChannel) = stub
             .clientCallBidiStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runBlocking {
             launch {
                 with(requestChannel){
                     repeat(4) {
@@ -177,10 +183,147 @@ class ClientCallBidiStreamingTests {
             }
         }
 
-        verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
+        verify(exactly = 1) {
+            rpcSpy.call.cancel(
+                "Cancelled by client with StreamObserver.onError()",
+                matchStatus(Status.INVALID_ARGUMENT)
+            )
+        }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
 
+    @Test
+    fun `Call is canceled when scope is canceled normally`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        setupServerHandlerNoop()
+
+        val externalJob = Job()
+        val (requestChannel, responseChannel) = stub
+            .withCoroutineContext(externalJob)
+            .clientCallBidiStreaming(methodDescriptor)
+
+
+        runBlocking {
+            launch(Dispatchers.Default) {
+                val job = launch {
+                    launch(start = CoroutineStart.UNDISPATCHED){
+                        assertFailsWithStatus(Status.CANCELLED) {
+                            responseChannel.receive()
+                        }
+                    }
+                    assertFailsWithStatus(Status.CANCELLED) {
+                        repeat(3) {
+                            requestChannel.send(
+                                HelloRequest.newBuilder()
+                                    .setName(it.toString())
+                                    .build()
+                            )
+                        }
+                    }
+                }
+                launch {
+                    job.start()
+                    externalJob.cancel()
+                }
+            }
+        }
+
+        // First invocation comes from the requestChannel being closed and calling `onError`
+        // Second invocation comes from the scope cancellation handler
+        verify(exactly = 2) { rpcSpy.call.cancel(any(), any()) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
+
+    @Test
+    fun `Call withCoroutineContext is canceled when scope is canceled normally`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        setupServerHandlerNoop()
+
+        lateinit var requestChannel: SendChannel<HelloRequest>
+        lateinit var responseChannel: ReceiveChannel<HelloReply>
+        assertFails<CancellationException> {
+            runBlocking {
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    val callChannel = stub
+                        .withCoroutineContext()
+                        .clientCallBidiStreaming(methodDescriptor)
+
+                    requestChannel = callChannel.requestChannel
+                    responseChannel = callChannel.responseChannel
+
+                    val job = launch {
+                        callChannel.responseChannel.receive().message
+                    }
+                    assertFailsWithStatus(Status.CANCELLED) {
+                        repeat(3) {
+                            requestChannel.send(
+                                HelloRequest.newBuilder()
+                                    .setName(it.toString())
+                                    .build()
+                            )
+                            delay(5)
+                        }
+                    }
+                    assertFailsWithStatus(Status.CANCELLED) {
+                        job.join()
+                    }
+                }
+                cancel()
+            }
+        }
+
+        verify { rpcSpy.call.cancel(any(), any()) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
+
+    @Test
+    fun `Call withCoroutineContext is canceled when scope is canceled exceptionally`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        setupServerHandlerNoop()
+
+        lateinit var requestChannel: SendChannel<HelloRequest>
+        lateinit var responseChannel: ReceiveChannel<HelloReply>
+        assertFailsWith(IllegalStateException::class, "cancel") {
+            runBlocking {
+                val callChannel = stub
+                    .withCoroutineContext()
+                    .clientCallBidiStreaming(methodDescriptor)
+
+                requestChannel = callChannel.requestChannel
+                responseChannel = callChannel.responseChannel
+
+                launch(Dispatchers.Default) {
+                    launch(start = CoroutineStart.UNDISPATCHED) {
+                        assertFailsWithStatus(Status.CANCELLED) {
+                            repeat(3) {
+                                requestChannel.send(
+                                    HelloRequest.newBuilder()
+                                        .setName(it.toString())
+                                        .build()
+                                )
+                                delay(10L)
+                            }
+                        }
+                    }
+                    launch {
+                        error("cancel")
+                    }
+                    assertFailsWithStatus(Status.CANCELLED) {
+                        callChannel.responseChannel.receive().message
+                    }
+                }
+            }
+        }
+
+        verify { rpcSpy.call.cancel(any(), any()) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
 
 }
