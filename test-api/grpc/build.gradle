@@ -1,0 +1,27 @@
+apply plugin: 'com.google.protobuf'
+apply plugin: 'java-library'
+
+dependencies{
+    protobuf project(':test-api')
+    api "io.grpc:grpc-protobuf:${Versions.grpc}"
+    api "io.grpc:grpc-stub:${Versions.grpc}"
+    api "io.grpc:grpc-testing:${Versions.grpc}"
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}"}
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${Versions.grpc}" }
+    }
+
+    generateProtoTasks {
+
+        all().each{ task ->
+            task.plugins {
+                grpc { }
+            }
+        }
+    }
+}

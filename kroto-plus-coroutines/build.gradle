@@ -1,6 +1,7 @@
 description = "Kroto+ Grpc Coroutine Support"
 
 apply from: "$rootDir/publishing.gradle"
+apply plugin: 'com.google.protobuf'
 
 def experimentalFlags = [
     "-Xuse-experimental=kotlin.Experimental",
@@ -27,5 +28,37 @@ compileTestKotlin {
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
     implementation "io.grpc:grpc-stub:${Versions.grpc}"
+
+    testProtobuf project(':test-api')
+    testImplementation project(':test-api:grpc')
+    testImplementation project(':test-api:java')
     testImplementation "io.mockk:mockk:${Versions.mockk}"
+}
+
+tasks.withType(JavaCompile) {
+    enabled = false
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}"}
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        coroutines {
+            path = "${rootProject.projectDir}/protoc-gen-grpc-coroutines/build/libs/protoc-gen-grpc-coroutines-${project.version}-jvm8.jar"
+        }
+    }
+
+    generateProtoTasks {
+
+        all().each{ task ->
+            task.dependsOn ':protoc-gen-grpc-coroutines:bootJar'
+            task.builtins {
+                remove java
+            }
+            task.plugins {
+                coroutines {}
+            }
+        }
+    }
 }

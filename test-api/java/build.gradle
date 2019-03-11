@@ -1,0 +1,11 @@
+apply plugin: 'com.google.protobuf'
+apply plugin: 'java-library'
+
+dependencies{
+    protobuf project(':test-api')
+    api "com.google.protobuf:protobuf-java:${Versions.protobuf}"
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${Versions.protobuf}"}
+}

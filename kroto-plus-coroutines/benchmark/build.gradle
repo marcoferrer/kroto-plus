@@ -41,6 +41,7 @@ protobuf {
 
         all().each{ task ->
             task.inputs.files krotoConfig
+            task.dependsOn ':protoc-gen-kroto-plus:bootJar'
 
             task.builtins {
                 remove java

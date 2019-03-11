@@ -33,6 +33,7 @@ subprojects{ subproject ->
     }
 
     apply plugin: 'idea'
+    apply plugin: 'jacoco'
     apply plugin: 'kotlin'
 
     group = 'com.github.marcoferrer.krotoplus'
@@ -54,4 +55,15 @@ subprojects{ subproject ->
         testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
     }
 
+    jacoco {
+        toolVersion = "0.8.3"
+    }
+
+    jacocoTestReport {
+        reports {
+            html.enabled = true
+            html.destination file("$buildDir/reports/coverage")
+            csv.enabled = false
+        }
+    }
 }

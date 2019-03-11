@@ -54,7 +54,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
 
         launch {
             responseChannel.handleStreamingRpc { block(it) }
-        }.invokeOnCompletion(responseChannel.abandonedRpcHandler)
+        }
     }
 }
 
@@ -128,7 +128,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
 
         launch {
             handleBidiStreamingRpc(requestChannel, responseChannel){ req, resp -> block(req,resp) }
-        }.invokeOnCompletion(responseChannel.abandonedRpcHandler)
+        }
 
         return requestChannel
     }
