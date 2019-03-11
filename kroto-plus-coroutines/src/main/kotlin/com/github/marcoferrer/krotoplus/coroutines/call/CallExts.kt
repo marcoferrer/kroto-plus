@@ -23,8 +23,10 @@ import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
+import io.grpc.ClientCall
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -34,14 +36,20 @@ internal fun <RespT> CoroutineScope.newSendChannelFromObserver(
     capacity: Int = 1
 ): SendChannel<RespT> =
     actor<RespT>(
-        context = Dispatchers.Unconfined,
+        context = observer.exceptionHandler + Dispatchers.Unconfined,
         capacity = capacity,
         start = CoroutineStart.LAZY
     ) {
-        consumeEach { observer.onNext(it) }
-    }.apply {
+        try {
+            consumeEach { observer.onNext(it) }
+            channel.close()
+        }catch (e:Throwable){
+            channel.close(e)
+        }
+    }.apply{
         invokeOnClose(observer.completionHandler)
     }
+
 
 internal fun <ReqT, RespT> CoroutineScope.newManagedServerResponseChannel(
     responseObserver: ServerCallStreamObserver<RespT>,
@@ -60,37 +68,33 @@ internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamO
     observer.setOnCancelHandler { this@bindToClientCancellation.cancel() }
 }
 
+internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>){
+
+    val job = coroutineContext[Job]
+        ?: error("Unable to bind cancellation to call because scope does not have a job: $this")
+
+    job.apply {
+        invokeOnCompletion {
+            if(isCancelled){
+                call.cancel(it?.message,it?.cause ?: it)
+            }
+        }
+    }
+}
+
+internal val StreamObserver<*>.exceptionHandler: CoroutineExceptionHandler
+    get() = CoroutineExceptionHandler { _, e ->
+        kotlin.runCatching { onError(e.toRpcException()) }
+    }
+
 internal val StreamObserver<*>.completionHandler: CompletionHandler
     get() = {
         // If the call was cancelled already
         // the stream observer will throw
         runCatching {
-            if(it != null)
+            if (it != null)
                 onError(it.toRpcException()) else
                 onCompleted()
-        }
-    }
-
-internal val SendChannel<*>.completionHandler: CompletionHandler
-    get() = {
-        if(!isClosedForSend){
-            close(it?.toRpcException())
-        }
-    }
-
-internal val SendChannel<*>.abandonedRpcHandler: CompletionHandler
-    get() = { completionError ->
-        if(!isClosedForSend){
-
-            val rpcException = completionError
-                ?.toRpcException()
-                ?.let { it as? StatusRuntimeException }
-                ?.takeUnless { it.status.code == Status.UNKNOWN.code }
-                ?: Status.UNKNOWN
-                    .withDescription("Abandoned Rpc")
-                    .asRuntimeException()
-
-            close(rpcException)
         }
     }
 
@@ -127,15 +131,21 @@ internal fun <T> CoroutineScope.newProducerScope(channel: SendChannel<T>): Produ
     }
 
 internal inline fun <T> StreamObserver<T>.handleUnaryRpc(block: ()->T){
-    runCatching { onNext(block()) }
-        .onSuccess { onCompleted() }
-        .onFailure { onError(it.toRpcException()) }
+    try{
+        onNext(block())
+        onCompleted()
+    }catch (e: Throwable){
+        onError(e.toRpcException())
+    }
 }
 
 internal inline fun <T> SendChannel<T>.handleStreamingRpc(block: (SendChannel<T>)->Unit){
-    runCatching { block(this) }
-        .onSuccess { close() }
-        .onFailure { close(it.toRpcException()) }
+    try{
+        block(this)
+        close()
+    }catch (e: Throwable){
+        close(e.toRpcException())
+    }
 }
 
 internal inline fun <ReqT, RespT> handleBidiStreamingRpc(
@@ -143,7 +153,10 @@ internal inline fun <ReqT, RespT> handleBidiStreamingRpc(
     responseChannel: SendChannel<RespT>,
     block: (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ) {
-    runCatching { block(requestChannel,responseChannel) }
-        .onSuccess { responseChannel.close() }
-        .onFailure { responseChannel.close(it.toRpcException()) }
+    try{
+        block(requestChannel,responseChannel)
+        responseChannel.close()
+    }catch (e:Throwable){
+        responseChannel.close(e.toRpcException())
+    }
 }

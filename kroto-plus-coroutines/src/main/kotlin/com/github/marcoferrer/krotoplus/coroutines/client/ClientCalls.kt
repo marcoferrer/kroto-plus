@@ -17,43 +17,80 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.*
-import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
-import com.github.marcoferrer.krotoplus.coroutines.call.newSendChannelFromObserver
-import com.github.marcoferrer.krotoplus.coroutines.call.toStreamObserver
+import com.github.marcoferrer.krotoplus.coroutines.call.*
 import io.grpc.MethodDescriptor
 import io.grpc.stub.AbstractStub
 import io.grpc.stub.ClientCalls.*
+import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 
 
+/**
+ * Executes a unary rpc call using the [io.grpc.Channel] and [io.grpc.CallOptions] attached to the
+ * receiver [AbstractStub].
+ *
+ * This method will suspend the invoking coroutine until completion. Its execution is bound to the current
+ * [CancellableContinuation] as well as the current [Job]
+ *
+ * The server is notified of cancellation under one of the following conditions:
+ * * The current continuation is, or has become cancelled.
+ * * The current job is, or has become cancelled. Either exceptionally or normally.
+ *
+ * A cancellation of the current scopes job will not always directly correlate to a cancelled continuation.
+ * If the job of the receiver stub differs from that of the continuation, its cancellation will cause the
+ * this method to throw a [io.grpc.StatusRuntimeException] with a status code of [io.grpc.Status.CANCELLED].
+ *
+ * @throws io.grpc.StatusRuntimeException The error returned by the server or local scope cancellation.
+ *
+ */
 public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
 ): RespT = suspendCancellableCoroutine { cont: CancellableContinuation<RespT> ->
 
     with(newRpcScope(cont.context + coroutineContext, method)) {
-        asyncUnaryCall<ReqT, RespT>(
-            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
-            request,
-            SuspendingUnaryObserver(cont)
-        )
+        val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
+        asyncUnaryCall<ReqT, RespT>(call, request, SuspendingUnaryObserver(cont))
+        cont.invokeOnCancellation { call.cancel(it?.message, it) }
+        bindScopeCancellationToCall(call)
     }
 }
 
+/**
+ * Executes a server streaming rpc call using the [io.grpc.Channel] and [io.grpc.CallOptions] attached to the
+ * receiver [AbstractStub].
+ *
+ * This method will return a [ReceiveChannel] to its invoker so that response messages from the target server can
+ * be processed in a suspending manner.
+ *
+ * A new [observer][ClientResponseObserver] is created with back-pressure enabled. The observer will be
+ * used by grpc to handle incoming messages and errors from the target server. New messages are submitted to the
+ * resulting channel for consumption by the client.
+ *
+ * In the event of the server returning an [error][io.grpc.StatusRuntimeException], the resulting [ReceiveChannel] will
+ * be closed with it. If the local coroutine scope is cancelled then the resulting [ReceiveChannel] will be closed with
+ * a [io.grpc.StatusRuntimeException] with a status code of [io.grpc.Status.CANCELLED]
+ *
+ * The server is notified of cancellations once the current job is, or has become cancelled,
+ * either exceptionally or normally.
+ *
+ */
 public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallServerStreaming(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
 ): ReceiveChannel<RespT> {
 
-    with(newRpcScope(coroutineContext, method)) rpcScope@{
+    with(newRpcScope(coroutineContext, method)) {
+        val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
         val responseObserverChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext)
-
         asyncServerStreamingCall<ReqT, RespT>(
-            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
+            call,
             request,
             responseObserverChannel
         )
+        bindScopeCancellationToCall(call)
         return responseObserverChannel
     }
 }
@@ -62,13 +99,16 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallBidiStreaming(
     method: MethodDescriptor<ReqT, RespT>
 ): ClientBidiCallChannel<ReqT, RespT> {
 
-    with(newRpcScope(coroutineContext, method)){
-        val responseChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext)
+    with(newRpcScope(coroutineContext, method)) {
+        val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
+        val responseDelegate = Channel<RespT>(capacity = 1)
+        val responseChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext, responseDelegate)
         val requestObserver = asyncBidiStreamingCall<ReqT, RespT>(
-            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
-            responseChannel
+            call, responseChannel
         )
+        bindScopeCancellationToCall(call)
         val requestChannel = newSendChannelFromObserver(requestObserver)
+        responseDelegate.invokeOnClose { requestChannel.close(it) }
 
         return ClientBidiCallChannelImpl(requestChannel, responseChannel)
     }
@@ -78,12 +118,13 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallClientStreaming(
     method: MethodDescriptor<ReqT, RespT>
 ): ClientStreamingCallChannel<ReqT, RespT> {
 
-    with(newRpcScope(coroutineContext, method)) rpcScope@{
-        val completableResponse = CompletableDeferred<RespT>()
+    with(newRpcScope(coroutineContext, method)) {
+        val completableResponse = CompletableDeferred<RespT>(parent = coroutineContext[Job])
+        val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
         val requestObserver = asyncClientStreamingCall<ReqT, RespT>(
-            channel.newCall(method, callOptions.withCoroutineContext(coroutineContext)),
-            completableResponse.toStreamObserver()
+            call, completableResponse.toStreamObserver()
         )
+        bindScopeCancellationToCall(call)
         val requestChannel = newSendChannelFromObserver(requestObserver)
         return ClientStreamingCallChannelImpl(
             requestChannel,

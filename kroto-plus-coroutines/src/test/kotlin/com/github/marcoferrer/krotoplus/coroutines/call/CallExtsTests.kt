@@ -16,6 +16,10 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.call
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
+import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -29,13 +33,16 @@ import kotlinx.coroutines.channels.SendChannel
 import org.junit.Test
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.test.*
+import kotlin.test.BeforeTest
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 
 class NewSendChannelFromObserverTests {
 
     @Test
-    fun `Test channel send to observer success`() = runBlocking {
+    fun `Channel send to observer success`() = runBlocking {
 
         val observer = mockk<StreamObserver<Int>>().apply {
             every { onNext(allAny()) } just Runs
@@ -48,10 +55,11 @@ class NewSendChannelFromObserverTests {
         }
 
         verify(exactly = 3) { observer.onNext(allAny()) }
+        verify(exactly = 1) { observer.onCompleted() }
     }
 
     @Test
-    fun `Test channel close with error`() = runBlocking {
+    fun `Channel close with error`() = runBlocking {
 
         val statusException = Status.INVALID_ARGUMENT.asException()
         val observer = mockk<StreamObserver<String>>().apply {
@@ -59,38 +67,102 @@ class NewSendChannelFromObserverTests {
             every { onError(statusException) } just Runs
         }
 
-        GlobalScope.newSendChannelFromObserver(observer).apply {
+        val channel = GlobalScope.newSendChannelFromObserver(observer).apply {
             send("")
             close(statusException)
         }
 
+        assert(channel.isClosedForSend){ "Channel should be closed for send" }
         verify(exactly = 1) { observer.onNext(allAny()) }
         verify(exactly = 1) { observer.onError(statusException) }
+        verify(exactly = 0) { observer.onCompleted() }
+    }
+
+
+    @Test
+    fun `Channel is closed when scope is cancelled normally`()  {
+
+        val observer = mockk<StreamObserver<String>>().apply {
+            every { onNext(allAny()) } just Runs
+            every { onError(any()) } just Runs
+        }
+
+        lateinit var channel: SendChannel<String>
+        runBlocking {
+            launch {
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    channel = newSendChannelFromObserver(observer).apply {
+                        send("")
+                    }
+                }
+                cancel()
+            }
+        }
+
+        assert(channel.isClosedForSend){ "Channel should be closed for send" }
+        verify(exactly = 1) { observer.onNext(allAny()) }
+        verify(exactly = 1) { observer.onError(any()) }
+        verify(exactly = 0) { observer.onCompleted() }
     }
 
     @Test
-    fun `Test channel close when observer onNext error `() = runBlocking {
+    fun `Channel is closed when scope is cancelled exceptionally`()  {
 
-        val statusException = Status.UNKNOWN.asException()
         val observer = mockk<StreamObserver<String>>().apply {
-            every { onNext(allAny()) } throws statusException
+            every { onNext(allAny()) } just Runs
+            every { onError(any()) } just Runs
+        }
+
+        lateinit var channel: SendChannel<String>
+        assertFails<IllegalStateException>("cancel"){
+            runBlocking {
+                launch {
+                    channel = newSendChannelFromObserver(observer).apply {
+                        send("")
+                    }
+                }
+                launch {
+                    error("cancel")
+                }
+            }
+        }
+
+        assert(channel.isClosedForSend){ "Channel should be closed for send" }
+        verify(exactly = 1) { observer.onNext(allAny()) }
+        verify(exactly = 1) { observer.onError(any()) }
+        verify(exactly = 0) { observer.onCompleted() }
+    }
+
+    @Test
+    fun `Channel close when observer onNext error `() {
+
+        val statusException = Status.INVALID_ARGUMENT.asRuntimeException()
+        val observer = mockk<StreamObserver<String>>().apply {
+            every { onNext(any()) } throws statusException
             every { onError(statusException) } just Runs
         }
 
-        GlobalScope.newSendChannelFromObserver(observer).apply {
+        lateinit var channel: SendChannel<String>
+        assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+            runBlocking {
 
-            val send1Result = runCatching { send("") }
-            assertTrue(send1Result.isSuccess, "Error during observer.onNext should not fail channel.send")
-            assertTrue(isClosedForSend, "Channel should be closed after onNext error")
+                channel = newSendChannelFromObserver(observer).apply {
 
-            val send2Result = runCatching { send("") }
-            assertTrue(send2Result.isFailure, "Expecting error after sending a value to failed channel")
-            assertEquals(statusException, send2Result.exceptionOrNull())
+                    val send1Result = runCatching { send("") }
+                    assertTrue(send1Result.isSuccess, "Error during observer.onNext should not fail channel.send")
+                    assertTrue(isClosedForSend, "Channel should be closed after onNext error")
+
+                    val send2Result = runCatching { send("") }
+                    assertTrue(send2Result.isFailure, "Expecting error after sending a value to failed channel")
+                    assertEquals(statusException, send2Result.exceptionOrNull())
+                }
+            }
         }
 
+        assert(channel.isClosedForSend) { "Channel should be closed for send" }
         verify(exactly = 1) { observer.onNext(allAny()) }
         verify(exactly = 1) { observer.onError(statusException) }
-        verify(inverse = true) { observer.onCompleted() }
+        verify(exactly = 0) { observer.onCompleted() }
     }
 }
 
@@ -135,28 +207,25 @@ class NewManagedServerResponseChannelTests {
     fun `Test channel propagates errors to observer onError`(){
 
         observer.apply {
-
-            every {
-                val matcher = match<StatusRuntimeException> {
-                    it.status.code == Status.UNKNOWN.code
-                }
-                onError(matcher)
-            } just Runs
-
+            every { onError(matchStatus(Status.UNKNOWN)) } just Runs
             every { onNext(Unit) } just Runs
             every { onCompleted() } just Runs
         }
 
         val error = IllegalArgumentException("error")
-        assertFailsWith(IllegalArgumentException::class, error.message){
-            runBlocking {
-                newManagedServerResponseChannel<Unit, Unit>(observer, AtomicBoolean()).apply {
-                    send(Unit)
-                    close(error)
-                }
+        lateinit var channel: SendChannel<Unit>
+        runBlocking {
+            channel = newManagedServerResponseChannel<Unit, Unit>(observer, AtomicBoolean()).apply {
+                send(Unit)
+                close(error)
+            }
+
+            assertFails<IllegalArgumentException>(error.message) {
+                channel.send(Unit)
             }
         }
 
+        assert(channel.isClosedForSend){ "Channel should be closed" }
         verify(exactly = 1) { observer.onNext(Unit) }
         verify(exactly = 1) { observer.onError(any()) }
         verify(exactly = 0) { observer.onCompleted() }
@@ -315,8 +384,7 @@ class BindToClientCancellationTests {
             every { setOnCancelHandler(capture(cancellationHandler)) } just Runs
         }
 
-        try {
-
+        assertFails<CancellationException> {
             runBlocking {
                 bindToClientCancellation(serverCallStreamObserver)
                 launch {
@@ -328,15 +396,81 @@ class BindToClientCancellationTests {
                     fail("Job continued after suspension, Scope has not been cancelled")
                 }
             }
-            fail("Job did not fail")
-        } catch (e: Throwable) {
-            when (e) {
-                is AssertionError -> throw e
-                else -> assertEquals(
-                    "kotlinx.coroutines.JobCancellationException",
-                    e.javaClass.name
-                )
+        }
+    }
+}
+
+class BindScopeCancellationToCallTests {
+
+    @Test
+    fun `Test call is cancelled by unhandled exception in scope`(){
+
+        val errorMessage = "scope_cancelled"
+        val call = mockk<ClientCall<*,*>>().apply {
+            every { cancel(any(), any()) } just Runs
+        }
+
+        assertFails<IllegalStateException>(errorMessage) {
+            runBlocking {
+                launch {
+                    bindScopeCancellationToCall(call)
+                    launch { error(errorMessage) }
+                    yield()
+                    launch { fail("Child job was executed, Scope has not been cancelled") }
+                    yield()
+                    fail("Job continued after suspension, Scope has not been cancelled")
+                }
+
             }
+        }
+
+        verify(exactly = 1) { call.cancel(errorMessage,any<IllegalStateException>()) }
+    }
+
+    @Test
+    fun `Test call is cancelled by normal scope cancellation`(){
+
+        val call = mockk<ClientCall<*,*>>().apply {
+            every { cancel(any(), any()) } just Runs
+        }
+
+        runBlocking {
+            launch {
+                bindScopeCancellationToCall(call)
+                launch { Unit }
+                yield()
+                cancel()
+                launch { fail("Child job was executed, Scope has not been cancelled") }
+                yield()
+                fail("Job continued after suspension, Scope has not been cancelled")
+            }
+        }
+
+        verify(exactly = 1) { call.cancel("Job was cancelled",any<CancellationException>()) }
+    }
+
+    @Test
+    fun `Test call is not cancelled by normal completion`(){
+
+        val call = mockk<ClientCall<*,*>>()
+
+        runBlocking {
+            launch {
+                bindScopeCancellationToCall(call)
+                launch { Unit }
+            }
+        }
+
+        verify(exactly = 0) { call.cancel(any(),any()) }
+    }
+
+    @Test
+    fun `Test binding fails if scope has no job`(){
+
+        val call = mockk<ClientCall<*,*>>()
+
+        assertFails<IllegalStateException>{
+            GlobalScope.bindScopeCancellationToCall(call)
         }
     }
 }
