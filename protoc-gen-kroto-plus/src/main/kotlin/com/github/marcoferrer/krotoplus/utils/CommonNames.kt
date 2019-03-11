@@ -55,6 +55,7 @@ object CommonClassNames{
     val streamObserver: ClassName = ClassName("io.grpc.stub", "StreamObserver")
 
     val experimentalKrotoPlusCoroutinesApi = ClassName(krotoCoroutineLib, "ExperimentalKrotoPlusCoroutinesApi")
+    val coroutineService = ClassName("$krotoCoroutineLib.server", "CoroutineService")
 
     val listenableFuture = ClassName("com.google.common.util.concurrent", "ListenableFuture")
     val grpcContextElement = ClassName(krotoCoroutineLib,"GrpcContextElement")

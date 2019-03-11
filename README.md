@@ -149,11 +149,8 @@ _Server_
 ```kotlin
 override suspend fun sayHelloClientStreaming(
     requestChannel: ReceiveChannel<HelloRequest>
-): HelloReply = coroutineScope {
-
-    HelloReply {
-        message = requestChannel.toList().joinToString()
-    }
+): HelloReply =  HelloReply {
+    message = requestChannel.toList().joinToString()
 }
 ```
  
@@ -172,8 +169,7 @@ _Server_
 override suspend fun sayHelloServerStreaming(
     request: HelloRequest,
     responseChannel: SendChannel<HelloReply>
-) = coroutineScope {
-        
+) {        
     for(char in request.name) {
         responseChannel.send {
             message = "Hello $char!"
@@ -204,13 +200,10 @@ override suspend fun sayHelloStreaming(
     requestChannel: ReceiveChannel<HelloRequest>,
     responseChannel: SendChannel<HelloReply>
 ) {
-    coroutineScope {
+    requestChannel.mapTo(responseChannel){
     
-        requestChannel.mapTo(responseChannel){
-        
-            HelloReply {
-                message = "Hello there, ${it.name}!"
-            }
+        HelloReply {
+            message = "Hello there, ${it.name}!"
         }
     }
 }

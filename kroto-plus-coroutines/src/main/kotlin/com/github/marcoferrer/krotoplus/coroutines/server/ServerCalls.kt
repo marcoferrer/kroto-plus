@@ -27,12 +27,12 @@ import kotlinx.coroutines.channels.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
+public fun <ReqT, RespT> CoroutineService.serverCallUnary(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend () -> RespT
 ) {
-    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+    with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(responseObserver as ServerCallStreamObserver<*>)
         launch {
             responseObserver.handleUnaryRpc { block() }
@@ -40,14 +40,14 @@ public fun <ReqT, RespT> CoroutineScope.serverCallUnary(
     }
 }
 
-public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
+public fun <ReqT, RespT> CoroutineService.serverCallServerStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
 
-    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+    with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
 
         val responseChannel = newSendChannelFromObserver(responseObserver)
@@ -59,7 +59,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallServerStreaming(
 }
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
-public fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
+public fun <ReqT, RespT> CoroutineService.serverCallClientStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>) -> RespT
@@ -70,7 +70,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
         .apply { enableManualFlowControl(requestChannelDelegate, isMessagePreloaded) }
 
-    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+    with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
 
         val requestChannel = ServerRequestStreamChannel(
@@ -94,7 +94,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallClientStreaming(
 
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
-public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
+public fun <ReqT, RespT> CoroutineService.serverCallBidiStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
@@ -104,7 +104,7 @@ public fun <ReqT, RespT> CoroutineScope.serverCallBidiStreaming(
     val requestChannelDelegate = Channel<ReqT>(capacity = 1)
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
 
-    with(newRpcScope(coroutineContext, methodDescriptor)) rpcScope@ {
+    with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
 
         val responseChannel = newManagedServerResponseChannel(
