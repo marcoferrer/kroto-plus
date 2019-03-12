@@ -27,7 +27,7 @@ import kotlinx.coroutines.channels.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-public fun <ReqT, RespT> CoroutineService.serverCallUnary(
+public fun <ReqT, RespT> ServiceScope.serverCallUnary(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend () -> RespT
@@ -40,7 +40,7 @@ public fun <ReqT, RespT> CoroutineService.serverCallUnary(
     }
 }
 
-public fun <ReqT, RespT> CoroutineService.serverCallServerStreaming(
+public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
@@ -59,7 +59,7 @@ public fun <ReqT, RespT> CoroutineService.serverCallServerStreaming(
 }
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
-public fun <ReqT, RespT> CoroutineService.serverCallClientStreaming(
+public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>) -> RespT
@@ -94,7 +94,7 @@ public fun <ReqT, RespT> CoroutineService.serverCallClientStreaming(
 
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
-public fun <ReqT, RespT> CoroutineService.serverCallBidiStreaming(
+public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit

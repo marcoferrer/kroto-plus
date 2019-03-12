@@ -113,7 +113,7 @@ object GrpcCoroutinesGenerator : Generator {
         val baseImplBuilder = TypeSpec.classBuilder(baseImplName)
             .addModifiers(KModifier.ABSTRACT)
             .addSuperinterface(CommonClassNames.bindableService)
-            .addSuperinterface(CommonClassNames.coroutineService)
+            .addSuperinterface(CommonClassNames.serviceScope)
             .addProperty(
                 PropertySpec
                     .builder("initialContext", CommonClassNames.coroutineContext)

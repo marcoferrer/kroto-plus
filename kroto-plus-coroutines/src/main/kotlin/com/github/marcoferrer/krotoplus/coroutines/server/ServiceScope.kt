@@ -18,7 +18,7 @@ package com.github.marcoferrer.krotoplus.coroutines.server
 
 import kotlin.coroutines.CoroutineContext
 
-interface CoroutineService {
+interface ServiceScope {
 
     val initialContext: CoroutineContext
 
