@@ -107,7 +107,7 @@ stub.sayHello { name = "John" }
       * ```CoroutineName``` set to ```MethodDescriptor.fullMethodName```
       * ```GrpcContextElement``` set to ```io.grpc.Context.current()```
     * Base services implement ```CoroutineScope``` only as a means to allow overriding the initial ```coroutineContext```
-    * The initial ```coroutineContext``` defaults to ```Dispatchers.Default```
+    * The initial ```coroutineContext``` defaults to ```EmptyCoroutineContext```
     * A common case for overriding the default context is for setting up application specific ```ThreadContextElement``` or ```CoroutineDispatcher```, such as ```MDCContext()``` or ```newFixedThreadPoolContext(...)```
     * Rpc method implementation **MUST** be wrapped in a ```coroutineScope{}``` builder. Future versions of Kotlin will show a warning in the ide for ambiguous scope resolution. [KT-27493](https://youtrack.jetbrains.com/issue/KT-27493). It also ensures that the proper ```coroutineContext``` is used during method execution.
 
@@ -149,11 +149,8 @@ _Server_
 ```kotlin
 override suspend fun sayHelloClientStreaming(
     requestChannel: ReceiveChannel<HelloRequest>
-): HelloReply = coroutineScope {
-
-    HelloReply {
-        message = requestChannel.toList().joinToString()
-    }
+): HelloReply =  HelloReply {
+    message = requestChannel.toList().joinToString()
 }
 ```
  
@@ -172,8 +169,7 @@ _Server_
 override suspend fun sayHelloServerStreaming(
     request: HelloRequest,
     responseChannel: SendChannel<HelloReply>
-) = coroutineScope {
-        
+) {        
     for(char in request.name) {
         responseChannel.send {
             message = "Hello $char!"
@@ -204,13 +200,10 @@ override suspend fun sayHelloStreaming(
     requestChannel: ReceiveChannel<HelloRequest>,
     responseChannel: SendChannel<HelloReply>
 ) {
-    coroutineScope {
+    requestChannel.mapTo(responseChannel){
     
-        requestChannel.mapTo(responseChannel){
-        
-            HelloReply {
-                message = "Hello there, ${it.name}!"
-            }
+        HelloReply {
+            message = "Hello there, ${it.name}!"
         }
     }
 }

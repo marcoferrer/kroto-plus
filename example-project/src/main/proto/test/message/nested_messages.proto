@@ -5,6 +5,15 @@ package validate.test;
 option java_package = "test.message";
 option java_outer_classname = "NestedMessages";
 
+message TestMessage {
+    string name = 1;
+    oneof something {
+        string something_a = 2;
+        bool something_b = 3;
+        int32 something_c = 4;
+    }
+}
+
 message L1Message1{
 
     string field = 1;

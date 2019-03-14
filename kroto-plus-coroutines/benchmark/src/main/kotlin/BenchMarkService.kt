@@ -18,10 +18,12 @@ import com.google.protobuf.ByteString
 import io.grpc.Status
 import io.grpc.benchmarks.proto.BenchmarkServiceCoroutineGrpc
 import io.grpc.benchmarks.proto.Messages
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.coroutineScope
 
-class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(){
+@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase() {
 
     private val BIDI_RESPONSE_BYTES = 100
     private val BIDI_RESPONSE = Messages.SimpleResponse
@@ -32,24 +34,19 @@ class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(
         )
         .build()
 
-    override suspend fun unaryCall(
-        request: Messages.SimpleRequest
-    ): Messages.SimpleResponse = coroutineScope {
+    override suspend fun unaryCall(request: Messages.SimpleRequest): Messages.SimpleResponse =
         makeResponse(request)
-    }
 
     override suspend fun streamingCall(
         requestChannel: ReceiveChannel<Messages.SimpleRequest>,
         responseChannel: SendChannel<Messages.SimpleResponse>
     ) {
-       coroutineScope {
-           requestChannel.mapTo(responseChannel){ makeResponse(it) }
-       }
+        requestChannel.mapTo(responseChannel) { makeResponse(it) }
     }
 
     override suspend fun streamingFromClient(
         requestChannel: ReceiveChannel<Messages.SimpleRequest>
-    ): Messages.SimpleResponse = coroutineScope {
+    ): Messages.SimpleResponse {
 
         val lastSeen = requestChannel
             .toList()
@@ -58,19 +55,17 @@ class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(
                 .withDescription("never received any requests")
                 .asException()
 
-        makeResponse(lastSeen)
+        return makeResponse(lastSeen)
     }
 
     override suspend fun streamingFromServer(
         request: Messages.SimpleRequest,
         responseChannel: SendChannel<Messages.SimpleResponse>
     ) {
-        coroutineScope {
-            val response = makeResponse(request)
+        val response = makeResponse(request)
 
-            while (!responseChannel.isClosedForSend) {
-                responseChannel.send(response)
-            }
+        while (!responseChannel.isClosedForSend) {
+            responseChannel.send(response)
         }
     }
 
@@ -78,10 +73,8 @@ class BenchMarkService : BenchmarkServiceCoroutineGrpc.BenchmarkServiceImplBase(
         requestChannel: ReceiveChannel<Messages.SimpleRequest>,
         responseChannel: SendChannel<Messages.SimpleResponse>
     ) {
-        coroutineScope {
-            while(!requestChannel.isClosedForReceive){
-                responseChannel.send(BIDI_RESPONSE)
-            }
+        while (!requestChannel.isClosedForReceive) {
+            responseChannel.send(BIDI_RESPONSE)
         }
     }
 }

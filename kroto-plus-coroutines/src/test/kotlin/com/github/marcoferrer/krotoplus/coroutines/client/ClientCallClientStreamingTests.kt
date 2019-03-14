@@ -211,6 +211,7 @@ class ClientCallClientStreamingTests {
                     }
                     assertFailsWithStatus(Status.CANCELLED) {
                         repeat(3) {
+                            delay(5)
                             requestChannel.send(
                                 HelloRequest.newBuilder()
                                     .setName(it.toString())
@@ -221,6 +222,7 @@ class ClientCallClientStreamingTests {
                 }
                 launch {
                     job.start()
+                    delay(5)
                     externalJob.cancel()
                 }
             }

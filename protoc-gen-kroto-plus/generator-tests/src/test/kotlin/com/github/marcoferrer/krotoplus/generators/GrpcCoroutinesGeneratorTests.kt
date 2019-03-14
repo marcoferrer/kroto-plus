@@ -33,6 +33,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.BeforeTest
 
+@UseExperimental(ObsoleteCoroutinesApi::class)
 class GrpcCoroutinesGeneratorTests {
 
     @[Rule JvmField]
