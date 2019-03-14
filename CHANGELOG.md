@@ -1,28 +1,30 @@
 ## Version 0.2.2-RC3
-_2018-\*\*-\*\*_
+_2019-03-13_
+* New: Update Kotlin Poet to ```1.0.1``` ([#30](https://github.com/marcoferrer/kroto-plus/pull/30))
 
 #### Coroutines
+* New: Propagate client scope cancellation to server using `ClientCall.cancel` ([#34](https://github.com/marcoferrer/kroto-plus/pull/34)) 
 * Fix: Race condition between `StreamObserver.onNext` and `StreamObserver.onCompleted` when target channel is full 
 * Fix: Reduce `@KrotoPlusInternalApi` experimental level to `Experimental.Level.ERROR` to prevent external usage  
 * Fix: Remove redundant usages of `@ObsoleteCoroutinesApi` in call builders
 * Fix: Remove unused experimental class `CompletableDeferredObserver`
 * Fix: Annotate `SuspendingUnaryObserver` as an internal API 
 * Fix: Remove unnecessary creation of `CoroutineScope` in `newSendChannelFromObserver`
-* New: Introduce `ServiceScope` interface and remove `CoroutineScope` from generated service classes
+* New: Introduce `ServiceScope` interface and remove `CoroutineScope` from generated service classes ([#35](https://github.com/marcoferrer/kroto-plus/pull/35))
 * New: Use `Message.getDefaultInstance()` as default value of stub request parameters
 * New: Increased code coverage across the board
 * Deprecated: Legacy service stub rpc builders in favor of new back-pressure supporting stub APIs  
 
 #### gRPC Stub Extension 
-* New: Refactored code gen to support new coroutines APIs
+* New: Refactored code gen to support new coroutines APIs ([#31](https://github.com/marcoferrer/kroto-plus/pull/31))
 * New: Generate no-arg extensions for all rpc methods with non streaming request parameters. Default request is now set to `Message.getDefaultInstance()`
 
 #### Proto Builders (DSL)
-* Fix: Resolve ```@DslMarker``` insertion regression introduced in `0.2.2-RC1`
+* Fix: Resolve ```@DslMarker``` insertion regression introduced in `0.2.2-RC1` ([#32](https://github.com/marcoferrer/kroto-plus/pull/32))
 
 
 ## Version 0.2.2-RC2
-_2018-02-17_
+_2019-02-17_
 
 #### Coroutines
 * Fix: Refine API Visibility
@@ -39,7 +41,7 @@ _2018-02-17_
 * Fix: Improve rpc method exception handling and propagation.
 
 ## Version 0.2.2-RC1
-_2018-01-03_
+_2019-01-03_
 * New: Update to kotlin ```1.3.11```
 
 #### Protoc Plugin
