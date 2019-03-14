@@ -18,7 +18,7 @@ cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
 
-## Version 0.2.2-RC2
+## Version 0.2.2-RC3
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
   * Full Client & Server Stub Generation 🎉
@@ -88,13 +88,16 @@ __Addtional Docs Coming Soon__
 * Design
   * **Back pressure** is supported via [Manual Flow Control](https://github.com/grpc/grpc-java/tree/master/examples/src/main/java/io/grpc/examples/manualflowcontrol)
     * Related Reading: [Understanding Reactive gRPC Flow Control](https://github.com/salesforce/reactive-grpc#back-pressure)
-  * **Cooperative cancellation** is propagated across network boundaries. Meaning a cancelled client ```coroutineContext``` attached to a stub will cancel the related rpc job within the service impl.
+  * **Cooperative cancellation** across network boundaries.
 <a></a>
 * Client Stubs
   * Implement ```CoroutineScope``` interface
   * Designed to work well with **Structured Concurrency**
+  * Cancellation of the client `CoroutineScope` will propagate to the server.
   * Cancellations can now be propagated across usages of a specific stub instance.
   * Rpc methods are overloaded with inline builders for request types
+  * The request parameter for rpc methods defaults to `RequestType.defaultsInstance`
+ 
        
 ```kotlin
 val stub = GreeterCoroutineGrpc.newStub(channel)
@@ -107,10 +110,9 @@ stub.sayHello { name = "John" }
     * Rpc calls are wrapped within a scope initialized with the following context elements.
       * ```CoroutineName``` set to ```MethodDescriptor.fullMethodName```
       * ```GrpcContextElement``` set to ```io.grpc.Context.current()```
-    * Base services implement ```CoroutineScope``` only as a means to allow overriding the initial ```coroutineContext```
-    * The initial ```coroutineContext``` defaults to ```EmptyCoroutineContext```
-    * A common case for overriding the default context is for setting up application specific ```ThreadContextElement``` or ```CoroutineDispatcher```, such as ```MDCContext()``` or ```newFixedThreadPoolContext(...)```
-    * Rpc method implementation **MUST** be wrapped in a ```coroutineScope{}``` builder. Future versions of Kotlin will show a warning in the ide for ambiguous scope resolution. [KT-27493](https://youtrack.jetbrains.com/issue/KT-27493). It also ensures that the proper ```coroutineContext``` is used during method execution.
+    * Base services implement ```ServiceScope``` and allow overriding the initial ```coroutineContext``` used for each rpc method invocation.
+    * Each services ```initialContext``` defaults to ```EmptyCoroutineContext```
+    * A common case for overriding the ```initialContext``` is for setting up application specific ```ThreadContextElement``` or ```CoroutineDispatcher```, such as ```MDCContext()``` or ```newFixedThreadPoolContext(...)```
 
 #### Examples
 * [Unary](https://github.com/marcoferrer/kroto-plus#unary)
@@ -125,7 +127,7 @@ val response = stub.sayHello { name = "John" }
 ```
 _Server_ 
 ```kotlin
-override suspend fun sayHello(request: HelloRequest): HelloReply  = coroutineScope {
+override suspend fun sayHello(request: HelloRequest): HelloReply {
 
     if (isValid(request.name))
         HelloReply { message = "Hello there, ${request.name}!" } else
