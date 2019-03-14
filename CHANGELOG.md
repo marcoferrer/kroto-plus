@@ -10,6 +10,7 @@ _2018-\*\*-\*\*_
 * Fix: Remove unnecessary creation of `CoroutineScope` in `newSendChannelFromObserver`
 * New: Introduce `ServiceScope` interface and remove `CoroutineScope` from generated service classes
 * New: Use `Message.getDefaultInstance()` as default value of stub request parameters
+* New: Increased code coverage across the board
 * Deprecated: Legacy service stub rpc builders in favor of new back-pressure supporting stub APIs  
 
 #### gRPC Stub Extension 

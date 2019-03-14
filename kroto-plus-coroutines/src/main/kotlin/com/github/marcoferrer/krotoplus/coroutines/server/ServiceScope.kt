@@ -16,10 +16,46 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
+import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.CoroutineContext
 
+
+/**
+ * Defines a scope for gRPC service implementations. The generated abstract base class for every gRPC coroutine service
+ * implements this interface. This interface allows service implementations to define the initial [CoroutineContext]
+ * that will be used to populate a new [CoroutineScope] for each incoming rpc method invocation.
+ *
+ * Usage of this interface from within service implementations may look like this:
+ *
+ * ```
+ * // GreeterCoroutineGrpc.GreeterImplBase implements the [ServiceScope] interface
+ *
+ * class GreeterServiceImpl : GreeterCoroutineGrpc.GreeterImplBase() {
+ *
+ *     // Attach the thread local logging context (which was initially setup up in a server interceptor)
+ *     // for every new rpc invocation.
+ *     val initialContext: CoroutineContext
+ *         get() = Dispatchers.Default + MDCContext()
+ *
+ *     suspend fun sayHello(request: HelloRequest): HelloReply {
+ *         ...
+ *     }
+ * }
+ * ```
+ *
+ * Details showing usage during server rpc invocation at:
+ * - Unary RPCs: [ServiceScope.serverCallUnary]
+ * - Client Streaming RPCs: [ServiceScope.serverCallClientStreaming]
+ * - Server Streaming RPCs: [ServiceScope.serverCallServerStreaming]
+ * - Bidirectional RPCs: [ServiceScope.serverCallBidiStreaming]
+ *
+ */
 interface ServiceScope {
 
+    /**
+     * The context that will be used to create a new [CoroutineScope] for
+     * every incoming rpc request.
+     */
     val initialContext: CoroutineContext
 
 }
