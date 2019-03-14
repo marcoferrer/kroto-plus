@@ -107,7 +107,7 @@ stub.sayHello { name = "John" }
       * ```CoroutineName``` set to ```MethodDescriptor.fullMethodName```
       * ```GrpcContextElement``` set to ```io.grpc.Context.current()```
     * Base services implement ```CoroutineScope``` only as a means to allow overriding the initial ```coroutineContext```
-    * The initial ```coroutineContext``` defaults to ```Dispatchers.Default```
+    * The initial ```coroutineContext``` defaults to ```EmptyCoroutineContext```
     * A common case for overriding the default context is for setting up application specific ```ThreadContextElement``` or ```CoroutineDispatcher```, such as ```MDCContext()``` or ```newFixedThreadPoolContext(...)```
     * Rpc method implementation **MUST** be wrapped in a ```coroutineScope{}``` builder. Future versions of Kotlin will show a warning in the ide for ambiguous scope resolution. [KT-27493](https://youtrack.jetbrains.com/issue/KT-27493). It also ensures that the proper ```coroutineContext``` is used during method execution.
 

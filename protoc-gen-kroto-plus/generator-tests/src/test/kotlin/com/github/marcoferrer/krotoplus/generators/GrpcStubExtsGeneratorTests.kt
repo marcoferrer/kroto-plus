@@ -28,6 +28,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
+@UseExperimental(ObsoleteCoroutinesApi::class)
 class GrpcStubExtsGeneratorTests {
 
     @[Rule JvmField]
