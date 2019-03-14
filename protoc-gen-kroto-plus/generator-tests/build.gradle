@@ -1,5 +1,13 @@
 apply plugin: 'com.google.protobuf'
 
+compileTestKotlin {
+    kotlinOptions {
+        freeCompilerArgs += [
+                "-Xuse-experimental=kotlin.Experimental"
+        ]
+    }
+}
+
 dependencies{
 
     testImplementation "io.mockk:mockk:${Versions.mockk}"
