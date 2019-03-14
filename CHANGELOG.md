@@ -3,7 +3,8 @@ _2019-03-13_
 * New: Update Kotlin Poet to ```1.0.1``` ([#30](https://github.com/marcoferrer/kroto-plus/pull/30))
 
 #### Coroutines
-* New: Propagate client scope cancellation to server using `ClientCall.cancel` ([#34](https://github.com/marcoferrer/kroto-plus/pull/34)) 
+* New: Propagate client scope cancellation to server using `ClientCall.cancel` ([#34](https://github.com/marcoferrer/kroto-plus/pull/34))
+* New: Server rpc scope is now bound to cancellation notifications from the client ([#23](https://github.com/marcoferrer/kroto-plus/pull/23))
 * Fix: Race condition between `StreamObserver.onNext` and `StreamObserver.onCompleted` when target channel is full 
 * Fix: Reduce `@KrotoPlusInternalApi` experimental level to `Experimental.Level.ERROR` to prevent external usage  
 * Fix: Remove redundant usages of `@ObsoleteCoroutinesApi` in call builders
