@@ -83,3 +83,20 @@ message TestRepeated {
     repeated bytes bytes_field = 16;
     repeated L1Message1 message_field = 17;
 }
+
+
+service __MalformedService__ {
+
+    rpc say_hello (L1Message1) returns (L1Message2);
+
+    rpc sayHelloStreaming (stream L1Message1) returns (stream L1Message2);
+}
+
+service malformed_SERvice_2 {
+
+    rpc say_hello (L1Message1) returns (L1Message2);
+
+    rpc __sayHEloStr_eaming (stream L1Message1) returns (stream L1Message2);
+
+    rpc _____s_a_YH_EloStr_eaming____ (stream L1Message1) returns (stream L1Message2);
+}

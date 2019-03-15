@@ -27,7 +27,6 @@ import com.google.protobuf.DescriptorProtos
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
-import org.jetbrains.kotlin.utils.sure
 
 object ProtoBuildersGenerator : Generator {
 
@@ -178,7 +177,7 @@ object ProtoBuildersGenerator : Generator {
             .filterNot { it.second.isMapEntry }
             .map { (fieldDescriptorProto, protoMessageForField) ->
 
-                val fieldNameCamelCase = camelCaseFieldName(fieldDescriptorProto.name)
+                val fieldNameCamelCase = fieldDescriptorProto.name.toUpperCamelCase()
                 val statementTemplate = "return this.%N(%T.newBuilder().apply(block).build())"
 
                 val funSpecBuilder = if (fieldDescriptorProto.label == LABEL_REPEATED)
@@ -242,12 +241,3 @@ object ProtoBuildersGenerator : Generator {
     private val ProtoFile.dslBuilderClassName: ClassName
         get() = ClassName(javaPackage, "${javaOuterClassname}DslBuilder")
 }
-
-private val camelCaseFieldName = { it: String ->
-    // We cant use CaseFormat.UPPER_CAMEL since
-    // protoc is lenient with malformed field names
-    if (it.contains("_"))
-        it.split("_").joinToString(separator = "") { it.capitalize() } else
-        it.capitalize()
-
-}.memoize()

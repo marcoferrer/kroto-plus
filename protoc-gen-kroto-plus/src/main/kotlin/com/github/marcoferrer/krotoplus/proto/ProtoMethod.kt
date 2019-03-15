@@ -16,10 +16,8 @@
 
 package com.github.marcoferrer.krotoplus.proto
 
+import com.github.marcoferrer.krotoplus.utils.toUpperCamelCase
 import com.google.protobuf.DescriptorProtos
-import com.squareup.kotlinpoet.AnnotationSpec
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.asClassName
 import io.grpc.MethodDescriptor
 
 class ProtoMethod(
@@ -27,9 +25,12 @@ class ProtoMethod(
     val protoService: ProtoService
 ) : Schema.DescriptorWrapper {
 
-    val functionName = descriptorProto.name.decapitalize()
+    val functionName = descriptorProto.name.toUpperCamelCase().let{
+        if(descriptorProto.name.startsWith("_"))
+            "_$it" else it.decapitalize()
+    }
 
-    val methodDefinitionGetterName = "get${descriptorProto.name}Method"
+    val methodDefinitionGetterName = "get${descriptorProto.name.toUpperCamelCase()}Method"
 
     val requestType = protoService.protoFile.schema.protoTypes[descriptorProto.inputType]
         ?: throw IllegalStateException("${descriptorProto.inputType} was not found in schema type map.")
