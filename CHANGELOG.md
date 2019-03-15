@@ -1,3 +1,7 @@
+## Version 0.3.0
+_2019-\*\*-\*\*_
+* Fix: Update codegen to support malformed rpc method names [GH-37](https://github.com/marcoferrer/kroto-plus/issues/37)
+
 ## Version 0.2.2-RC3
 _2019-03-13_
 * New: Update Kotlin Poet to ```1.0.1``` ([#30](https://github.com/marcoferrer/kroto-plus/pull/30))
