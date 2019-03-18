@@ -65,7 +65,9 @@ internal fun <ReqT, RespT> CoroutineScope.newManagedServerResponseChannel(
 }
 
 internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamObserver<*>){
-    observer.setOnCancelHandler { this@bindToClientCancellation.cancel() }
+    observer.setOnCancelHandler {
+        this@bindToClientCancellation.cancel()
+    }
 }
 
 internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>){
@@ -82,29 +84,37 @@ internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>){
     }
 }
 
+internal fun StreamObserver<*>.completeSafely(error: Throwable? = null){
+    // If the call was cancelled already
+    // the stream observer will throw
+    kotlin.runCatching {
+        if (error != null)
+            onError(error.toRpcException()) else
+            onCompleted()
+    }
+}
+
 internal val StreamObserver<*>.exceptionHandler: CoroutineExceptionHandler
     get() = CoroutineExceptionHandler { _, e ->
-        kotlin.runCatching { onError(e.toRpcException()) }
+        completeSafely(e)
     }
 
 internal val StreamObserver<*>.completionHandler: CompletionHandler
-    get() = {
-        // If the call was cancelled already
-        // the stream observer will throw
-        runCatching {
-            if (it != null)
-                onError(it.toRpcException()) else
-                onCompleted()
-        }
-    }
+    get() = { completeSafely(it) }
 
 internal fun Throwable.toRpcException(): Throwable =
     when (this) {
         is StatusException,
         is StatusRuntimeException -> this
-        else -> Status.fromThrowable(this).asRuntimeException(
-            Status.trailersFromThrowable(this)
-        )
+        else -> {
+            val error = Status.fromThrowable(this)
+                .asRuntimeException(Status.trailersFromThrowable(this))
+
+            if(error.status.code == Status.Code.UNKNOWN && this is CancellationException)
+                Status.CANCELLED
+                    .withDescription(this.message)
+                    .asRuntimeException() else error
+        }
     }
 
 internal fun MethodDescriptor<*, *>.getCoroutineName(): CoroutineName =
@@ -135,7 +145,7 @@ internal inline fun <T> StreamObserver<T>.handleUnaryRpc(block: ()->T){
         onNext(block())
         onCompleted()
     }catch (e: Throwable){
-        onError(e.toRpcException())
+        completeSafely(e)
     }
 }
 

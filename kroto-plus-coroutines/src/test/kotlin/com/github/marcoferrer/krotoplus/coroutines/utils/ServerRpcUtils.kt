@@ -16,13 +16,16 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.utils
 
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
-import io.mockk.MockKMatcherScope
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 
 
-fun MockKMatcherScope.matchStatus(status: Status, message: String? = null) =
-    match<StatusRuntimeException> {sre ->
-        val matchesMessage = message?.let { it == sre.message } ?: true
-        sre.status.code == status.code && matchesMessage
+class ServerSpy(var job: Job? = null, var error: Throwable? = null)
+
+fun serverRpcSpy(context: CoroutineContext): ServerSpy{
+    val spy = ServerSpy()
+    spy.job = context[Job]?.apply {
+        invokeOnCompletion { spy.error = it }
     }
+    return spy
+}
