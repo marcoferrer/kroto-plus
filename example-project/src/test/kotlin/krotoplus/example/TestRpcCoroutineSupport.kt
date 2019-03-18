@@ -1,6 +1,5 @@
 package krotoplus.example
 
-import com.github.marcoferrer.krotoplus.coroutines.suspendingUnaryCallObserver
 import io.grpc.ManagedChannel
 import io.grpc.testing.GrpcServerRule
 import jojo.bizarre.adventure.character.MockCharacterService
@@ -71,34 +70,6 @@ class TestSuspendingRpcCalls {
         |power_level: 490
         |speed: 550
         |""".trimMargin(), deferredCallResponse.await().toString()
-        )
-    }
-
-    @Test
-    fun `Test Suspending Unary Call`() = runBlocking {
-
-        val stub = StandServiceGrpc.newStub(channel)
-
-        val request = GetStandByNameRequest { name = "Star Platinum" }
-
-        val stand: StandProto.Stand = stub.suspendingUnaryCallObserver { observer ->
-            getStandByName(request, observer)
-        }
-
-        assertEquals(
-            """name: "Star Platinum"
-        |attacks {
-        |  name: "ZA WARUDO"
-        |  range: MEDIUM
-        |}
-        |attacks {
-        |  name: "ORA ORA ORA"
-        |  damage: 110
-        |  range: CLOSE
-        |}
-        |power_level: 500
-        |speed: 550
-        |""".trimMargin(), stand.toString()
         )
     }
 
