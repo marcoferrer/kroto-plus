@@ -21,20 +21,36 @@ import io.grpc.stub.AbstractStub
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+/**
+ * The call option key used for retrieving and storing the [CoroutineContext] used during rpc invocation.
+ *
+ * Defaults to [EmptyCoroutineContext]
+ */
 public val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext> =
     CallOptions.Key.createWithDefault<CoroutineContext>("coroutineContext", EmptyCoroutineContext)
 
+/**
+ * Get the coroutineContext the receiving stub is using for cooperative cancellation.
+ */
 public val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext
     get() = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
 
+/**
+ * Returns a new stub with the value of [coroutineContext] attached as a [CallOptions].
+ * Any rpcs invoked on the resulting stub will use this context to participate in cooperative cancellation.
+ */
 public fun <T : AbstractStub<T>> T.withCoroutineContext(coroutineContext: CoroutineContext): T =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
 
+/**
+ * Returns a new stub with the 'coroutineContext' from the current suspension attached as a [CallOptions].
+ * Any rpcs invoked on the resulting stub will use this context to participate in cooperative cancellation.
+ */
 public suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
 
-public fun CallOptions.withCoroutineContext(coroutineContext: CoroutineContext): CallOptions =
+internal fun CallOptions.withCoroutineContext(coroutineContext: CoroutineContext): CallOptions =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
 
-public suspend fun CallOptions.withCoroutineContext(): CallOptions =
+internal suspend fun CallOptions.withCoroutineContext(): CallOptions =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
