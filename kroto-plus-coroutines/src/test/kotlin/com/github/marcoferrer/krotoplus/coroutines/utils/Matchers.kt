@@ -21,5 +21,8 @@ import io.grpc.StatusRuntimeException
 import io.mockk.MockKMatcherScope
 
 
-fun MockKMatcherScope.matchStatus(status: Status) =
-    match<StatusRuntimeException> { it.status.code == status.code }
+fun MockKMatcherScope.matchStatus(status: Status, message: String? = null) =
+    match<StatusRuntimeException> {sre ->
+        val matchesMessage = message?.let { it == sre.message } ?: true
+        sre.status.code == status.code && matchesMessage
+    }

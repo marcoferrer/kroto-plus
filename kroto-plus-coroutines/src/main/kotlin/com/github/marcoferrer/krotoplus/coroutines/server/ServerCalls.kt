@@ -50,7 +50,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
 
-        val responseChannel = newSendChannelFromObserver(responseObserver)
+        val responseChannel = newSendChannelFromObserver(responseObserver, capacity = 0)
 
         launch {
             responseChannel.handleStreamingRpc { block(it) }
@@ -79,13 +79,23 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
             callStreamObserver = serverCallObserver,
             isMessagePreloaded = isMessagePreloaded,
             onErrorHandler = {
-                this@rpcScope.cancel()
-                responseObserver.onError(it.toRpcException())
+                // Call cancellation already cancels the coroutine scope
+                // and closes the response stream. So we dont need to
+                // do anything in this case.
+                if(!serverCallObserver.isCancelled) {
+                    this@rpcScope.cancel()
+                    responseObserver.completeSafely(it)
+                }
             }
         )
 
         launch {
             responseObserver.handleUnaryRpc { block(requestChannel) }
+            // If the request channel was abandoned but we completed successfully
+            // close it and clear its contents.
+            if(!requestChannel.isClosedForReceive){
+                requestChannel.cancel()
+            }
         }
 
         return requestChannel
@@ -118,16 +128,26 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
             callStreamObserver = serverCallObserver,
             isMessagePreloaded = isMessagePreloaded,
             onErrorHandler = {
-                // In the event of a request error, we
-                // need to close the responseChannel before
-                // cancelling the rpcScope.
-                responseChannel.close(it)
-                this@rpcScope.cancel()
+                // Call cancellation already cancels the coroutine scope
+                // and closes the response stream. So we dont need to
+                // do anything in this case.
+                if(!serverCallObserver.isCancelled) {
+                    // In the event of a request error, we
+                    // need to close the responseChannel before
+                    // cancelling the rpcScope.
+                    responseChannel.close(it)
+                    this@rpcScope.cancel()
+                }
             }
         )
 
         launch {
             handleBidiStreamingRpc(requestChannel, responseChannel){ req, resp -> block(req,resp) }
+            // If the request channel was abandoned but we completed successfully
+            // close it and clear its contents.
+            if(!requestChannel.isClosedForReceive){
+                requestChannel.cancel()
+            }
         }
 
         return requestChannel
