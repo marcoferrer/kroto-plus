@@ -88,7 +88,7 @@ class ServerCallServerStreamingTests {
     }
 
     @Test
-    fun `Server responds with error`(){
+    fun `Server responds with error when exception thrown`(){
         lateinit var respChannel: SendChannel<HelloReply>
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override val initialContext: CoroutineContext = Dispatchers.Unconfined

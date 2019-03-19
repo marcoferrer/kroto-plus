@@ -33,6 +33,7 @@ import io.grpc.testing.GrpcServerRule
 import io.mockk.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
 import org.junit.Rule
 import org.junit.Test
@@ -200,5 +201,41 @@ class ServerCallClientStreamingTests {
         verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled")) }
         assertEquals("Job was cancelled",serverSpy.error?.message)
         assert(reqChannel.isClosedForReceive){ "Abandoned request channel should be closed"}
+    }
+
+    @Test
+    fun `Server is cancelled when client sends error`() {
+
+        lateinit var serverSpy: ServerSpy
+        lateinit var reqChannel: ReceiveChannel<HelloRequest>
+        var requestCount = 0
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
+                reqChannel = spyk(requestChannel)
+                serverSpy = serverRpcSpy(coroutineContext)
+                reqChannel.consumeEach {
+                    requestCount++
+                }
+
+                delay(300000L)
+                return expectedResponse
+            }
+        })
+
+        val (_, requestObserver) = newCall()
+        requestObserver.apply {
+            onNext(HelloRequest.getDefaultInstance())
+            onNext(HelloRequest.getDefaultInstance())
+            onError(Status.DATA_LOSS.asRuntimeException())
+        }
+
+        assert(serverSpy.job?.isCancelled == true){ "Server job should be cancelled" }
+        assertEquals(2,requestCount, "Server should receive two requests")
+        assertEquals("Job was cancelled",serverSpy.error?.message)
+        assert(reqChannel.isClosedForReceive){ "Abandoned request channel should be closed"}
+        verify(exactly = 1) {
+            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled"))
+        }
     }
 }

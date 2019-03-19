@@ -34,6 +34,7 @@ import io.mockk.*
 import kotlinx.coroutines.*
 import org.junit.Rule
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
 
@@ -62,8 +63,8 @@ class ServerCallUnaryTests {
 
     @Test
     fun `Server responds successfully`(){
-
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 return expectedResponse
             }
@@ -76,6 +77,7 @@ class ServerCallUnaryTests {
     @Test
     fun `Server responds with error`(){
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 throw Status.INVALID_ARGUMENT.asRuntimeException()
             }
@@ -91,6 +93,7 @@ class ServerCallUnaryTests {
     @Test
     fun `Server responds with cancellation when scope cancelled normally`(){
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply = coroutineScope {
                 launch {
                     delay(5L)
@@ -108,6 +111,7 @@ class ServerCallUnaryTests {
     @Test
     fun `Server responds with error when scope cancelled exceptionally`(){
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply = coroutineScope {
                 launch {
                     error("unexpected cancellation")
@@ -125,6 +129,7 @@ class ServerCallUnaryTests {
     fun `Server is cancelled when client sends cancellation`() {
         lateinit var serverSpy: ServerSpy
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 serverSpy = serverRpcSpy(coroutineContext)
                 delay(300000L)
@@ -135,7 +140,9 @@ class ServerCallUnaryTests {
         val call = newCall()
         call.cancel("test",null)
         assert(serverSpy.job?.isCancelled == true)
-        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: test")) }
+        verify(exactly = 1) {
+            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled"))
+        }
         assertEquals("Job was cancelled",serverSpy.error?.message)
     }
 }

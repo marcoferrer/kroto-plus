@@ -60,10 +60,14 @@ subprojects{ subproject ->
     }
 
     jacocoTestReport {
+        sourceDirectories = files("$projectDir/src/main/kotlin")
         reports {
+            xml.enabled = true
+            xml.destination file("$buildDir/reports/jacoco/report.xml")
             html.enabled = true
             html.destination file("$buildDir/reports/coverage")
             csv.enabled = false
         }
+        test.finalizedBy 'jacocoTestReport'
     }
 }
