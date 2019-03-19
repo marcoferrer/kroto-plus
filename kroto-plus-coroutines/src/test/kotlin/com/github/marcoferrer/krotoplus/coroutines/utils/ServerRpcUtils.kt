@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.github.marcoferrer.krotoplus.coroutines
+package com.github.marcoferrer.krotoplus.coroutines.utils
 
-import io.grpc.Channel
-import io.grpc.MethodDescriptor
-import io.grpc.ServiceDescriptor
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 
-private interface GrpcServiceDefinition<T> {
 
-    public val serviceDescriptor: ServiceDescriptor
+class ServerSpy(var job: Job? = null, var error: Throwable? = null)
 
-    public val methodDescriptors: List<MethodDescriptor<*,*>>
-
-    public fun newStub(channel: Channel): T
+fun serverRpcSpy(context: CoroutineContext): ServerSpy{
+    val spy = ServerSpy()
+    spy.job = context[Job]?.apply {
+        invokeOnCompletion { spy.error = it }
+    }
+    return spy
 }

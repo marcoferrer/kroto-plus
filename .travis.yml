@@ -18,3 +18,5 @@ jobs:
   include:
   - stage: "Tests"
     script: ./gradlew build && cd example-project && ./gradlew test
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

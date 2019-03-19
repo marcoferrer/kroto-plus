@@ -20,7 +20,8 @@ import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledObserver
 import com.github.marcoferrer.krotoplus.coroutines.call.enableManualFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -28,6 +29,40 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 /**
+ * A Channel representing a Bi-Directional rpc client call. Elements sent to this channel
+ * with be sent to the server as request messages. Coroutine suspension is used as a mechanism to manage manual
+ * flow control and apply back pressure to the production of request messages and consumption of response messages.
+ *
+ * The server will continue to request messages from this channel until its consumption becomes suspended. This will
+ * cause invocations of `send` at the client to suspend until the server signals that it is ready to consume more
+ * messages, or the call becomes cancelled.
+ *
+ * The client will consume responses from the server via this channel. For every message consumed, the client
+ * will signal to the server that it is ready to receive another message. This channel will buffer at most one message
+ * before signaling to the server that it is not ready to receive any additional messages. This will cause the
+ * server implementation to suspend on attempts to send.
+ *
+ * Example:
+ * ```
+ * // We attach the current coroutine context so that cancellations
+ * // can clean up resources and notify the server.
+ * val (requestChannel, responseChannel) = stub.withCoroutineContext().sayHelloStreaming()
+ *
+ * launch {
+ *     repeat(5){
+ *         requestChannel.send { name = "person #$it" }
+ *     }
+ *     requestChannel.close()
+ * }
+ *
+ * responseChannel.consumeEach {
+ *     println("Bidi Response: $it")
+ * }
+ *
+ * ```
+ *
+ * This interface implements operators for `component1()` and `component2()` as a convenience for splitting request
+ * and response handling into separate channels.
  *
  */
 public interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, ReceiveChannel<RespT>{
@@ -69,9 +104,6 @@ internal class ClientStreamingCallChannelImpl<ReqT, RespT>(
     SendChannel<ReqT> by requestChannel
 
 
-/**
- *
- */
 internal class ClientResponseObserverChannel<ReqT, RespT>(
     override val coroutineContext: CoroutineContext,
     private val responseChannelDelegate: Channel<RespT> = Channel(capacity = 1)
@@ -84,14 +116,12 @@ internal class ClientResponseObserverChannel<ReqT, RespT>(
 
     private lateinit var requestStream: ClientCallStreamObserver<ReqT>
 
-    @ExperimentalCoroutinesApi
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
         this.requestStream = requestStream.apply {
             enableManualFlowControl(responseChannelDelegate,isMessagePreloaded)
         }
     }
 
-    @ExperimentalCoroutinesApi
     override fun onNext(value: RespT) = nextValueWithBackPressure(
         value = value,
         channel = responseChannelDelegate,

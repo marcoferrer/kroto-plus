@@ -18,6 +18,7 @@ package com.github.marcoferrer.krotoplus.coroutines.server
 
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 
 /**
@@ -55,7 +56,10 @@ interface ServiceScope {
     /**
      * The context that will be used to create a new [CoroutineScope] for
      * every incoming rpc request.
+     *
+     * This value defaults to [EmptyCoroutineContext]
      */
     val initialContext: CoroutineContext
+        get() = EmptyCoroutineContext
 
 }

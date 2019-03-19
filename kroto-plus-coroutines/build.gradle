@@ -2,6 +2,7 @@ description = "Kroto+ Grpc Coroutine Support"
 
 apply from: "$rootDir/publishing.gradle"
 apply plugin: 'com.google.protobuf'
+apply plugin: 'jacoco'
 
 def experimentalFlags = [
     "-Xuse-experimental=kotlin.Experimental",
@@ -61,4 +62,20 @@ protobuf {
             }
         }
     }
+}
+
+jacoco {
+    toolVersion = "0.8.3"
+}
+
+jacocoTestReport {
+    sourceDirectories = files("$projectDir/src/main/kotlin")
+    reports {
+        xml.enabled = true
+        xml.destination file("$buildDir/reports/jacoco/report.xml")
+        html.enabled = true
+        html.destination file("$buildDir/reports/coverage")
+        csv.enabled = false
+    }
+    test.finalizedBy 'jacocoTestReport'
 }

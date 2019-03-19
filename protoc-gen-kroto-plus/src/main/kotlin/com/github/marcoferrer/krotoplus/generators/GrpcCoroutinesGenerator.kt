@@ -116,17 +116,6 @@ object GrpcCoroutinesGenerator : Generator {
             .addSuperinterface(CommonClassNames.serviceScope)
             .addProperty(
                 PropertySpec
-                    .builder("initialContext", CommonClassNames.coroutineContext)
-                    .addModifiers(KModifier.OVERRIDE)
-                    .getter(
-                        FunSpec.getterBuilder()
-                            .addCode("return %T", CommonClassNames.emptyCoroutineContext)
-                            .build()
-                    )
-                    .build()
-            )
-            .addProperty(
-                PropertySpec
                     .builder(delegateValName, serviceDelegateClassName)
                     .addModifiers(KModifier.PRIVATE)
                     .initializer("%T()", serviceDelegateClassName)
@@ -145,7 +134,6 @@ object GrpcCoroutinesGenerator : Generator {
 
         return baseImplBuilder.build()
     }
-
 
     private fun ProtoService.buildServiceBaseImplDelegate(): TypeSpec =
         TypeSpec.classBuilder(serviceDelegateName)
