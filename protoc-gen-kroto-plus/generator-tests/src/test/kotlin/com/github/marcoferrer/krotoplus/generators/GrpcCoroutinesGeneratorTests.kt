@@ -20,15 +20,15 @@ import com.github.marcoferrer.krotoplus.coroutines.launchProducerJob
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.examples.helloworld.*
 import io.grpc.testing.GrpcServerRule
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
-import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.BeforeTest
@@ -44,6 +44,9 @@ class GrpcCoroutinesGeneratorTests {
     @BeforeTest
     fun setupService(){
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+
+            override val initialContext: CoroutineContext
+                get() = Dispatchers.Default
 
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 return HelloReply { message = expectedMessage }
@@ -141,13 +144,16 @@ class GrpcCoroutinesGeneratorTests {
 
             val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
-            launchProducerJob(requestChannel) {
+//            launchProducerJob(requestChannel) {
+            launch(Dispatchers.Default) {
                 repeat(3) {
-                    send { name = "name $it" }
+                    requestChannel.send { name = "name $it" }
                 }
+                requestChannel.close()
             }
 
             val results = responseChannel.toList()
+            println(results)
             assertEquals(9, results.size)
 
             val expected = "name 0|name 0|name 0" +

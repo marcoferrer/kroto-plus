@@ -17,6 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
 import com.github.marcoferrer.krotoplus.coroutines.call.*
+import io.grpc.ForwardingServerCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -25,6 +26,7 @@ import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 
 public fun <ReqT, RespT> ServiceScope.serverCallUnary(
@@ -35,7 +37,12 @@ public fun <ReqT, RespT> ServiceScope.serverCallUnary(
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(responseObserver as ServerCallStreamObserver<*>)
         launch {
-            responseObserver.handleUnaryRpc { block() }
+            try{
+                responseObserver.onNext(block())
+                responseObserver.onCompleted()
+            }catch (e: Throwable){
+                responseObserver.completeSafely(e)
+            }
         }
     }
 }
@@ -45,15 +52,27 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
+    val responseChannel = Channel<RespT>(capacity = 0)
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
-
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
-
-        val responseChannel = newSendChannelFromObserver(responseObserver, capacity = 0)
-
+        applyOutboundFlowControl(serverCallObserver,responseChannel)
         launch {
-            responseChannel.handleStreamingRpc { block(it) }
+            try{
+                block(responseChannel)
+                responseChannel.close()
+            }catch (e: Throwable){
+                val rpcError = e.toRpcException()
+                serverCallObserver.completeSafely(rpcError)
+                responseChannel.close(rpcError)
+            }
+        }
+
+        // We attach to the parent job because we want
+        // to make sure all children complete including
+        // any scheduled outbound producers
+        coroutineContext[Job]?.invokeOnCompletion {
+            serverCallObserver.completeSafely(it)
         }
     }
 }
@@ -65,19 +84,19 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
     block: suspend (ReceiveChannel<ReqT>) -> RespT
 ): StreamObserver<ReqT> {
 
-    val isMessagePreloaded = AtomicBoolean(false)
-    val requestChannelDelegate = Channel<ReqT>(capacity = 1)
+    val activeInboundJobCount = AtomicInteger()
+    val inboundChannel = Channel<ReqT>(capacity = 0)
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
-        .apply { enableManualFlowControl(requestChannelDelegate, isMessagePreloaded) }
+        .apply { applyInboundFlowControl(inboundChannel, activeInboundJobCount) }
 
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
 
         val requestChannel = ServerRequestStreamChannel(
             coroutineContext = coroutineContext,
-            delegateChannel = requestChannelDelegate,
+            inboundChannel = inboundChannel,
+            activeInboundJobCount = activeInboundJobCount,
             callStreamObserver = serverCallObserver,
-            isMessagePreloaded = isMessagePreloaded,
             onErrorHandler = {
                 // Call cancellation already cancels the coroutine scope
                 // and closes the response stream. So we dont need to
@@ -90,9 +109,12 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
         )
 
         launch {
-            responseObserver.handleUnaryRpc { block(requestChannel) }
-            // If the request channel was abandoned but we completed successfully
-            // close it and clear its contents.
+            try{
+                responseObserver.onNext(block(requestChannel))
+                responseObserver.onCompleted()
+            }catch (e: Throwable){
+                responseObserver.completeSafely(e)
+            }
             if(!requestChannel.isClosedForReceive){
                 requestChannel.cancel()
             }
@@ -110,23 +132,14 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ): StreamObserver<ReqT> {
 
-    val isMessagePreloaded = AtomicBoolean(false)
-    val requestChannelDelegate = Channel<ReqT>(capacity = 1)
+    val responseChannel = Channel<RespT>(capacity = 0)
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
-
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
-
-        val responseChannel = newManagedServerResponseChannel(
-            responseObserver = serverCallObserver,
-            requestChannel = requestChannelDelegate,
-            isMessagePreloaded = isMessagePreloaded
-        )
-        val requestChannel = ServerRequestStreamChannel(
+        applyOutboundFlowControl(serverCallObserver,responseChannel)
+        val requestChannel = ServerRequestStreamChannel<ReqT>(
             coroutineContext = coroutineContext,
-            delegateChannel = requestChannelDelegate,
             callStreamObserver = serverCallObserver,
-            isMessagePreloaded = isMessagePreloaded,
             onErrorHandler = {
                 // Call cancellation already cancels the coroutine scope
                 // and closes the response stream. So we dont need to
@@ -135,6 +148,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
                     // In the event of a request error, we
                     // need to close the responseChannel before
                     // cancelling the rpcScope.
+                    responseObserver.completeSafely(it)
                     responseChannel.close(it)
                     this@rpcScope.cancel()
                 }
@@ -142,14 +156,26 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
         )
 
         launch {
-            handleBidiStreamingRpc(requestChannel, responseChannel){ req, resp -> block(req,resp) }
-            // If the request channel was abandoned but we completed successfully
-            // close it and clear its contents.
+            serverCallObserver.request(1)
+            try{
+                block(requestChannel,responseChannel)
+                responseChannel.close()
+            }catch (e:Throwable){
+                val rpcError = e.toRpcException()
+                serverCallObserver.completeSafely(rpcError)
+                responseChannel.close(rpcError)
+            }
             if(!requestChannel.isClosedForReceive){
                 requestChannel.cancel()
             }
         }
 
+        // We attach to the parent job because we want
+        // to make sure all children complete including
+        // any scheduled outbound producers
+        coroutineContext[Job]?.invokeOnCompletion {
+            serverCallObserver.completeSafely(it)
+        }
         return requestChannel
     }
 }

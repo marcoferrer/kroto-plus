@@ -31,39 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 
-internal fun <RespT> CoroutineScope.newSendChannelFromObserver(
-    observer: StreamObserver<RespT>,
-    capacity: Int = 1
-): SendChannel<RespT> =
-    actor<RespT>(
-        context = observer.exceptionHandler + Dispatchers.Unconfined,
-        capacity = capacity,
-        start = CoroutineStart.LAZY
-    ) {
-        try {
-            consumeEach { observer.onNext(it) }
-            channel.close()
-        }catch (e:Throwable){
-            channel.close(e)
-        }
-    }.apply{
-        invokeOnClose(observer.completionHandler)
-    }
-
-
-internal fun <ReqT, RespT> CoroutineScope.newManagedServerResponseChannel(
-    responseObserver: ServerCallStreamObserver<RespT>,
-    isMessagePreloaded: AtomicBoolean,
-    requestChannel: Channel<ReqT> = Channel(capacity = 1)
-): SendChannel<RespT> {
-
-    val responseChannel = newSendChannelFromObserver(responseObserver)
-
-    responseObserver.enableManualFlowControl(requestChannel,isMessagePreloaded)
-
-    return responseChannel
-}
-
 internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamObserver<*>){
     observer.setOnCancelHandler {
         this@bindToClientCancellation.cancel()
@@ -88,32 +55,32 @@ internal fun StreamObserver<*>.completeSafely(error: Throwable? = null){
     // If the call was cancelled already
     // the stream observer will throw
     kotlin.runCatching {
-        if (error != null)
-            onError(error.toRpcException()) else
+        if (error != null){
+            onError(error.toRpcException())
+        } else {
             onCompleted()
+        }
     }
 }
-
-internal val StreamObserver<*>.exceptionHandler: CoroutineExceptionHandler
-    get() = CoroutineExceptionHandler { _, e ->
-        completeSafely(e)
-    }
-
-internal val StreamObserver<*>.completionHandler: CompletionHandler
-    get() = { completeSafely(it) }
 
 internal fun Throwable.toRpcException(): Throwable =
     when (this) {
         is StatusException,
         is StatusRuntimeException -> this
         else -> {
-            val error = Status.fromThrowable(this)
-                .asRuntimeException(Status.trailersFromThrowable(this))
-
-            if(error.status.code == Status.Code.UNKNOWN && this is CancellationException)
+            val statusFromThrowable  = Status.fromThrowable(this)
+            val status = if(
+                statusFromThrowable.code == Status.UNKNOWN.code &&
+                this is CancellationException
+            ){
                 Status.CANCELLED
-                    .withDescription(this.message)
-                    .asRuntimeException() else error
+            } else {
+                statusFromThrowable
+            }
+
+            status
+                .withDescription(this.message)
+                .asRuntimeException(Status.trailersFromThrowable(this))
         }
     }
 
@@ -139,34 +106,3 @@ internal fun <T> CoroutineScope.newProducerScope(channel: SendChannel<T>): Produ
         override val channel: SendChannel<T>
             get() = channel
     }
-
-internal inline fun <T> StreamObserver<T>.handleUnaryRpc(block: ()->T){
-    try{
-        onNext(block())
-        onCompleted()
-    }catch (e: Throwable){
-        completeSafely(e)
-    }
-}
-
-internal inline fun <T> SendChannel<T>.handleStreamingRpc(block: (SendChannel<T>)->Unit){
-    try{
-        block(this)
-        close()
-    }catch (e: Throwable){
-        close(e.toRpcException())
-    }
-}
-
-internal inline fun <ReqT, RespT> handleBidiStreamingRpc(
-    requestChannel: ReceiveChannel<ReqT>,
-    responseChannel: SendChannel<RespT>,
-    block: (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
-) {
-    try{
-        block(requestChannel,responseChannel)
-        responseChannel.close()
-    }catch (e:Throwable){
-        responseChannel.close(e.toRpcException())
-    }
-}

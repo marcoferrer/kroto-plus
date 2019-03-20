@@ -16,16 +16,21 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.client
 
-import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledObserver
-import com.github.marcoferrer.krotoplus.coroutines.call.enableManualFlowControl
+import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStreamObserver
+import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
+import io.grpc.stub.CallStreamObserver
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
+import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -65,7 +70,7 @@ import kotlin.coroutines.CoroutineContext
  * and response handling into separate channels.
  *
  */
-public interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, ReceiveChannel<RespT>{
+public interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, ReceiveChannel<RespT> {
 
     public val requestChannel: SendChannel<ReqT>
 
@@ -76,64 +81,50 @@ public interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, Receive
     public operator fun component2(): ReceiveChannel<RespT> = responseChannel
 }
 
-internal class ClientBidiCallChannelImpl<ReqT, RespT>(
-    public override val requestChannel: SendChannel<ReqT>,
-    public override val responseChannel: ReceiveChannel<RespT>
-) : ClientBidiCallChannel<ReqT, RespT>,
-    SendChannel<ReqT> by requestChannel,
-    ReceiveChannel<RespT> by responseChannel
-
-/**
- *
- */
-public interface ClientStreamingCallChannel<ReqT, RespT> : SendChannel<ReqT> {
-
-    public val requestChannel: SendChannel<ReqT>
-
-    public val response: Deferred<RespT>
-
-    public operator fun component1(): SendChannel<ReqT> = requestChannel
-
-    public operator fun component2(): Deferred<RespT> = response
-}
-
-internal class ClientStreamingCallChannelImpl<ReqT, RespT>(
-    public override val requestChannel: SendChannel<ReqT>,
-    public override val response: Deferred<RespT>
-) : ClientStreamingCallChannel<ReqT, RespT>,
-    SendChannel<ReqT> by requestChannel
-
-
-internal class ClientResponseObserverChannel<ReqT, RespT>(
+internal class ClientBidiCallChannelImpl<ReqT,RespT>(
     override val coroutineContext: CoroutineContext,
-    private val responseChannelDelegate: Channel<RespT> = Channel(capacity = 1)
-) : ClientResponseObserver<ReqT, RespT>,
-    FlowControlledObserver,
-    ReceiveChannel<RespT> by responseChannelDelegate,
-    CoroutineScope {
+    override val inboundChannel: Channel<RespT> = Channel(capacity = 0),
+    private val outboundChannel: Channel<ReqT> = Channel(capacity = 0)
+) : FlowControlledInboundStreamObserver<RespT>,
+    ClientResponseObserver<ReqT, RespT>,
+    ClientBidiCallChannel<ReqT, RespT>,
+    SendChannel<ReqT> by outboundChannel,
+    ReceiveChannel<RespT> by inboundChannel
+{
+    override val requestChannel: SendChannel<ReqT>
+        get() = outboundChannel
 
-    private val isMessagePreloaded = AtomicBoolean()
+    override val responseChannel: ReceiveChannel<RespT>
+        get() = inboundChannel
 
-    private lateinit var requestStream: ClientCallStreamObserver<ReqT>
+    override val isInboundCompleted = AtomicBoolean()
+
+    override val activeInboundJobCount: AtomicInteger = AtomicInteger()
+
+    override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
 
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
-        this.requestStream = requestStream.apply {
-            enableManualFlowControl(responseChannelDelegate,isMessagePreloaded)
+        callStreamObserver = requestStream
+        applyOutboundFlowControl(requestStream,outboundChannel)
+
+        outboundChannel.invokeOnClose{
+            if(it != null){
+                inboundChannel.close(it)
+            }
+        }
+        inboundChannel.invokeOnClose {
+            if(it != null){
+                outboundChannel.close(it)
+            }
         }
     }
 
-    override fun onNext(value: RespT) = nextValueWithBackPressure(
-        value = value,
-        channel = responseChannelDelegate,
-        callStreamObserver = requestStream,
-        isMessagePreloaded = isMessagePreloaded
-    )
+    override fun onNext(value: RespT): Unit = onNextWithBackPressure(value)
 
     override fun onError(t: Throwable) {
-        responseChannelDelegate.close(t)
-    }
-
-    override fun onCompleted() {
-        responseChannelDelegate.close()
+        outboundChannel.close(t)
+        outboundChannel.cancel()
+        inboundChannel.close(t)
     }
 }
+

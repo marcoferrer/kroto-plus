@@ -48,9 +48,15 @@ class ServerCallServerStreamingTests {
     private val request = HelloRequest.newBuilder().setName("abc").build()
     private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()
     private val responseObserver = spyk<StreamObserver<HelloReply>>(object: StreamObserver<HelloReply>{
-        override fun onNext(value: HelloReply?) {}
-        override fun onError(t: Throwable?) {}
-        override fun onCompleted() {}
+        override fun onNext(value: HelloReply?) {
+//            println("client:onNext:$value")
+        }
+        override fun onError(t: Throwable?) {
+//            println("client:onError:$t")
+        }
+        override fun onCompleted() {
+//            println("client:onComplete")
+        }
     })
 
     private fun newCall(): ClientCall<HelloRequest, HelloReply> {
@@ -114,6 +120,8 @@ class ServerCallServerStreamingTests {
     fun `Server responds with cancellation when scope cancelled normally`(){
         lateinit var respChannel: SendChannel<HelloReply>
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            // We're using `Dispatchers.Unconfined` so that we can make sure the response was returned
+            // before verifying the result.
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloServerStreaming(
                 request: HelloRequest,
@@ -152,10 +160,11 @@ class ServerCallServerStreamingTests {
             ) {
                 respChannel = responseChannel
                 coroutineScope {
-                    launch {
+                    launch(start = CoroutineStart.UNDISPATCHED) {
                         error("unexpected cancellation")
                     }
                     repeat(3){
+                        yield()
                         responseChannel.send(expectedResponse)
                     }
                 }

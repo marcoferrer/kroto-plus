@@ -31,6 +31,8 @@ import io.mockk.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.map
+import kotlinx.coroutines.channels.toList
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
@@ -126,7 +128,7 @@ class ClientCallBidiStreamingTests {
         val (requestChannel, responseChannel) = stub
             .clientCallBidiStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        val result = runBlocking(Dispatchers.Default) {
             launch {
                 repeat(3){
                     requestChannel.send(
@@ -136,13 +138,14 @@ class ClientCallBidiStreamingTests {
                 }
                 requestChannel.close()
             }
-            launch{
-                repeat(3){
-                    assertEquals("Req:#$it/Resp:#$it",responseChannel.receive().message)
-                }
-            }
+
+            responseChannel.map { it.message }.toList()
         }
 
+        assertEquals(3,result.size)
+        result.forEachIndexed { index, message ->
+            assertEquals("Req:#$index/Resp:#$index",message)
+        }
         verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
@@ -173,8 +176,8 @@ class ClientCallBidiStreamingTests {
                     }
                 }
             }
-            launch{
-                repeat(3) {
+            launch {
+                repeat(2) {
                     assertEquals("Req:#$it/Resp:#$it", responseChannel.receive().message)
                 }
                 assertFailsWithStatus(Status.INVALID_ARGUMENT) {
@@ -183,12 +186,7 @@ class ClientCallBidiStreamingTests {
             }
         }
 
-        verify(exactly = 1) {
-            rpcSpy.call.cancel(
-                "Cancelled by client with StreamObserver.onError()",
-                matchStatus(Status.INVALID_ARGUMENT)
-            )
-        }
+        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
@@ -230,9 +228,7 @@ class ClientCallBidiStreamingTests {
             }
         }
 
-        // First invocation comes from the requestChannel being closed and calling `onError`
-        // Second invocation comes from the scope cancellation handler
-        verify(exactly = 2) { rpcSpy.call.cancel(any(), any()) }
+        verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }

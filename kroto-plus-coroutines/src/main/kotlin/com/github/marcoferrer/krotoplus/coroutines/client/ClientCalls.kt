@@ -84,7 +84,7 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallServerStreaming(
 
     with(newRpcScope(coroutineContext, method)) {
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
-        val responseObserverChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext)
+        val responseObserverChannel = ClientResponseStreamChannel<ReqT, RespT>(coroutineContext)
         asyncServerStreamingCall<ReqT, RespT>(
             call,
             request,
@@ -100,17 +100,13 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallBidiStreaming(
 ): ClientBidiCallChannel<ReqT, RespT> {
 
     with(newRpcScope(coroutineContext, method)) {
-        val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
-        val responseDelegate = Channel<RespT>(capacity = 1)
-        val responseChannel = ClientResponseObserverChannel<ReqT, RespT>(coroutineContext, responseDelegate)
-        val requestObserver = asyncBidiStreamingCall<ReqT, RespT>(
-            call, responseChannel
-        )
-        bindScopeCancellationToCall(call)
-        val requestChannel = newSendChannelFromObserver(requestObserver)
-        responseDelegate.invokeOnClose { requestChannel.close(it) }
 
-        return ClientBidiCallChannelImpl(requestChannel, responseChannel)
+        val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
+        val callChannel = ClientBidiCallChannelImpl<ReqT,RespT>(coroutineContext)
+        asyncBidiStreamingCall<ReqT, RespT>(call, callChannel)
+        bindScopeCancellationToCall(call)
+
+        return callChannel
     }
 }
 
@@ -119,17 +115,12 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallClientStreaming(
 ): ClientStreamingCallChannel<ReqT, RespT> {
 
     with(newRpcScope(coroutineContext, method)) {
-        val completableResponse = CompletableDeferred<RespT>(parent = coroutineContext[Job])
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
-        val requestObserver = asyncClientStreamingCall<ReqT, RespT>(
-            call, completableResponse.toStreamObserver()
-        )
+        val callChannel = ClientStreamingCallChannelImpl<ReqT,RespT>(coroutineContext)
+        asyncClientStreamingCall<ReqT, RespT>(call, callChannel)
         bindScopeCancellationToCall(call)
-        val requestChannel = newSendChannelFromObserver(requestObserver)
-        return ClientStreamingCallChannelImpl(
-            requestChannel,
-            completableResponse
-        )
+
+        return callChannel
     }
 }
 

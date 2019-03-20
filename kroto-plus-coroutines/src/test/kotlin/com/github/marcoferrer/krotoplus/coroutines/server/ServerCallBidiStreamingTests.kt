@@ -34,6 +34,7 @@ import io.grpc.testing.GrpcServerRule
 import io.mockk.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import kotlin.coroutines.CoroutineContext
@@ -202,6 +203,7 @@ class ServerCallBidiStreamingTests {
     }
 
     @Test
+    @Ignore //TODO: This test is flawed. If the client sends a message the server needs to address to kill
     fun `Server responds with completion even when no responses are sent`() {
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
