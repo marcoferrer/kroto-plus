@@ -203,7 +203,6 @@ class ServerCallBidiStreamingTests {
     }
 
     @Test
-    @Ignore //TODO: This test is flawed. If the client sends a message the server needs to address to kill
     fun `Server responds with completion even when no responses are sent`() {
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>

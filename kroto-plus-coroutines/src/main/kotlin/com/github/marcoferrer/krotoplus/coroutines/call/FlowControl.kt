@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 
-internal fun <T, T2> CallStreamObserver<T>.applyInboundFlowControl(
-    targetChannel: Channel<T2>,
+internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
+    targetChannel: Channel<T>,
     activeInboundJobCount: AtomicInteger
 ) {
     disableAutoInboundFlowControl()

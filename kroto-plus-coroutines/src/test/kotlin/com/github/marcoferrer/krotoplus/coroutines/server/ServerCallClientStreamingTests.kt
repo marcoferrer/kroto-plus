@@ -157,7 +157,6 @@ class ServerCallClientStreamingTests {
     }
 
     @Test
-    @Ignore // TODO: This test is flawed
     fun `Server request channel is closed if not consumed`(){
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
