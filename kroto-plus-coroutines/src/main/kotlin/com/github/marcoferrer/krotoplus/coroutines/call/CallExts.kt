@@ -26,8 +26,6 @@ import io.grpc.stub.StreamObserver
 import io.grpc.ClientCall
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.channels.Channel
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 
@@ -97,7 +95,6 @@ internal fun newRpcScope(
             methodDescriptor.getCoroutineName()
 )
 
-@ExperimentalCoroutinesApi
 internal fun <T> CoroutineScope.newProducerScope(channel: SendChannel<T>): ProducerScope<T> =
     object : ProducerScope<T>,
         CoroutineScope by this,
