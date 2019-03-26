@@ -29,35 +29,33 @@ import kotlinx.coroutines.channels.*
 import kotlin.coroutines.CoroutineContext
 
 
-internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamObserver<*>){
+internal fun CoroutineScope.bindToClientCancellation(observer: ServerCallStreamObserver<*>) {
     observer.setOnCancelHandler {
         this@bindToClientCancellation.cancel()
     }
 }
 
-internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>){
+internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>) {
 
     val job = coroutineContext[Job]
         ?: error("Unable to bind cancellation to call because scope does not have a job: $this")
 
     job.apply {
         invokeOnCompletion {
-            if(isCancelled){
-                call.cancel(it?.message,it?.cause ?: it)
+            if (isCancelled) {
+                call.cancel(it?.message, it?.cause ?: it)
             }
         }
     }
 }
 
-internal fun StreamObserver<*>.completeSafely(error: Throwable? = null){
+internal fun StreamObserver<*>.completeSafely(error: Throwable? = null) {
     // If the call was cancelled already
     // the stream observer will throw
     kotlin.runCatching {
-        if (error != null){
-            onError(error.toRpcException())
-        } else {
+        if (error != null)
+            onError(error.toRpcException()) else
             onCompleted()
-        }
     }
 }
 
@@ -66,11 +64,11 @@ internal fun Throwable.toRpcException(): Throwable =
         is StatusException,
         is StatusRuntimeException -> this
         else -> {
-            val statusFromThrowable  = Status.fromThrowable(this)
-            val status = if(
+            val statusFromThrowable = Status.fromThrowable(this)
+            val status = if (
                 statusFromThrowable.code == Status.UNKNOWN.code &&
                 this is CancellationException
-            ){
+            ) {
                 Status.CANCELLED
             } else {
                 statusFromThrowable
