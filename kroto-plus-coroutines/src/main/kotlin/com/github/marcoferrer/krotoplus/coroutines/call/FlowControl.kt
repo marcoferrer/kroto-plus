@@ -45,35 +45,32 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
 ){
     val isOutboundJobRunning = AtomicBoolean()
     val channelIterator = targetChannel.iterator()
-    streamObserver.apply {
-        disableAutoInboundFlowControl()
-        setOnReadyHandler {
-            if(targetChannel.isClosedForReceive){
-                streamObserver.completeSafely()
-            }else if(
-                isReady &&
-                !targetChannel.isClosedForReceive &&
-                isOutboundJobRunning.compareAndSet(false, true)
-            ){
-                launch(context = Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
-                    streamObserver.completeSafely(e)
-                    targetChannel.close(e)
-                }) {
-                    try{
-                        while(
-                            streamObserver.isReady &&
-                            !targetChannel.isClosedForReceive &&
-                            channelIterator.hasNext()
-                        ){
-                            val value = channelIterator.next()
-                            streamObserver.onNext(value)
-                        }
-                        if(targetChannel.isClosedForReceive){
-                            streamObserver.onCompleted()
-                        }
-                    } finally {
-                        isOutboundJobRunning.set(false)
+    streamObserver.setOnReadyHandler {
+        if(targetChannel.isClosedForReceive){
+            streamObserver.completeSafely()
+        }else if(
+            streamObserver.isReady &&
+            !targetChannel.isClosedForReceive &&
+            isOutboundJobRunning.compareAndSet(false, true)
+        ){
+            launch(Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
+                streamObserver.completeSafely(e)
+                targetChannel.close(e)
+            }) {
+                try{
+                    while(
+                        streamObserver.isReady &&
+                        !targetChannel.isClosedForReceive &&
+                        channelIterator.hasNext()
+                    ){
+                        val value = channelIterator.next()
+                        streamObserver.onNext(value)
                     }
+                    if(targetChannel.isClosedForReceive){
+                        streamObserver.onCompleted()
+                    }
+                } finally {
+                    isOutboundJobRunning.set(false)
                 }
             }
         }
