@@ -55,9 +55,17 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
+): RespT = clientCallUnary(request,method,channel,callOptions)
+
+public suspend fun <ReqT, RespT> clientCallUnary(
+    request: ReqT,
+    method: MethodDescriptor<ReqT, RespT>,
+    channel: io.grpc.Channel,
+    callOptions: CallOptions = CallOptions.DEFAULT
 ): RespT = suspendCancellableCoroutine { cont: CancellableContinuation<RespT> ->
 
-    with(newRpcScope(cont.context + coroutineContext, method)) {
+    val initialContext = cont.context + callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
+    with(newRpcScope(initialContext, method)) {
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
         asyncUnaryCall<ReqT, RespT>(call, request, SuspendingUnaryObserver(cont))
         cont.invokeOnCancellation { call.cancel(it?.message, it) }
@@ -87,9 +95,18 @@ public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
 public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallServerStreaming(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
+): ReceiveChannel<RespT> =
+    clientCallServerStreaming(request,method,channel,callOptions)
+
+public fun <ReqT, RespT> clientCallServerStreaming(
+    request: ReqT,
+    method: MethodDescriptor<ReqT, RespT>,
+    channel: io.grpc.Channel,
+    callOptions: CallOptions = CallOptions.DEFAULT
 ): ReceiveChannel<RespT> {
 
-    with(newRpcScope(coroutineContext, method)) {
+    val initialContext = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
+    with(newRpcScope(initialContext, method)) {
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
         val responseObserverChannel = ClientResponseStreamChannel<ReqT, RespT>(coroutineContext)
         asyncServerStreamingCall<ReqT, RespT>(
@@ -104,12 +121,20 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallServerStreaming(
 
 public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallBidiStreaming(
     method: MethodDescriptor<ReqT, RespT>
+): ClientBidiCallChannel<ReqT, RespT> =
+    clientCallBidiStreaming(method, channel, callOptions)
+
+public fun <ReqT, RespT> clientCallBidiStreaming(
+    method: MethodDescriptor<ReqT, RespT>,
+    channel: io.grpc.Channel,
+    callOptions: CallOptions = CallOptions.DEFAULT
 ): ClientBidiCallChannel<ReqT, RespT> {
 
-    with(newRpcScope(coroutineContext, method)) {
+    val initialContext = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
+    with(newRpcScope(initialContext, method)) {
 
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
-        val callChannel = ClientBidiCallChannelImpl<ReqT,RespT>(coroutineContext)
+        val callChannel = ClientBidiCallChannelImpl<ReqT, RespT>(coroutineContext)
         asyncBidiStreamingCall<ReqT, RespT>(call, callChannel)
         bindScopeCancellationToCall(call)
 
@@ -119,11 +144,18 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallBidiStreaming(
 
 public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallClientStreaming(
     method: MethodDescriptor<ReqT, RespT>
-): ClientStreamingCallChannel<ReqT, RespT> {
+): ClientStreamingCallChannel<ReqT, RespT> =
+    clientCallClientStreaming(method, channel, callOptions)
 
-    with(newRpcScope(coroutineContext, method)) {
+public fun <ReqT, RespT> clientCallClientStreaming(
+    method: MethodDescriptor<ReqT, RespT>,
+    channel: io.grpc.Channel,
+    callOptions: CallOptions = CallOptions.DEFAULT
+): ClientStreamingCallChannel<ReqT, RespT> {
+    val initialContext = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
+    with(newRpcScope(initialContext, method)) {
         val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
-        val callChannel = ClientStreamingCallChannelImpl<ReqT,RespT>(coroutineContext)
+        val callChannel = ClientStreamingCallChannelImpl<ReqT, RespT>(coroutineContext)
         asyncClientStreamingCall<ReqT, RespT>(call, callChannel)
         bindScopeCancellationToCall(call)
 
