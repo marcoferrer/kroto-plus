@@ -30,7 +30,7 @@ import kotlin.coroutines.CoroutineContext
 
 internal class ClientResponseStreamChannel<ReqT, RespT>(
     override val coroutineContext: CoroutineContext,
-    override val inboundChannel: Channel<RespT> = Channel(capacity = 0)
+    override val inboundChannel: Channel<RespT> = Channel()
 ) : ClientResponseObserver<ReqT, RespT>,
     FlowControlledInboundStreamObserver<RespT>,
     ReceiveChannel<RespT> by inboundChannel,

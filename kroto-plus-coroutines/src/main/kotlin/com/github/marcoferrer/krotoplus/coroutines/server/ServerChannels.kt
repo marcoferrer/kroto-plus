@@ -27,7 +27,7 @@ import kotlin.coroutines.CoroutineContext
 
 internal class ServerRequestStreamChannel<ReqT>(
     override val coroutineContext: CoroutineContext,
-    override val inboundChannel: Channel<ReqT> = Channel(capacity = 0),
+    override val inboundChannel: Channel<ReqT> = Channel(),
     override val transientInboundMessageCount: AtomicInteger = AtomicInteger(),
     override val callStreamObserver: ServerCallStreamObserver<*>,
     private val onErrorHandler: ((Throwable) -> Unit)? = null

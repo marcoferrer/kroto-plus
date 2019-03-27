@@ -43,7 +43,7 @@ internal class ClientStreamingCallChannelImpl<ReqT,RespT>(
 
     override val coroutineContext: CoroutineContext,
 
-    private val outboundChannel: Channel<ReqT> = Channel(capacity = 1),
+    private val outboundChannel: Channel<ReqT> = Channel(),
 
     private val completableResponse: CompletableDeferred<RespT> = CompletableDeferred(parent = coroutineContext[Job])
 

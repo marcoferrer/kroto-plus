@@ -77,8 +77,8 @@ public interface ClientBidiCallChannel<ReqT, RespT> : SendChannel<ReqT>, Receive
 
 internal class ClientBidiCallChannelImpl<ReqT,RespT>(
     override val coroutineContext: CoroutineContext,
-    override val inboundChannel: Channel<RespT> = Channel(capacity = 0),
-    private val outboundChannel: Channel<ReqT> = Channel(capacity = 0)
+    override val inboundChannel: Channel<RespT> = Channel(),
+    private val outboundChannel: Channel<ReqT> = Channel()
 ) : FlowControlledInboundStreamObserver<RespT>,
     ClientResponseObserver<ReqT, RespT>,
     ClientBidiCallChannel<ReqT, RespT>,
@@ -100,17 +100,6 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
         callStreamObserver = requestStream
         applyOutboundFlowControl(requestStream,outboundChannel)
-
-        outboundChannel.invokeOnClose{
-            if(it != null){
-                inboundChannel.close(it)
-            }
-        }
-        inboundChannel.invokeOnClose {
-            if(it != null){
-                outboundChannel.close(it)
-            }
-        }
     }
 
     override fun onNext(value: RespT): Unit = onNextWithBackPressure(value)

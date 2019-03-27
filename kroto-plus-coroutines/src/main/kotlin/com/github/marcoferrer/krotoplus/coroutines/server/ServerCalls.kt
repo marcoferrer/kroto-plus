@@ -50,7 +50,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     responseObserver: StreamObserver<RespT>,
     block: suspend (SendChannel<RespT>) -> Unit
 ) {
-    val responseChannel = Channel<RespT>(capacity = 0)
+    val responseChannel = Channel<RespT>()
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
@@ -83,7 +83,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
 ): StreamObserver<ReqT> {
 
     val activeInboundJobCount = AtomicInteger()
-    val inboundChannel = Channel<ReqT>(capacity = 0)
+    val inboundChannel = Channel<ReqT>()
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
         .apply { applyInboundFlowControl(inboundChannel, activeInboundJobCount) }
 
@@ -130,7 +130,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
     block: suspend (ReceiveChannel<ReqT>, SendChannel<RespT>) -> Unit
 ): StreamObserver<ReqT> {
 
-    val responseChannel = Channel<RespT>(capacity = 0)
+    val responseChannel = Channel<RespT>()
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
