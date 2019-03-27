@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.github.marcoferrer.krotoplus.coroutines
+package com.github.marcoferrer.krotoplus.coroutines.client
 
 import io.grpc.stub.StreamObserver
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-@KrotoPlusInternalApi
-class SuspendingUnaryObserver<RespT>(
+internal class SuspendingUnaryObserver<RespT>(
     @Volatile @JvmField private var cont: Continuation<RespT>?
 ) : StreamObserver<RespT> {
 

@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.coroutines
 
+import com.github.marcoferrer.krotoplus.coroutines.client.SuspendingUnaryObserver
 import io.mockk.*
 import kotlinx.coroutines.*
 import org.junit.Test
