@@ -66,12 +66,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
             }
         }
 
-        // We attach to the parent job because we want
-        // to make sure all children complete including
-        // any scheduled outbound producers
-        coroutineContext[Job]?.invokeOnCompletion {
-            serverCallObserver.completeSafely(it)
-        }
+        bindScopeCompletionToObserver(serverCallObserver)
     }
 }
 
@@ -168,12 +163,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
             }
         }
 
-        // We attach to the parent job because we want
-        // to make sure all children complete including
-        // any scheduled outbound producers
-        coroutineContext[Job]?.invokeOnCompletion {
-            serverCallObserver.completeSafely(it)
-        }
+        bindScopeCompletionToObserver(serverCallObserver)
         return requestChannel
     }
 }
@@ -189,3 +179,17 @@ private fun MethodDescriptor<*, *>.getUnimplementedException(): StatusRuntimeExc
     Status.UNIMPLEMENTED
         .withDescription("Method $fullMethodName is unimplemented")
         .asRuntimeException()
+
+/**
+ * Binds the completion of the coroutine context job to the outbound stream observer.
+ *
+ * This is used in server call handlers with outbound streams to ensure completion of any scheduled outbound producers
+ * before invoking `onComplete` and closing the call stream.
+ *
+ */
+private fun CoroutineScope.bindScopeCompletionToObserver(streamObserver: StreamObserver<*>) {
+
+    coroutineContext[Job]?.invokeOnCompletion {
+        streamObserver.completeSafely(it)
+    }
+}
