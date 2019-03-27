@@ -17,7 +17,6 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
-import com.github.marcoferrer.krotoplus.coroutines.SuspendingUnaryObserver
 import com.github.marcoferrer.krotoplus.coroutines.call.bindScopeCancellationToCall
 import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
@@ -55,7 +54,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 public suspend fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallUnary(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
-): RespT = clientCallUnary(request,method,channel,callOptions)
+): RespT = clientCallUnary(request, method, channel, callOptions)
 
 public suspend fun <ReqT, RespT> clientCallUnary(
     request: ReqT,
@@ -96,7 +95,7 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallServerStreaming(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>
 ): ReceiveChannel<RespT> =
-    clientCallServerStreaming(request,method,channel,callOptions)
+    clientCallServerStreaming(request, method, channel, callOptions)
 
 public fun <ReqT, RespT> clientCallServerStreaming(
     request: ReqT,
