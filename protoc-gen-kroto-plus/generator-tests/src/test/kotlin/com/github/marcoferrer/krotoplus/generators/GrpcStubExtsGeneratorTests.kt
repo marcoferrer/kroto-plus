@@ -24,6 +24,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.junit.Rule
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -39,6 +40,9 @@ class GrpcStubExtsGeneratorTests {
     @BeforeTest
     fun setupService(){
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+
+            override val initialContext: CoroutineContext
+                get() = Dispatchers.Unconfined
 
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 return HelloReply { message = expectedMessage }

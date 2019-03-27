@@ -14,33 +14,43 @@
  * limitations under the License.
  */
 
-package com.github.marcoferrer.krotoplus.coroutines.server
+package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStreamObserver
-import io.grpc.stub.ServerCallStreamObserver
-import kotlinx.coroutines.CoroutineScope
+import com.github.marcoferrer.krotoplus.coroutines.call.applyInboundFlowControl
+import io.grpc.stub.ClientCallStreamObserver
+import io.grpc.stub.ClientResponseObserver
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 
-internal class ServerRequestStreamChannel<ReqT>(
+
+internal class ClientResponseStreamChannel<ReqT, RespT>(
     override val coroutineContext: CoroutineContext,
-    override val inboundChannel: Channel<ReqT> = Channel(),
-    override val transientInboundMessageCount: AtomicInteger = AtomicInteger(),
-    override val callStreamObserver: ServerCallStreamObserver<*>,
-    private val onErrorHandler: ((Throwable) -> Unit)? = null
-) : ReceiveChannel<ReqT> by inboundChannel,
-    FlowControlledInboundStreamObserver<ReqT>,
+    override val inboundChannel: Channel<RespT> = Channel()
+) : ClientResponseObserver<ReqT, RespT>,
+    FlowControlledInboundStreamObserver<RespT>,
+    ReceiveChannel<RespT> by inboundChannel,
     CoroutineScope {
 
     override val isInboundCompleted: AtomicBoolean = AtomicBoolean()
 
-    override fun onNext(value: ReqT) = onNextWithBackPressure(value)
+    override val transientInboundMessageCount: AtomicInteger = AtomicInteger()
+
+    override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
+
+    override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
+        callStreamObserver = requestStream.apply {
+            applyInboundFlowControl(inboundChannel,transientInboundMessageCount)
+        }
+    }
+
+    override fun onNext(value: RespT): Unit = onNextWithBackPressure(value)
 
     override fun onError(t: Throwable) {
         inboundChannel.close(t)
-        onErrorHandler?.invoke(t)
     }
 }
