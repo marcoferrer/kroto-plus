@@ -19,7 +19,10 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlin.coroutines.CoroutineContext
