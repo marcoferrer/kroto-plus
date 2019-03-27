@@ -17,14 +17,10 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
 import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStreamObserver
-import com.github.marcoferrer.krotoplus.coroutines.call.completeSafely
-import io.grpc.stub.CallStreamObserver
-import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ServerCallStreamObserver
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
@@ -32,7 +28,7 @@ import kotlin.coroutines.CoroutineContext
 internal class ServerRequestStreamChannel<ReqT>(
     override val coroutineContext: CoroutineContext,
     override val inboundChannel: Channel<ReqT> = Channel(capacity = 0),
-    override val activeInboundJobCount: AtomicInteger = AtomicInteger(),
+    override val transientInboundMessageCount: AtomicInteger = AtomicInteger(),
     override val callStreamObserver: ServerCallStreamObserver<*>,
     private val onErrorHandler: ((Throwable) -> Unit)? = null
 ) : ReceiveChannel<ReqT> by inboundChannel,

@@ -22,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -32,18 +31,18 @@ interface FlowControlledInboundStreamObserver<T> : StreamObserver<T>, CoroutineS
 
     val isInboundCompleted: AtomicBoolean
 
-    val activeInboundJobCount: AtomicInteger
+    val transientInboundMessageCount: AtomicInteger
 
     val callStreamObserver: CallStreamObserver<*>
 
     val isChannelReadyForClose: Boolean
-        get() = isInboundCompleted.get() && activeInboundJobCount.get() == 0
+        get() = isInboundCompleted.get() && transientInboundMessageCount.get() == 0
 
     fun onNextWithBackPressure(value: T) {
-        activeInboundJobCount.incrementAndGet()
+        transientInboundMessageCount.incrementAndGet()
         when {
             !inboundChannel.isClosedForSend && inboundChannel.offer(value) -> {
-                activeInboundJobCount.decrementAndGet()
+                transientInboundMessageCount.decrementAndGet()
                 requestNextOrClose()
             }
             !inboundChannel.isClosedForSend -> {
@@ -54,15 +53,15 @@ interface FlowControlledInboundStreamObserver<T> : StreamObserver<T>, CoroutineS
                         inboundChannel.close(e)
                     }
                 }.invokeOnCompletion {
-                    activeInboundJobCount.decrementAndGet()
-                    if(!inboundChannel.isClosedForReceive){
+                    transientInboundMessageCount.decrementAndGet()
+                    if (!inboundChannel.isClosedForReceive) {
                         requestNextOrClose()
                     }
                 }
             }
             else -> {
-//                inboundChannel.close(IllegalStateException("Received value but inbound channel is closed for send"))
-                activeInboundJobCount.decrementAndGet()
+                transientInboundMessageCount.decrementAndGet()
+                error("Received value but inbound channel is closed for send")
             }
         }
     }

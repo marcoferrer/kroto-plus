@@ -18,17 +18,11 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStreamObserver
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
-import io.grpc.stub.CallStreamObserver
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
-import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
@@ -99,7 +93,7 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
 
     override val isInboundCompleted = AtomicBoolean()
 
-    override val activeInboundJobCount: AtomicInteger = AtomicInteger()
+    override val transientInboundMessageCount: AtomicInteger = AtomicInteger()
 
     override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
 

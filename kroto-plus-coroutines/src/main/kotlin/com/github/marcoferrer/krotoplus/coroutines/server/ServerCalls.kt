@@ -17,7 +17,6 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
 import com.github.marcoferrer.krotoplus.coroutines.call.*
-import io.grpc.ForwardingServerCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -25,7 +24,6 @@ import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -95,7 +93,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
         val requestChannel = ServerRequestStreamChannel(
             coroutineContext = coroutineContext,
             inboundChannel = inboundChannel,
-            activeInboundJobCount = activeInboundJobCount,
+            transientInboundMessageCount = activeInboundJobCount,
             callStreamObserver = serverCallObserver,
             onErrorHandler = {
                 // Call cancellation already cancels the coroutine scope

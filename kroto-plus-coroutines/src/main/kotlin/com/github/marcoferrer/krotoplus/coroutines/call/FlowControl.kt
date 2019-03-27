@@ -25,14 +25,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
     targetChannel: Channel<T>,
-    activeInboundJobCount: AtomicInteger
+    transientInboundMessageCount: AtomicInteger
 ) {
     disableAutoInboundFlowControl()
     setOnReadyHandler {
         if (
             isReady &&
             !targetChannel.isClosedForReceive &&
-            activeInboundJobCount.get() == 0
+            transientInboundMessageCount.get() == 0
         ) {
             request(1)
         }

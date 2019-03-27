@@ -23,7 +23,6 @@ import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
@@ -39,13 +38,13 @@ internal class ClientResponseStreamChannel<ReqT, RespT>(
 
     override val isInboundCompleted: AtomicBoolean = AtomicBoolean()
 
-    override val activeInboundJobCount: AtomicInteger = AtomicInteger()
+    override val transientInboundMessageCount: AtomicInteger = AtomicInteger()
 
     override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
 
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
         callStreamObserver = requestStream.apply {
-            applyInboundFlowControl(inboundChannel,activeInboundJobCount)
+            applyInboundFlowControl(inboundChannel,transientInboundMessageCount)
         }
     }
 
