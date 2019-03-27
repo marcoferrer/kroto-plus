@@ -174,6 +174,9 @@ class ServerCallClientStreamingTests {
             .sayHelloClientStreaming(responseObserver)
 
         requestObserver.sendRequests(3)
+
+        // We sleep to ensure the server had time to send all responses
+        Thread.sleep(10L)
         verify(exactly = 0) { responseObserver.onError(any()) }
         verify(exactly = 1) { responseObserver.onNext(expectedResponse) }
         verify(exactly = 1) { responseObserver.onCompleted() }
