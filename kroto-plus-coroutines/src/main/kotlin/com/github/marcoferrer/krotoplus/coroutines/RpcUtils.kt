@@ -18,12 +18,9 @@ package com.github.marcoferrer.krotoplus.coroutines
 
 import com.github.marcoferrer.krotoplus.coroutines.call.newProducerScope
 import com.github.marcoferrer.krotoplus.coroutines.call.toRpcException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -42,9 +39,10 @@ import kotlin.coroutines.EmptyCoroutineContext
 public fun <T> CoroutineScope.launchProducerJob(
     channel: SendChannel<T>,
     context: CoroutineContext = EmptyCoroutineContext,
+    start: CoroutineStart = CoroutineStart.DEFAULT,
     block: suspend ProducerScope<T>.()->Unit
 ): Job =
-    launch(context) {
+    launch(context, start) {
         newProducerScope(channel).block()
     }.apply {
         invokeOnCompletion {

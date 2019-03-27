@@ -5,8 +5,12 @@ import jojo.bizarre.adventure.character.CharacterProto
 import jojo.bizarre.adventure.stand.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlin.coroutines.CoroutineContext
 
 class StandServiceCoroutineImpl : StandServiceCoroutineGrpc.StandServiceImplBase(){
+
+    override val initialContext: CoroutineContext
+        get() = Dispatchers.Unconfined
 
     override suspend fun getStandByName(
         request: StandServiceProto.GetStandByNameRequest
