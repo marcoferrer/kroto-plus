@@ -76,7 +76,9 @@ internal class ClientStreamingCallChannelImpl<ReqT,RespT>(
     }
 
     override fun onCompleted() {
-        // NOOP
+        require(completableResponse.isCompleted){
+            "Stream was completed before onNext was called"
+        }
     }
 
 }
