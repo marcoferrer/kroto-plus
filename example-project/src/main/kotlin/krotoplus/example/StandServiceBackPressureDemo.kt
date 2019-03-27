@@ -7,10 +7,12 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.CoroutineContext
 
-class StandServiceCoroutineImpl : StandServiceCoroutineGrpc.StandServiceImplBase(){
+class StandServiceBackPressureDemo : StandServiceCoroutineGrpc.StandServiceImplBase() {
+
+    private val myThreadLocal = ThreadLocal.withInitial { "value" }.asContextElement()
 
     override val initialContext: CoroutineContext
-        get() = Dispatchers.Unconfined
+        get() = Dispatchers.Unconfined + myThreadLocal
 
     override suspend fun getStandByName(
         request: StandServiceProto.GetStandByNameRequest
@@ -23,14 +25,14 @@ class StandServiceCoroutineImpl : StandServiceCoroutineGrpc.StandServiceImplBase
             }
         }
 
-        if(request.name == "Gold Experience"){
+        if (request.name == "Gold Experience") {
             Stand {
                 name = "Gold Experience"
                 powerLevel = 575
                 speed = 500
                 addAttacks(asyncAttack.await())
             }
-        }else{
+        } else {
             throw Status.NOT_FOUND.asException()
         }
     }
@@ -40,25 +42,22 @@ class StandServiceCoroutineImpl : StandServiceCoroutineGrpc.StandServiceImplBase
         requestChannel: ReceiveChannel<CharacterProto.Character>,
         responseChannel: SendChannel<StandProto.Stand>
     ) {
-        coroutineScope {
+        val requestIter = requestChannel.iterator()
 
-            val requestIter = requestChannel.iterator()
+        while (requestIter.hasNext()) {
 
-            while (requestIter.hasNext()){
+            val requestValues = listOf(
+                requestIter.next(),
+                requestIter.next(),
+                requestIter.next()
+            )
 
-                val requestValues = listOf(
-                    requestIter.next(),
-                    requestIter.next(),
-                    requestIter.next()
-                )
-
-                responseChannel.send {
-                    name = requestValues.joinToString()
-                }
+            responseChannel.send {
+                name = requestValues.joinToString()
             }
-
-            println("Server Finished")
         }
+
+        println("Server Finished")
     }
 
 }

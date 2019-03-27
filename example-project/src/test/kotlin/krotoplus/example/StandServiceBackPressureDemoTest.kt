@@ -22,7 +22,7 @@ class StandServiceCoroutineImplTest {
 
     @BeforeTest
     fun bindService() {
-        grpcServerRule.serviceRegistry?.addService(StandServiceCoroutineImpl())
+        grpcServerRule.serviceRegistry?.addService(StandServiceBackPressureDemo())
     }
 
     @Test
