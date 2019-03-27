@@ -16,15 +16,22 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.client
 
-import com.github.marcoferrer.krotoplus.coroutines.*
-import com.github.marcoferrer.krotoplus.coroutines.call.*
+import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
+import com.github.marcoferrer.krotoplus.coroutines.SuspendingUnaryObserver
+import com.github.marcoferrer.krotoplus.coroutines.call.bindScopeCancellationToCall
+import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
+import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
+import io.grpc.CallOptions
 import io.grpc.MethodDescriptor
 import io.grpc.stub.AbstractStub
-import io.grpc.stub.ClientCalls.*
+import io.grpc.stub.ClientCalls.asyncBidiStreamingCall
+import io.grpc.stub.ClientCalls.asyncClientStreamingCall
+import io.grpc.stub.ClientCalls.asyncServerStreamingCall
+import io.grpc.stub.ClientCalls.asyncUnaryCall
 import io.grpc.stub.ClientResponseObserver
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 
 /**

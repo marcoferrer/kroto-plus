@@ -20,7 +20,7 @@ import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStr
 import com.github.marcoferrer.krotoplus.coroutines.call.applyInboundFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import java.util.concurrent.atomic.AtomicBoolean
