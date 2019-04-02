@@ -85,9 +85,9 @@ public interface StubDefinition<T : AbstractStub<T>> {
  *
  */
 fun <T : AbstractStub<T>> CoroutineScope.newGrpcStub(
-    context: CoroutineContext = EmptyCoroutineContext,
     stubDefinition: StubDefinition<T>,
-    channel: Channel
+    channel: Channel,
+    context: CoroutineContext = EmptyCoroutineContext
 ): T {
     val newContext = newCoroutineContext(context)
 
