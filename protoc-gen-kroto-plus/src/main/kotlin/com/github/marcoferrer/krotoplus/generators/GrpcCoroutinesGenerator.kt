@@ -393,7 +393,6 @@ object GrpcCoroutinesGenerator : Generator {
 
         return TypeSpec.classBuilder(stubName)
             .superclass(CommonClassNames.grpcAbstractStub.parameterizedBy(stubClassName))
-            .addSuperinterface(CommonClassNames.coroutineScope)
             .addSuperclassConstructorParameter(paramNameChannel)
             .addSuperclassConstructorParameter(paramNameCallOptions)
             .primaryConstructor(FunSpec
@@ -404,20 +403,6 @@ object GrpcCoroutinesGenerator : Generator {
                     ParameterSpec
                         .builder(paramNameCallOptions,CommonClassNames.grpcCallOptions)
                         .defaultValue("%T.DEFAULT",CommonClassNames.grpcCallOptions)
-                        .build()
-                )
-                .build()
-            )
-            .addProperty(
-                PropertySpec
-                .builder("coroutineContext", CommonClassNames.coroutineContext)
-                .addModifiers(KModifier.OVERRIDE)
-                .getter(
-                    FunSpec.getterBuilder()
-                        .addCode(
-                            "return callOptions.getOption(%T)",
-                            ClassName(CommonPackages.krotoCoroutineLib,"CALL_OPTION_COROUTINE_CONTEXT")
-                        )
                         .build()
                 )
                 .build()
