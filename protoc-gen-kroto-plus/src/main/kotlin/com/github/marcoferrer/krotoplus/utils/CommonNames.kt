@@ -57,6 +57,7 @@ object CommonClassNames{
     val experimentalKrotoPlusCoroutinesApi = ClassName(krotoCoroutineLib, "ExperimentalKrotoPlusCoroutinesApi")
     val serviceScope = ClassName("$krotoCoroutineLib.server", "ServiceScope")
     val stubDefinition = ClassName(krotoCoroutineLib, "StubDefinition")
+    val withCoroutineContext = ClassName(krotoCoroutineLib, "withCoroutineContext")
 
     val listenableFuture = ClassName("com.google.common.util.concurrent", "ListenableFuture")
     val grpcContextElement = ClassName(krotoCoroutineLib,"GrpcContextElement")

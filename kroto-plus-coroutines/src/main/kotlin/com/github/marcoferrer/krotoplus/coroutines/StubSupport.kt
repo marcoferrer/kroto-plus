@@ -37,17 +37,23 @@ import kotlin.coroutines.EmptyCoroutineContext
  *
  * ```
  */
-interface StubDefinition<T : AbstractStub<T>> {
+public interface StubDefinition<T : AbstractStub<T>> {
 
     /**
      * The canonical name of the service this stub represents
      */
-    val serviceName: String
+    public val serviceName: String
 
     /**
      * Create a new stub of type [T] that is bound to the supplied [channel]
      */
-    fun newStub(channel: Channel): T
+    public fun newStub(channel: Channel): T
+
+    /**
+     * Create a new stub of type [T] that is bound to the supplied [channel] and implicit coroutineContext
+     * as a call option.
+     */
+    public suspend fun newStubWithContext(channel: Channel): T
 
 }
 

@@ -95,7 +95,21 @@ object GrpcCoroutinesGenerator : Generator {
     private fun ProtoService.buildOuterObject(): TypeSpec =
         TypeSpec.objectBuilder(outerObjectName)
             .addAnnotation(protoFile.getGeneratedAnnotationSpec())
-            .addFunction(buildNewStubMethod())
+            .addFunction(
+                FunSpec.builder("newStub")
+                    .returns(stubClassName)
+                    .addParameter("channel",CommonClassNames.grpcChannel)
+                    .addCode("return %T.newStub(channel)",stubClassName)
+                    .build()
+            )
+            .addFunction(
+                FunSpec.builder("newStubWithContext")
+                    .returns(stubClassName)
+                    .addModifiers(KModifier.SUSPEND)
+                    .addParameter("channel", CommonClassNames.grpcChannel)
+                    .addCode("return %T.newStubWithContext(channel)", stubClassName)
+                    .build()
+            )
             .addType(buildClientStubImpl())
             .addType(buildServiceBaseImpl())
             .addProperty(
@@ -438,6 +452,14 @@ object GrpcCoroutinesGenerator : Generator {
                     .addModifiers(KModifier.OVERRIDE)
                     .addParameter("channel", CommonClassNames.grpcChannel)
                     .addCode("return %T(channel)", stubClassName)
+                    .build()
+            )
+            .addFunction(
+                FunSpec.builder("newStubWithContext")
+                    .returns(stubClassName)
+                    .addModifiers(KModifier.OVERRIDE, KModifier.SUSPEND)
+                    .addParameter("channel", CommonClassNames.grpcChannel)
+                    .addCode("return %T(channel).%T()", stubClassName, CommonClassNames.withCoroutineContext)
                     .build()
             )
             .build()
