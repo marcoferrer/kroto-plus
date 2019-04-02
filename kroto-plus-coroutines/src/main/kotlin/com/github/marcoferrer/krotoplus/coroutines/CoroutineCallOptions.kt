@@ -39,15 +39,20 @@ public val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext
  * Returns a new stub with the value of [coroutineContext] attached as a [CallOptions].
  * Any rpcs invoked on the resulting stub will use this context to participate in cooperative cancellation.
  */
-public fun <T : AbstractStub<T>> T.withCoroutineContext(coroutineContext: CoroutineContext): T =
-    this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
+public fun <T : AbstractStub<T>> T.withCoroutineContext(context: CoroutineContext): T{
+    val newContext = this.coroutineContext + context
+    return this.withOption(CALL_OPTION_COROUTINE_CONTEXT, newContext)
+}
+
 
 /**
  * Returns a new stub with the 'coroutineContext' from the current suspension attached as a [CallOptions].
  * Any rpcs invoked on the resulting stub will use this context to participate in cooperative cancellation.
  */
-public suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T =
-    this.withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
+public suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T {
+    val newContext = this.coroutineContext + kotlin.coroutines.coroutineContext
+    return this.withOption(CALL_OPTION_COROUTINE_CONTEXT, newContext)
+}
 
 internal fun CallOptions.withCoroutineContext(coroutineContext: CoroutineContext): CallOptions =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
