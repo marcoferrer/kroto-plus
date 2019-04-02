@@ -425,9 +425,17 @@ object GrpcCoroutinesGenerator : Generator {
 
     private fun ProtoService.buildClientStubCompanion(): TypeSpec =
         TypeSpec.companionObjectBuilder()
+            .addSuperinterface(CommonClassNames.stubDefinition.parameterizedBy(stubClassName))
+            .addProperty(
+                PropertySpec.builder("serviceName", String::class.asClassName())
+                    .addModifiers(KModifier.OVERRIDE)
+                    .initializer("%T.SERVICE_NAME", enclosingServiceClassName)
+                    .build()
+            )
             .addFunction(
                 FunSpec.builder("newStub")
                     .returns(stubClassName)
+                    .addModifiers(KModifier.OVERRIDE)
                     .addParameter("channel", CommonClassNames.grpcChannel)
                     .addCode("return %T(channel)", stubClassName)
                     .build()
