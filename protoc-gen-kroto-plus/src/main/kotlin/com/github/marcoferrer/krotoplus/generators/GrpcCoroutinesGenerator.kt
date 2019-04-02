@@ -95,7 +95,21 @@ object GrpcCoroutinesGenerator : Generator {
     private fun ProtoService.buildOuterObject(): TypeSpec =
         TypeSpec.objectBuilder(outerObjectName)
             .addAnnotation(protoFile.getGeneratedAnnotationSpec())
-            .addFunction(buildNewStubMethod())
+            .addFunction(
+                FunSpec.builder("newStub")
+                    .returns(stubClassName)
+                    .addParameter("channel",CommonClassNames.grpcChannel)
+                    .addCode("return %T.newStub(channel)",stubClassName)
+                    .build()
+            )
+            .addFunction(
+                FunSpec.builder("newStubWithContext")
+                    .returns(stubClassName)
+                    .addModifiers(KModifier.SUSPEND)
+                    .addParameter("channel", CommonClassNames.grpcChannel)
+                    .addCode("return %T.newStubWithContext(channel)", stubClassName)
+                    .build()
+            )
             .addType(buildClientStubImpl())
             .addType(buildServiceBaseImpl())
             .addProperty(
@@ -393,7 +407,6 @@ object GrpcCoroutinesGenerator : Generator {
 
         return TypeSpec.classBuilder(stubName)
             .superclass(CommonClassNames.grpcAbstractStub.parameterizedBy(stubClassName))
-            .addSuperinterface(CommonClassNames.coroutineScope)
             .addSuperclassConstructorParameter(paramNameChannel)
             .addSuperclassConstructorParameter(paramNameCallOptions)
             .primaryConstructor(FunSpec
@@ -404,20 +417,6 @@ object GrpcCoroutinesGenerator : Generator {
                     ParameterSpec
                         .builder(paramNameCallOptions,CommonClassNames.grpcCallOptions)
                         .defaultValue("%T.DEFAULT",CommonClassNames.grpcCallOptions)
-                        .build()
-                )
-                .build()
-            )
-            .addProperty(
-                PropertySpec
-                .builder("coroutineContext", CommonClassNames.coroutineContext)
-                .addModifiers(KModifier.OVERRIDE)
-                .getter(
-                    FunSpec.getterBuilder()
-                        .addCode(
-                            "return callOptions.getOption(%T)",
-                            ClassName(CommonPackages.krotoCoroutineLib,"CALL_OPTION_COROUTINE_CONTEXT")
-                        )
                         .build()
                 )
                 .build()
@@ -440,11 +439,27 @@ object GrpcCoroutinesGenerator : Generator {
 
     private fun ProtoService.buildClientStubCompanion(): TypeSpec =
         TypeSpec.companionObjectBuilder()
+            .addSuperinterface(CommonClassNames.stubDefinition.parameterizedBy(stubClassName))
+            .addProperty(
+                PropertySpec.builder("serviceName", String::class.asClassName())
+                    .addModifiers(KModifier.OVERRIDE)
+                    .initializer("%T.SERVICE_NAME", enclosingServiceClassName)
+                    .build()
+            )
             .addFunction(
                 FunSpec.builder("newStub")
                     .returns(stubClassName)
+                    .addModifiers(KModifier.OVERRIDE)
                     .addParameter("channel", CommonClassNames.grpcChannel)
                     .addCode("return %T(channel)", stubClassName)
+                    .build()
+            )
+            .addFunction(
+                FunSpec.builder("newStubWithContext")
+                    .returns(stubClassName)
+                    .addModifiers(KModifier.OVERRIDE, KModifier.SUSPEND)
+                    .addParameter("channel", CommonClassNames.grpcChannel)
+                    .addCode("return %T(channel).%T()", stubClassName, CommonClassNames.withCoroutineContext)
                     .build()
             )
             .build()
