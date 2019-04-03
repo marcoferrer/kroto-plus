@@ -149,11 +149,11 @@ launch {
 * [Bi-Directional Streaming](https://github.com/marcoferrer/kroto-plus#bi-directional-streaming)
   
 #### Unary
-_Client_: Unary calls will suspend until a response is received from the corresponding server. In the event of a cancellation or the server responds with an error the call will throw the appropriate `StatusRuntimeException` 
+**_Client_**: Unary calls will suspend until a response is received from the corresponding server. In the event of a cancellation or the server responds with an error the call will throw the appropriate `StatusRuntimeException` 
 ```kotlin
 val response = stub.sayHello { name = "John" }
 ```
-_Server_: Unary rpc methods can respond to client requests by either returning the expected response type, or throwing an exception. 
+**_Server_**: Unary rpc methods can respond to client requests by either returning the expected response type, or throwing an exception. 
 ```kotlin
 override suspend fun sayHello(request: HelloRequest): HelloReply {
 
@@ -288,9 +288,8 @@ For unary rpc methods, the generator will create the following extensions
 #### Coroutine Support
 In addition to request message arguments as builder lambda rpc overloads, coroutine overloads for rpc calls can also be generated.
 This provides the same functionality as the generated coroutine stubs. Usage is identical to the client examples outlined in [Coroutine Client Examples](https://github.com/marcoferrer/kroto-plus#examples).
-This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
  
-* This is accomplished by defining extension functions for async service stubs and combining a response observer with a coroutine builder.
+* This is accomplished by defining extension functions for async service stubs.
 * This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
 * If using rpc interceptors or other code that relies on ```io.grpc.Context``` then you need to be sure to add a ```GrpcContextElement``` to your ```CoroutineContext``` when launching a coroutine.
 Child coroutines will inherit this ```ThreadContextElement``` and the dispatcher will ensure that your grpc context is present on the executing thread.   
