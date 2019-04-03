@@ -1,6 +1,15 @@
 ## Version 0.3.0
-_2019-\*\*-\*\*_
-* Fix: Update codegen to support malformed rpc method names [GH-37](https://github.com/marcoferrer/kroto-plus/issues/37)
+_2019-04-02
+* Fix: Update codegen to support malformed rpc method names [GH-37](https://github.com/marcoferrer/kroto-plus/issues/37)([#38](https://github.com/marcoferrer/kroto-plus/pull/38))
+
+#### Coroutines
+* New: Updated docs for public apis
+* New: Added `newGrpcStub` coroutine scope ext for creating new stubs. Generated client stubs no longer implement `CoroutineScope` ([#43](https://github.com/marcoferrer/kroto-plus/pull/43)) 
+* New: Add flow control for outbound messages in both clients and servers ([#42](https://github.com/marcoferrer/kroto-plus/pull/42))
+* New: Added example for multiple client streaming subscriptions
+* Fix: Increased code coverage across all apis ([#41](https://github.com/marcoferrer/kroto-plus/pull/41))
+* Fix: Unary observer has been converted to an internal api
+* Removed: Legacy streaming apis have been removed
 
 ## Version 0.2.2-RC3
 _2019-03-13_
