@@ -18,11 +18,10 @@ cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
 
-## Version 0.2.2-RC3
+## Version 0.3.0
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
-  * Full Client & Server Stub Generation 🎉
-  * gRPC Coroutines API refinements and fixes
+  * 🎉 Release of Full Client & Server Stub Generation 🎉
 * **In Progress:** Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 
 ## Getting Started
@@ -79,12 +78,11 @@ The generated extensions allow composition of proto messages in a dsl style. Sup
 ```
 ---
 
-### gRPC Coroutines Client & Server
-[![codecov](https://codecov.io/gh/marcoferrer/kroto-plus/branch/master/graph/badge.svg)](https://codecov.io/gh/marcoferrer/kroto-plus)
+### gRPC Coroutines Client & Server &nbsp;&nbsp; [![codecov](https://codecov.io/gh/marcoferrer/kroto-plus/branch/master/graph/badge.svg)](https://codecov.io/gh/marcoferrer/kroto-plus)
+This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpccoroutinesgenoptions)
 
 [Client / Server Examples](https://github.com/marcoferrer/kroto-plus#examples)  
-This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
 
 * Design
   * **Back pressure** is supported via [Manual Flow Control](https://github.com/grpc/grpc-java/tree/master/examples/src/main/java/io/grpc/examples/manualflowcontrol)
@@ -113,9 +111,8 @@ stub.withCoroutineContext(coroutineContext)
 // Stubs can accept message builder lambdas as an argument  
 stub.sayHello { name = "John" }
 
-// For more idiomatic usage in coroutines, stub can be created
-// with an explicit coroutine scope using the `newGrpcStub` scope extension function
-// From within a coroutine scope 
+// For more idiomatic usage in coroutines, stubs can be created
+// with an explicit coroutine scope using the `newGrpcStub` scope extension function.
 launch {
     // Using `newGrpcStub` makes it clear that the resulting stub will use the receiving 
     // coroutine scope to launch any concurrent work. (usually for manual flow control in streaming apis) 
@@ -167,7 +164,7 @@ override suspend fun sayHello(request: HelloRequest): HelloReply {
 ```
 
 #### Client Streaming
-_Client_: `requestChannel.send()` will suspend until the corresponding server signals it is ready by requesting a message. In the event of a cancellation or the server responds with an error, both `requestChannel.send()` and `response.await()`, will throw the appropriate `StatusRuntimeException`.   
+**_Client_**: `requestChannel.send()` will suspend until the corresponding server signals it is ready by requesting a message. In the event of a cancellation or the server responds with an error, both `requestChannel.send()` and `response.await()`, will throw the appropriate `StatusRuntimeException`.   
 ```kotlin
 val (requestChannel, response) = stub.sayHelloClientStreaming()
 
@@ -179,7 +176,7 @@ launchProducerJob(requestChannel){
 
 println("Client Streaming Response: ${response.await()}")
 ```
-_Server_: Client streaming rpc methods can respond to client requests by either returning the expected response type, or throwing an exception. Calls to `requestChannel.receive()` will suspend and notify the corresponding client that the server is ready to accept a message. 
+**_Server_**: Client streaming rpc methods can respond to client requests by either returning the expected response type, or throwing an exception. Calls to `requestChannel.receive()` will suspend and notify the corresponding client that the server is ready to accept a message. 
 ```kotlin
 override suspend fun sayHelloClientStreaming(
     requestChannel: ReceiveChannel<HelloRequest>
@@ -190,7 +187,7 @@ override suspend fun sayHelloClientStreaming(
  
 
 #### Server Streaming
-_Client_: `responseChannel.receive()` will suspend and notify the corresponding server that the client is ready to accept a message.
+**_Client_**: `responseChannel.receive()` will suspend and notify the corresponding server that the client is ready to accept a message.
 ```kotlin
 val responseChannel = stub.sayHelloServerStreaming { name = "John" }
 
@@ -198,7 +195,11 @@ responseChannel.consumeEach {
     println("Server Streaming Response: $it")
 }
 ```
-_Server_: Server streaming rpc methods can respond to client requests by submitting messages of the expected response type to the response channel. Completion of service method implementations will automatically close response channels in order to prevent abandoned rpcs. Calls to `responseChannel.send()` will suspend until the corresponding client signals it is ready by requesting a message. Error responses can be returned to clients by either throwing an exception or invoking close on `responseChannel` with the desired exception. 
+**_Server_**: Server streaming rpc methods can respond to client requests by submitting messages of the expected response type to the response channel. Completion of service method implementations will automatically close response channels in order to prevent abandoned rpcs. 
+
+Calls to `responseChannel.send()` will suspend until the corresponding client signals it is ready by requesting a message. Error responses can be returned to clients by either throwing an exception or invoking close on `responseChannel` with the desired exception. 
+
+For an example of how to implement long lived response streams please reference [MultipleClientSubscriptionsExample.kt](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/main/kotlin/krotoplus/example/MultipleClientSubscriptionsExample.kt). 
 ```kotlin
 override suspend fun sayHelloServerStreaming(
     request: HelloRequest,
@@ -214,7 +215,7 @@ override suspend fun sayHelloServerStreaming(
 ``` 
 
 #### Bi-Directional Streaming
-_Client_
+**_Client_**: `requestChannel.send()` will suspend until the corresponding server signals it is ready by requesting a message. In the event of a cancellation or the server responds with an error, both `requestChannel.send()` and `response.await()`, will throw the appropriate `StatusRuntimeException`. 
 ```kotlin
 val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
@@ -228,7 +229,11 @@ responseChannel.consumeEach {
     println("Bidi Response: $it")
 }
 ``` 
-_Server_
+**_Server_**: Bidi streaming rpc methods can respond to client requests by submitting messages of the expected response type to the response channel. Completion of service method implementations will automatically close response channels in order to prevent abandoned rpcs. 
+
+Calls to `responseChannel.send()` will suspend until the corresponding client signals it is ready by requesting a message. Error responses can be returned to clients by either throwing an exception or invoking close on `responseChannel` with the desired exception. 
+
+For an example of how to implement long lived response streams please reference [MultipleClientSubscriptionsExample.kt](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/main/kotlin/krotoplus/example/MultipleClientSubscriptionsExample.kt). 
 ```kotlin
 override suspend fun sayHelloStreaming(
     requestChannel: ReceiveChannel<HelloRequest>,
