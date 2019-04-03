@@ -2,7 +2,7 @@
 
 
 ## Quick Start: 
-Run the following command to get started with a preconfigured template project. (_[kotlin-coroutines-gRPC-template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_)
+Run the following command to get started with a preconfigured template project. **(_[kotlin-coroutines-gRPC-template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_)**
 ```bash
 git clone https://github.com/marcoferrer/kotlin-coroutines-gRPC-template && \
 cd kotlin-coroutines-gRPC-template && \
