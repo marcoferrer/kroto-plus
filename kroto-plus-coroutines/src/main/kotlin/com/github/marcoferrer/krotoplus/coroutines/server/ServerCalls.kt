@@ -63,7 +63,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
 ) {
     val responseChannel = Channel<RespT>()
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
-    with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
+    with(newRpcScope(initialContext, methodDescriptor)) {
         bindToClientCancellation(serverCallObserver)
         applyOutboundFlowControl(serverCallObserver,responseChannel)
         launch {
@@ -113,14 +113,15 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
         )
 
         launch {
-            try{
+            try {
                 responseObserver.onNext(block(requestChannel))
                 responseObserver.onCompleted()
-            }catch (e: Throwable){
+            } catch (e: Throwable) {
                 responseObserver.completeSafely(e)
-            }
-            if(!requestChannel.isClosedForReceive){
-                requestChannel.cancel()
+            } finally {
+                if (!requestChannel.isClosedForReceive) {
+                    requestChannel.cancel()
+                }
             }
         }
 
@@ -161,16 +162,17 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
 
         launch {
             serverCallObserver.request(1)
-            try{
-                block(requestChannel,responseChannel)
+            try {
+                block(requestChannel, responseChannel)
                 responseChannel.close()
-            }catch (e:Throwable){
+            } catch (e: Throwable) {
                 val rpcError = e.toRpcException()
                 serverCallObserver.completeSafely(rpcError)
                 responseChannel.close(rpcError)
-            }
-            if(!requestChannel.isClosedForReceive){
-                requestChannel.cancel()
+            } finally {
+                if (!requestChannel.isClosedForReceive) {
+                    requestChannel.cancel()
+                }
             }
         }
 

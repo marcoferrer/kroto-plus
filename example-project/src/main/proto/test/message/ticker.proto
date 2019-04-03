@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package test;
+
+option java_package = "test";
+option java_multiple_files = true;
+
+import "google/protobuf/empty.proto";
+
+service Ticker {
+
+    rpc Listen(google.protobuf.Empty) returns (stream Tick);
+}
+
+message Tick {
+    int64 timestamp = 1;
+}

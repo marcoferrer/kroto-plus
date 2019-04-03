@@ -36,7 +36,7 @@ cd kotlin-coroutines-gRPC-template && \
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator-message-dsl)**
   * **[gRPC Coroutines Client & Server](https://github.com/marcoferrer/kroto-plus#grpc-coroutines-client--server)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
-    * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)** _(Legacy)_
+    * **[Rpc Method Coroutine Support](https://github.com/marcoferrer/kroto-plus#coroutine-support)**
   * **[Mock Service Generator](https://github.com/marcoferrer/kroto-plus#mock-service-generator)**
   * **[Extendable Messages Generator](https://github.com/marcoferrer/kroto-plus#extendable-messages-generator-experimental)**
   * **[User Defined Generator Scripts](https://github.com/marcoferrer/kroto-plus#user-defined-generator-scripts)**
@@ -92,7 +92,6 @@ This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
   * **Cooperative cancellation** across network boundaries.
 <a></a>
 * Client Stubs
-  * Implement ```CoroutineScope``` interface
   * Designed to work well with **Structured Concurrency**
   * Cancellation of the client `CoroutineScope` will propagate to the server.
   * Cancellations can now be propagated across usages of a specific stub instance.
@@ -101,11 +100,32 @@ This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
  
        
 ```kotlin
+// Creates new stub with a default coroutine context of `EmptyCoroutineContext`
 val stub = GreeterCoroutineGrpc.newStub(channel)
-    .withCoroutineContext() 
-    // or .withCoroutineContext(coroutineContext)
 
+// Suspends and creates new stub using the current coroutine context as the default. 
+val stub = GreeterCoroutineGrpc.newStubWithContext(channel)
+
+// An existing stub can replace its current coroutine context using either 
+stub.withCoroutineContext()
+stub.withCoroutineContext(coroutineContext)
+
+// Stubs can accept message builder lambdas as an argument  
 stub.sayHello { name = "John" }
+
+// For more idiomatic usage in coroutines, stub can be created
+// with an explicit coroutine scope using the `newGrpcStub` scope extension function
+// From within a coroutine scope 
+launch {
+    // Using `newGrpcStub` makes it clear that the resulting stub will use the receiving 
+    // coroutine scope to launch any concurrent work. (usually for manual flow control in streaming apis) 
+    val stub = newGrpcStub(GreeterCoroutineGrpc.GreeterCoroutineStub, channel)
+    
+    val (requestChannel, responseChannel) = stub.sayHelloStreaming()
+    ...
+}
+
+
 ```  
   * Service Base Impl
     * Rpc calls are wrapped within a scope initialized with the following context elements.
@@ -114,6 +134,16 @@ stub.sayHello { name = "John" }
     * Base services implement ```ServiceScope``` and allow overriding the initial ```coroutineContext``` used for each rpc method invocation.
     * Each services ```initialContext``` defaults to ```EmptyCoroutineContext```
     * A common case for overriding the ```initialContext``` is for setting up application specific ```ThreadContextElement``` or ```CoroutineDispatcher```, such as ```MDCContext()``` or ```newFixedThreadPoolContext(...)```
+    
+#### Cancellation Propagation
+  * Client
+    * Both normal and exceptional coroutine scope cancellation will cancel the underlying call stream. See `ClientCall.cancel()` in [io.grpc.ClientCall.java](https://github.com/grpc/grpc-java/blob/master/core/src/main/java/io/grpc/ClientCall.java#214) for more details.
+    * In the case of service implementations using coroutines, this client call stream cancellation will cancel the coroutine scope of the rpc method being invoked on the server.
+  * Server
+    * Exceptional cancellation of the coroutine scope for the rpc method will be mapped to an instance of `StatusRuntimeException` and returned to the client.
+    * Normal cancellation of the coroutine scope for the rpc method will be mapped to an instance of `StatusRuntimeException` with a status of `Status.CANCELLED`, and returned to the client. 
+    * Cancellation signals from the corresponding client will cancel the coroutine scope of the rpc method being invoked.
+    
 
 #### Examples
 * [Unary](https://github.com/marcoferrer/kroto-plus#unary)
@@ -122,22 +152,22 @@ stub.sayHello { name = "John" }
 * [Bi-Directional Streaming](https://github.com/marcoferrer/kroto-plus#bi-directional-streaming)
   
 #### Unary
-_Client_
+_Client_: Unary calls will suspend until a response is received from the corresponding server. In the event of a cancellation or the server responds with an error the call will throw the appropriate `StatusRuntimeException` 
 ```kotlin
 val response = stub.sayHello { name = "John" }
 ```
-_Server_ 
+_Server_: Unary rpc methods can respond to client requests by either returning the expected response type, or throwing an exception. 
 ```kotlin
 override suspend fun sayHello(request: HelloRequest): HelloReply {
 
     if (isValid(request.name))
-        HelloReply { message = "Hello there, ${request.name}!" } else
+        return HelloReply { message = "Hello there, ${request.name}!" } else
         throw Status.INVALID_ARGUMENT.asRuntimeException()
 }
 ```
 
 #### Client Streaming
-_Client_
+_Client_: `requestChannel.send()` will suspend until the corresponding server signals it is ready by requesting a message. In the event of a cancellation or the server responds with an error, both `requestChannel.send()` and `response.await()`, will throw the appropriate `StatusRuntimeException`.   
 ```kotlin
 val (requestChannel, response) = stub.sayHelloClientStreaming()
 
@@ -149,7 +179,7 @@ launchProducerJob(requestChannel){
 
 println("Client Streaming Response: ${response.await()}")
 ```
-_Server_
+_Server_: Client streaming rpc methods can respond to client requests by either returning the expected response type, or throwing an exception. Calls to `requestChannel.receive()` will suspend and notify the corresponding client that the server is ready to accept a message. 
 ```kotlin
 override suspend fun sayHelloClientStreaming(
     requestChannel: ReceiveChannel<HelloRequest>
@@ -160,7 +190,7 @@ override suspend fun sayHelloClientStreaming(
  
 
 #### Server Streaming
-_Client_
+_Client_: `responseChannel.receive()` will suspend and notify the corresponding server that the client is ready to accept a message.
 ```kotlin
 val responseChannel = stub.sayHelloServerStreaming { name = "John" }
 
@@ -168,7 +198,7 @@ responseChannel.consumeEach {
     println("Server Streaming Response: $it")
 }
 ```
-_Server_
+_Server_: Server streaming rpc methods can respond to client requests by submitting messages of the expected response type to the response channel. Completion of service method implementations will automatically close response channels in order to prevent abandoned rpcs. Calls to `responseChannel.send()` will suspend until the corresponding client signals it is ready by requesting a message. Error responses can be returned to clients by either throwing an exception or invoking close on `responseChannel` with the desired exception. 
 ```kotlin
 override suspend fun sayHelloServerStreaming(
     request: HelloRequest,
@@ -283,7 +313,7 @@ Child coroutines will inherit this ```ThreadContextElement``` and the dispatcher
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#mockservicesgenoptions)
 
 This generator creates mock implementations of proto service definitions. This is useful for orchestrating a set of expected responses, aiding in unit testing methods that rely on rpc calls.
-[Full example for mocking services in unit tests](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/TestMockServiceResponseQueue.kt). The code generated relies on the ``` kroto-plus-test ``` artifact as a dependency. It is a small library that provides utility methods used by the mock services. 
+[Full example for mocking services in unit tests](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/src/test/kotlin/krotoplus/example/MockServiceResponseQueueTest.kt). The code generated relies on the ``` kroto-plus-test ``` artifact as a dependency. It is a small library that provides utility methods used by the mock services. 
 * If no responses are added to the response queue then the mock service will return the default instance of the response type.
 * Currently only unary methods are being mocked, with support for other method types on the way 
  ```kotlin

@@ -161,7 +161,7 @@ class ServerCallServerStreamingTests {
                 respChannel = responseChannel
                 coroutineScope {
                     launch(start = CoroutineStart.UNDISPATCHED) {
-                        error("unexpected cancellation")
+                        throw Status.INVALID_ARGUMENT.asRuntimeException()
                     }
                     repeat(3){
                         yield()
@@ -174,7 +174,7 @@ class ServerCallServerStreamingTests {
         GreeterGrpc.newStub(grpcServerRule.channel)
             .sayHelloServerStreaming(request,responseObserver)
 
-        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.UNKNOWN)) }
+        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.INVALID_ARGUMENT)) }
         verify(exactly = 0) { responseObserver.onNext(any()) }
         verify(exactly = 0) { responseObserver.onCompleted() }
         assert(respChannel.isClosedForSend){ "Server response channel should be closed" }
