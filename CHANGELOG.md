@@ -1,5 +1,8 @@
+## Version 0.3.1
+_\*\*-\*\*-\*\*_
+
 ## Version 0.3.0
-_2019-04-02
+_2019-04-02_
 * Fix: Update codegen to support malformed rpc method names [GH-37](https://github.com/marcoferrer/kroto-plus/issues/37)([#38](https://github.com/marcoferrer/kroto-plus/pull/38))
 
 #### Coroutines
