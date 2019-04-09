@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.github.marcoferrer.krotoplus.coroutines.client
+package com.github.marcoferrer.krotoplus.coroutines.integration
 
+import com.github.marcoferrer.krotoplus.coroutines.client.clientCallClientStreaming
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
@@ -41,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 
 
-class ClientCallClientStreamingBackPressureTests {
+class ClientStreamingBackPressureTests {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
@@ -64,9 +65,13 @@ class ClientCallClientStreamingBackPressureTests {
         }
     }
 
+    @Test
+    fun `Server request receive suspends until client invokes request send`(){
+
+    }
 
     @Test
-    fun `Client sends next message on server request channel receive`() {
+    fun `Client request send suspends until server invokes request receive`() {
         lateinit var serverRequestChannel: ReceiveChannel<HelloRequest>
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
