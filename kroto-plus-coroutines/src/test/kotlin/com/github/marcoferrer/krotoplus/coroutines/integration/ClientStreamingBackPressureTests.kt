@@ -28,6 +28,7 @@ import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.testing.GrpcServerRule
 import io.mockk.every
 import io.mockk.spyk
+import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -66,16 +67,16 @@ class ClientStreamingBackPressureTests {
     }
 
     @Test
-    fun `Server request receive suspends until client invokes request send`(){
+    fun `Server receive suspends until client invokes send`(){
 
     }
 
     @Test
-    fun `Client request send suspends until server invokes request receive`() {
+    fun `Client send suspends until server invokes receive`() {
         lateinit var serverRequestChannel: ReceiveChannel<HelloRequest>
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
-                serverRequestChannel = requestChannel
+                serverRequestChannel = spyk(requestChannel)
                 delay(Long.MAX_VALUE)
                 return HelloReply.getDefaultInstance()
             }
@@ -88,13 +89,13 @@ class ClientStreamingBackPressureTests {
         assertFails<CancellationException> {
             runBlocking {
 
-                val (requestChannel, response) = stub
+                val (clientRequestChannel, response) = stub
                     .withCoroutineContext(coroutineContext + Dispatchers.Default)
                     .clientCallClientStreaming(methodDescriptor)
 
                 launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
                     repeat(10) {
-                        requestChannel.send(
+                        clientRequestChannel.send(
                             HelloRequest.newBuilder()
                                 .setName(it.toString())
                                 .build()
@@ -112,6 +113,8 @@ class ClientStreamingBackPressureTests {
                 cancel()
             }
         }
+
+        verify(exactly = 4) { rpcSpy.call.sendMessage(any()) }
     }
 
 }
