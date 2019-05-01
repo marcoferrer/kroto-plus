@@ -98,7 +98,7 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
     override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
 
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
-        callStreamObserver = requestStream
+        callStreamObserver = requestStream.apply { disableAutoInboundFlowControl() }
         applyOutboundFlowControl(requestStream,outboundChannel)
     }
 

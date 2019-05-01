@@ -177,7 +177,7 @@ class ClientCallBidiStreamingTests {
                 }
             }
             launch {
-                repeat(3) {
+                repeat(2) {
                     assertEquals("Req:#$it/Resp:#$it", responseChannel.receive().message)
                 }
                 assertFailsWithStatus(Status.INVALID_ARGUMENT) {
