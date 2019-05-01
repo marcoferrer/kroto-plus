@@ -139,6 +139,8 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
 
     val responseChannel = Channel<RespT>()
     val serverCallObserver = (responseObserver as ServerCallStreamObserver<RespT>)
+        .apply { disableAutoInboundFlowControl() }
+
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
         applyOutboundFlowControl(serverCallObserver,responseChannel)

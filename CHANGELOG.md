@@ -1,5 +1,9 @@
 ## Version 0.3.1
-_\*\*-\*\*-\*\*_
+_\*\*-\*\*\-\*\*_
+
+#### Coroutines
+* Fix: Disable auto flow control for inbound client and server streams during bidi calls 
+
 
 ## Version 0.3.0
 _2019-04-02_
