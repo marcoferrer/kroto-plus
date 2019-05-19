@@ -33,6 +33,11 @@ dependencies{
     implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:${pinnedKtVersion}"
     implementation "com.google.protobuf:protobuf-java-util:${Versions.protobuf}"
 
+    // For supporting yaml as a configuration format
+    implementation "com.fasterxml.jackson.core:jackson-core:2.9.8"
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8"
+
 }
 
 protobuf {
