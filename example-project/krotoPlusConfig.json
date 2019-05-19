@@ -21,6 +21,7 @@
             "useDslMarkers": true
         }
     ],
+    "grpcCoroutines": [],
     "grpcStubExts": [
         { "supportCoroutines": true }
     ],

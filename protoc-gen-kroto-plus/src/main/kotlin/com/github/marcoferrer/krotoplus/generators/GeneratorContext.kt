@@ -20,6 +20,7 @@ import com.github.marcoferrer.krotoplus.config.CompilerConfig
 import com.github.marcoferrer.krotoplus.proto.CompilerArgs
 import com.github.marcoferrer.krotoplus.proto.Schema
 import com.github.marcoferrer.krotoplus.proto.parseArgs
+import com.github.marcoferrer.krotoplus.utils.yamlToJson
 import com.google.protobuf.TextFormat
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.util.JsonFormat
@@ -52,9 +53,13 @@ fun CompilerArgs.getCompilerConfig(): CompilerConfig =
         ?.let { path -> File(path).takeIf { it.exists() } }
         ?.let { configFile ->
             CompilerConfig.newBuilder().also { builder ->
-                when (configFile.extension) {
+                when (configFile.extension.toLowerCase()) {
                     "json" -> JsonFormat.parser().merge(configFile.readText(), builder)
                     "asciipb" -> TextFormat.getParser().merge(configFile.readText(), builder)
+                    "yaml", "yml" -> {
+                        val jsonString = yamlToJson(configFile.readText())
+                        JsonFormat.parser().merge(jsonString, builder)
+                    }
                 }
             }.build()
         }
