@@ -28,6 +28,7 @@ import io.grpc.StatusRuntimeException
 import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -45,7 +46,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallUnary(
 ) {
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(responseObserver as ServerCallStreamObserver<*>)
-        launch {
+        launch(start = CoroutineStart.ATOMIC) {
             try{
                 responseObserver.onNext(block())
                 responseObserver.onCompleted()
@@ -66,7 +67,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     with(newRpcScope(initialContext, methodDescriptor)) {
         bindToClientCancellation(serverCallObserver)
         applyOutboundFlowControl(serverCallObserver,responseChannel)
-        launch {
+        launch(start = CoroutineStart.ATOMIC) {
             try{
                 block(responseChannel)
                 responseChannel.close()
@@ -112,7 +113,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
             }
         )
 
-        launch {
+        launch(start = CoroutineStart.ATOMIC) {
             try {
                 responseObserver.onNext(block(requestChannel))
                 responseObserver.onCompleted()
@@ -162,7 +163,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
             }
         )
 
-        launch {
+        launch(start = CoroutineStart.ATOMIC) {
             serverCallObserver.request(1)
             try {
                 block(requestChannel, responseChannel)
