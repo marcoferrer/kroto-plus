@@ -20,39 +20,45 @@ package com.github.marcoferrer.krotoplus
 
 import com.github.marcoferrer.krotoplus.generators.*
 import com.google.protobuf.compiler.PluginProtos
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlin.script.experimental.jvm.util.KotlinJars
 
 
-fun main(args: Array<String>) = runBlocking {
+fun main(args: Array<String>) {
 
     setScriptClassPath()
     initializeContext()
 
-    val generators = listOf(
-        GrpcStubExtsGenerator,
-        GrpcCoroutinesGenerator,
-        ProtoBuildersGenerator,
-        ExtendableMessagesGenerator,
-        MockServicesGenerator,
-        InsertionsGenerator,
-        GeneratorScriptsGenerator
-    )
+    val deferredGenResponse = GlobalScope.async {
 
-    generators
-        .filter { it.isEnabled }
-        .map { generator -> async { generator() } }
-        .fold(PluginProtos.CodeGeneratorResponse.newBuilder()) { builder, deferredResult ->
-            val result = deferredResult.await()
+        val generators = listOf(
+            GrpcStubExtsGenerator,
+            GrpcCoroutinesGenerator,
+            ProtoBuildersGenerator,
+            ExtendableMessagesGenerator,
+            MockServicesGenerator,
+            InsertionsGenerator,
+            GeneratorScriptsGenerator
+        )
 
-            if (result != PluginProtos.CodeGeneratorResponse.getDefaultInstance())
-                builder.mergeFrom(result) else
-                builder
-        }
-        .build()
-        .writeTo(System.out)
+        generators
+            .filter { it.isEnabled }
+            .map { generator -> async { generator() } }
+            .fold(PluginProtos.CodeGeneratorResponse.newBuilder()) { builder, deferredResult ->
+                val result = deferredResult.await()
 
+                if (result != PluginProtos.CodeGeneratorResponse.getDefaultInstance())
+                    builder.mergeFrom(result) else
+                    builder
+            }
+            .build()
+    }
+
+    val response = runBlocking { deferredGenResponse.await() }
+
+    response.writeTo(System.out)
     System.out.flush()
 }
 

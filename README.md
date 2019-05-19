@@ -558,7 +558,7 @@ Add generated sources to Kotlin plugin
 
 ## Configuring Generators
 #### All available generator options are documented in [kroto-plus-config.md](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md) and [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto) 
-* Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json) and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
+* Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json),[yaml](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.yml)  and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
 #### Asciipb (Proto Plain Text)
 ```asciipb
 proto_builders {
@@ -594,6 +594,43 @@ insertions {
     }
 }
 ```
+#### YAML
+```yaml
+protoBuilders:
+- filter:
+    excludePath:
+    - google/*
+  unwrapBuilders: true
+  useDslMarkers: true
+grpcStubExts:
+- supportCoroutines: true
+grpcCoroutines: []
+extendableMessages:
+- filter:
+    excludePath:
+    - google/*
+mockServices:
+- implementAsObject: true
+  generateServiceList: true
+  serviceListPackage: com.my.package
+  serviceListName: MyMockServices
+generatorScripts:
+- scriptPath:
+  - helloThere.kts
+  scriptBundle: kp-scripts/build/libs/kp-scripts.jar
+insertions:
+- entry:
+  - point: MESSAGE_IMPLEMENTS
+    content:
+    - com.my.Interface<{{message_type}}>
+  - point: BUILDER_IMPLEMENTS
+    content:
+    - com.my.Interface<{{message_type}}>
+  - point: CLASS_SCOPE
+    scriptPath:
+    - kp-scripts/src/main/kotlin/extendableMessages.kts
+```
+
 #### JSON
 ```json
 {
