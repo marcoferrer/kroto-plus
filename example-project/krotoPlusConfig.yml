@@ -1,0 +1,62 @@
+mockServices:
+
+  - filter:
+      includePath:
+        - jojo/*
+    implementAsObject: true
+    generateServiceList: true
+    serviceListPackage: jojo.bizarre.adventure
+    serviceListName: MockJojoServices
+
+  - filter:
+      includePath:
+        - test/message/*
+    implementAsObject: true
+    generateServiceList: true
+    serviceListPackage: test.message
+
+protoBuilders:
+  - filter:
+      excludePath:
+        - google/*
+    unwrapBuilders: true
+    useDslMarkers: true
+
+grpcCoroutines: []
+
+grpcStubExts:
+  - supportCoroutines: true
+
+extendableMessages:
+  - filter:
+      includePath:
+        - jojo/bizarre/adventure/stand/*
+
+generatorScripts:
+  - scriptPath:
+      - helloThere.kts
+    scriptBundle: kp-scripts/build/libs/kp-scripts.jar
+
+insertions:
+  - filter:
+      includePath:
+        - jojo/bizarre/adventure/character/*
+    entry:
+      - point: MESSAGE_IMPLEMENTS
+        scriptBundle: kp-scripts/build/libs/kp-scripts.jar
+        scriptPath:
+          - extendableMessages.kts
+
+      - point: BUILDER_IMPLEMENTS
+        scriptBundle: kp-scripts/build/libs/kp-scripts.jar
+        scriptPath:
+          - extendableMessages.kts
+
+      - point: CLASS_SCOPE
+        scriptBundle: kp-scripts/build/libs/kp-scripts.jar
+        scriptPath:
+          - extendableMessages.kts
+
+      - point: OUTER_CLASS_SCOPE
+        scriptPath:
+          - kp-scripts/src/main/kotlin/sampleInsertionScript.kts

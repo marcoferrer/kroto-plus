@@ -1,5 +1,12 @@
 ## Version 0.3.1
 _\*\*-\*\*\-\*\*_
+* New: Update to kotlin `1.3.31`
+* New: Update to kotlin Coroutines `1.2.1`
+* New: Update to gRPC `1.20.1`
+
+#### Protoc Plugin
+* New: Added support for Yaml as a configuration format [GH-45](https://github.com/marcoferrer/kroto-plus/issues/45)
+* Fix: Address bug in parallelization of generator execution 
 
 #### Coroutines
 * Fix: Disable auto flow control for inbound client and server streams during bidi calls 
