@@ -4,6 +4,10 @@ _\*\*-\*\*\-\*\*_
 * New: Update to kotlin Coroutines `1.2.1`
 * New: Update to gRPC `1.20.1`
 
+#### Protoc Plugin
+* New: Added support for Yaml as a configuration format
+* Fix: Address bug in parallelization of generator execution 
+
 #### Coroutines
 * Fix: Disable auto flow control for inbound client and server streams during bidi calls 
 
