@@ -5,7 +5,7 @@ _\*\*-\*\*\-\*\*_
 * New: Update to gRPC `1.20.1`
 
 #### Protoc Plugin
-* New: Added support for Yaml as a configuration format
+* New: Added support for Yaml as a configuration format [GH-45](https://github.com/marcoferrer/kroto-plus/issues/45)
 * Fix: Address bug in parallelization of generator execution 
 
 #### Coroutines
