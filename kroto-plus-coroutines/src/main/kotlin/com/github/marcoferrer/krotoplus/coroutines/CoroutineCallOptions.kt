@@ -32,27 +32,33 @@ public val CALL_OPTION_COROUTINE_CONTEXT: CallOptions.Key<CoroutineContext> =
 /**
  * Get the coroutineContext the receiving stub is using for cooperative cancellation.
  */
+@Deprecated("Use extension property context instead", ReplaceWith("context"))
 public val <T : AbstractStub<T>> T.coroutineContext: CoroutineContext
+    get() = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
+
+
+public val <T : AbstractStub<T>> T.context: CoroutineContext
     get() = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
 
 /**
  * Returns a new stub with the value of [coroutineContext] attached as a [CallOptions].
  * Any rpcs invoked on the resulting stub will use this context to participate in cooperative cancellation.
  */
-public fun <T : AbstractStub<T>> T.withCoroutineContext(context: CoroutineContext): T{
-    val newContext = this.coroutineContext + context
-    return this.withOption(CALL_OPTION_COROUTINE_CONTEXT, newContext)
-}
+public fun <T : AbstractStub<T>> T.withCoroutineContext(context: CoroutineContext): T =
+    withOption(CALL_OPTION_COROUTINE_CONTEXT, context)
 
+public fun <T : AbstractStub<T>> T.plusCoroutineContext(context: CoroutineContext): T =
+    withOption(CALL_OPTION_COROUTINE_CONTEXT, this.context + context)
 
 /**
  * Returns a new stub with the 'coroutineContext' from the current suspension attached as a [CallOptions].
  * Any rpcs invoked on the resulting stub will use this context to participate in cooperative cancellation.
  */
-public suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T {
-    val newContext = this.coroutineContext + kotlin.coroutines.coroutineContext
-    return this.withOption(CALL_OPTION_COROUTINE_CONTEXT, newContext)
-}
+public suspend fun <T : AbstractStub<T>> T.withCoroutineContext(): T =
+    withOption(CALL_OPTION_COROUTINE_CONTEXT, kotlin.coroutines.coroutineContext)
+
+public suspend fun <T : AbstractStub<T>> T.plusCoroutineContext(): T =
+    withOption(CALL_OPTION_COROUTINE_CONTEXT, context + kotlin.coroutines.coroutineContext)
 
 internal fun CallOptions.withCoroutineContext(coroutineContext: CoroutineContext): CallOptions =
     this.withOption(CALL_OPTION_COROUTINE_CONTEXT, coroutineContext)
