@@ -18,7 +18,6 @@ package com.github.marcoferrer.krotoplus.coroutines.server
 
 import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
 import io.grpc.CallOptions
@@ -30,14 +29,19 @@ import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
-import io.grpc.stub.StreamObservers
 import io.grpc.testing.GrpcServerRule
-import io.mockk.*
-import kotlinx.coroutines.*
+import io.mockk.spyk
+import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
-import org.junit.Ignore
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
@@ -207,7 +211,7 @@ class ServerCallClientStreamingTests {
         requestObserver.sendRequests(3)
         call.cancel("test",null)
         assert(serverSpy.job?.isCancelled == true)
-        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled")) }
+        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED")) }
         assertEquals("Job was cancelled",serverSpy.error?.message)
         assert(reqChannel.isClosedForReceive){ "Abandoned request channel should be closed"}
     }
@@ -244,7 +248,7 @@ class ServerCallClientStreamingTests {
         assertEquals("Job was cancelled",serverSpy.error?.message)
         assert(reqChannel.isClosedForReceive){ "Abandoned request channel should be closed"}
         verify(exactly = 1) {
-            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled"))
+            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED"))
         }
     }
 
@@ -263,7 +267,7 @@ class ServerCallClientStreamingTests {
                 // cancellation occurs in client
                 // half close.
                 requestChannel.receive()
-                delay(5)
+                delay(10)
                 serverMethodCompleted.set(true)
                 return expectedResponse
             }

@@ -79,9 +79,7 @@ internal fun Throwable.toRpcException(): Throwable =
                 statusFromThrowable
             }
 
-            status
-                .withDescription(this.message)
-                .asRuntimeException(Status.trailersFromThrowable(this))
+            status.asRuntimeException(Status.trailersFromThrowable(this))
         }
     }
 

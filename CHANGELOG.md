@@ -1,4 +1,4 @@
-## Version 0.3.1
+## Version 0.4.0
 _\*\*-\*\*\-\*\*_
 * New: Update to kotlin `1.3.31`
 * New: Update to kotlin Coroutines `1.2.1`
@@ -9,7 +9,12 @@ _\*\*-\*\*\-\*\*_
 * Fix: Address bug in parallelization of generator execution 
 
 #### Coroutines
-* Fix: Disable auto flow control for inbound client and server streams during bidi calls 
+* New: Default server method execution to `CoroutineStart.ATOMIC`
+* New: Introduce abstract stub ext for concatenating coroutine contexts, `AbstactStub.plusContext`.
+* Fix: Don't propagate message for `UNKNOWN` exceptions in rpc exception mapper 
+* Fix: Disable auto flow control for inbound client and server streams during bidi calls
+* Fix: Reduce visibility of `FlowControlledInboundStreamObserver` to `internal`
+* Deprecated: `AbstractStub.coroutineContext` ext in favor of `AbstractStub.context`     
 
 
 ## Version 0.3.0
