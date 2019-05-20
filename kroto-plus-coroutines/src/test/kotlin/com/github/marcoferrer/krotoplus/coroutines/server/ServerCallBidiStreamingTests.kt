@@ -398,7 +398,7 @@ class ServerCallBidiStreamingTests {
                 // cancellation occurs in client
                 // half close.
                 requestChannel.receive()
-                delay(5)
+                delay(10)
                 repeat(3){
                     respChannel.get()!!.send { message = "response" }
                 }

@@ -168,7 +168,7 @@ class ServerCallUnaryTests {
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 serverMethodExecuted.set(true)
                 serverCtx.set(coroutineContext)
-                delay(1)
+                delay(10)
                 serverMethodCompleted.set(true)
                 return expectedResponse
             }
