@@ -282,7 +282,7 @@ class ServerCallClientStreamingTests {
         reqObserver.onCompleted()
 
         runBlocking {
-            do { delay(50) } while(serverCtx.get() == null)
+            do { delay(100) } while(serverCtx.get() == null)
 
             verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
 

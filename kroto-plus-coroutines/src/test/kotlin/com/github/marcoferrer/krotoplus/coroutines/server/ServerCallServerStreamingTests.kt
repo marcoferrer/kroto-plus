@@ -248,7 +248,7 @@ class ServerCallServerStreamingTests {
         }
 
         runBlocking {
-            do { delay(50) } while(serverCtx.get() == null)
+            do { delay(100) } while(serverCtx.get() == null)
             assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
             assert(respChannel.get()!!.isClosedForSend){ "Abandoned response channel should be closed" }
