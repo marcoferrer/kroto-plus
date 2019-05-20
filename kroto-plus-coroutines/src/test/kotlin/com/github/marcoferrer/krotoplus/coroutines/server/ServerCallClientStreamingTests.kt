@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
@@ -29,6 +30,7 @@ import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
+import io.grpc.stub.StreamObservers
 import io.grpc.testing.GrpcServerRule
 import io.mockk.*
 import kotlinx.coroutines.*
@@ -38,9 +40,12 @@ import kotlinx.coroutines.channels.toList
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class ServerCallClientStreamingTests {
 
@@ -240,6 +245,46 @@ class ServerCallClientStreamingTests {
         assert(reqChannel.isClosedForReceive){ "Abandoned request channel should be closed"}
         verify(exactly = 1) {
             responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled"))
+        }
+    }
+
+    @Test
+    fun `Server method is at least invoked before being cancelled`(){
+        val serverMethodExecuted = AtomicBoolean()
+        val serverMethodCompleted = AtomicBoolean()
+        val serverCtx = AtomicReference<CoroutineContext?>()
+
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
+                serverMethodExecuted.set(true)
+                serverCtx.set(coroutineContext)
+                // Need to receive message since
+                // cancellation occurs in client
+                // half close.
+                requestChannel.receive()
+                delay(5)
+                serverMethodCompleted.set(true)
+                return expectedResponse
+            }
+        })
+
+        val stub = GreeterGrpc
+            .newStub(grpcServerRule.channel)
+            .withInterceptors(CancellingClientInterceptor)
+
+        val reqObserver = stub.sayHelloClientStreaming(responseObserver)
+        reqObserver.onNext(HelloRequest.getDefaultInstance())
+        reqObserver.onCompleted()
+
+        runBlocking {
+            do { delay(50) } while(serverCtx.get() == null)
+
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+
+            assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
+            assertFalse(serverMethodCompleted.get(),"Server method should not complete")
         }
     }
 }

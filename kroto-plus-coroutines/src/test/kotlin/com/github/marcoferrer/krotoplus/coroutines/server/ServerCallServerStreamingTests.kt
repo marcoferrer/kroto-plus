@@ -17,11 +17,19 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
 import io.grpc.CallOptions
+import io.grpc.Channel
 import io.grpc.ClientCall
+import io.grpc.ClientInterceptor
+import io.grpc.ForwardingClientCall
+import io.grpc.ForwardingClientCallListener
+import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
@@ -35,9 +43,12 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.SendChannel
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class ServerCallServerStreamingTests {
 
@@ -203,5 +214,42 @@ class ServerCallServerStreamingTests {
         verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled")) }
         assertEquals("Job was cancelled",serverSpy.error?.message)
         assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed"}
+    }
+
+    @Test
+    fun `Server method is at least invoked before being cancelled`(){
+        val respChannel = AtomicReference<SendChannel<HelloReply>?>()
+        val serverCtx = AtomicReference<CoroutineContext?>()
+
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHelloServerStreaming(
+                request: HelloRequest,
+                responseChannel: SendChannel<HelloReply>
+            ) {
+                respChannel.set(spyk(responseChannel))
+                serverCtx.set(coroutineContext)
+                delay(5)
+                repeat(3){
+                    respChannel.get()!!.send { message = "response" }
+                }
+            }
+        })
+
+        val stub = GreeterGrpc.newBlockingStub(grpcServerRule.channel)
+            .withInterceptors(CancellingClientInterceptor)
+
+        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
+            val iter = stub.sayHelloServerStreaming(HelloRequest.getDefaultInstance())
+            while(iter.hasNext()){}
+        }
+
+        runBlocking {
+            do { delay(50) } while(serverCtx.get() == null)
+            assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
+            assert(respChannel.get()!!.isClosedForSend){ "Abandoned response channel should be closed" }
+            coVerify(exactly = 0) { respChannel.get()!!.send(any()) }
+        }
     }
 }

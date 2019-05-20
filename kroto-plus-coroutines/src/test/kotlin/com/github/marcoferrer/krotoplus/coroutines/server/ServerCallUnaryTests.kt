@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
@@ -32,11 +33,15 @@ import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
 import io.mockk.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.SendChannel
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 
 class ServerCallUnaryTests {
@@ -139,10 +144,43 @@ class ServerCallUnaryTests {
 
         val call = newCall()
         call.cancel("test",null)
-        assert(serverSpy.job?.isCancelled == true)
+        assert(serverSpy.job!!.isCancelled){ "Server job must be cancelled" }
         verify(exactly = 1) {
             responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled"))
         }
         assertEquals("Job was cancelled",serverSpy.error?.message)
+    }
+
+    @Test
+    fun `Server method is at least invoked before being cancelled`(){
+        val serverMethodExecuted = AtomicBoolean()
+        val serverMethodCompleted = AtomicBoolean()
+        val serverCtx = AtomicReference<CoroutineContext?>()
+
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHello(request: HelloRequest): HelloReply {
+                serverMethodExecuted.set(true)
+                serverCtx.set(coroutineContext)
+                delay(1)
+                serverMethodCompleted.set(true)
+                return expectedResponse
+            }
+        })
+
+        val stub = GreeterGrpc
+            .newBlockingStub(grpcServerRule.channel)
+            .withInterceptors(CancellingClientInterceptor)
+
+        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
+            stub.sayHello(HelloRequest.getDefaultInstance())
+        }
+
+        runBlocking {
+            do { delay(50) } while(serverCtx.get() == null)
+            assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
+            assertFalse(serverMethodCompleted.get(),"Server method should not complete")
+        }
     }
 }
