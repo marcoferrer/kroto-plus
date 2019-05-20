@@ -225,7 +225,7 @@ class ServerCallServerStreamingTests {
         val serverCtx = AtomicReference<CoroutineContext?>()
 
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Default
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloServerStreaming(
                 request: HelloRequest,
                 responseChannel: SendChannel<HelloReply>
@@ -242,7 +242,7 @@ class ServerCallServerStreamingTests {
         val stub = GreeterGrpc.newBlockingStub(grpcServerRule.channel)
             .withInterceptors(CancellingClientInterceptor)
 
-        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
+        assertFailsWithStatus(Status.CANCELLED,"CANCELLED"){
             val iter = stub.sayHelloServerStreaming(HelloRequest.getDefaultInstance())
             while(iter.hasNext()){}
         }

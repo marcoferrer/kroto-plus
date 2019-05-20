@@ -259,7 +259,7 @@ class ServerCallClientStreamingTests {
         val serverCtx = AtomicReference<CoroutineContext?>()
 
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Default
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
                 serverMethodExecuted.set(true)
                 serverCtx.set(coroutineContext)
@@ -284,7 +284,7 @@ class ServerCallClientStreamingTests {
         runBlocking {
             do { delay(100) } while(serverCtx.get() == null)
 
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED")) }
 
             assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }

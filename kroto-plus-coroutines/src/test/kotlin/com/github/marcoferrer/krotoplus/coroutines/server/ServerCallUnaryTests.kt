@@ -164,7 +164,7 @@ class ServerCallUnaryTests {
         val serverCtx = AtomicReference<CoroutineContext?>()
 
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Default
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 serverMethodExecuted.set(true)
                 serverCtx.set(coroutineContext)
@@ -178,7 +178,7 @@ class ServerCallUnaryTests {
             .newBlockingStub(grpcServerRule.channel)
             .withInterceptors(CancellingClientInterceptor)
 
-        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
+        assertFailsWithStatus(Status.CANCELLED,"CANCELLED"){
             stub.sayHello(HelloRequest.getDefaultInstance())
         }
 

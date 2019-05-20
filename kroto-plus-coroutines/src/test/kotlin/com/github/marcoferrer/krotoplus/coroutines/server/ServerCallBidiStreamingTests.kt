@@ -387,7 +387,7 @@ class ServerCallBidiStreamingTests {
         val respChannel = AtomicReference<SendChannel<HelloReply>?>()
         val serverCtx = AtomicReference<CoroutineContext?>()
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Default
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
                 responseChannel: SendChannel<HelloReply>
@@ -417,7 +417,7 @@ class ServerCallBidiStreamingTests {
             assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
             assert(respChannel.get()!!.isClosedForSend){ "Abandoned response channel should be closed" }
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED")) }
             coVerify(exactly = 0) { respChannel.get()!!.send(any()) }
         }
     }
