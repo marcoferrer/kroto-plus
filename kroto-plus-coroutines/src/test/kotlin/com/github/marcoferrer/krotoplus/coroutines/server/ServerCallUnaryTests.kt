@@ -33,6 +33,7 @@ import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
 import io.mockk.spyk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -40,10 +41,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
@@ -159,16 +160,18 @@ class ServerCallUnaryTests {
 
     @Test
     fun `Server method is at least invoked before being cancelled`(){
-        val serverMethodExecuted = AtomicBoolean()
         val serverMethodCompleted = AtomicBoolean()
-        val serverCtx = AtomicReference<CoroutineContext?>()
-
+        val deferredCtx = CompletableDeferred<CoroutineContext>()
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+            override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHello(request: HelloRequest): HelloReply {
-                serverMethodExecuted.set(true)
-                serverCtx.set(coroutineContext)
-                delay(10)
+                coroutineContext.let { ctx ->
+                    ctx[Job]!!.invokeOnCompletion {
+                        deferredCtx.complete(ctx)
+                    }
+                }
+                delay(100)
+                yield()
                 serverMethodCompleted.set(true)
                 return expectedResponse
             }
@@ -178,14 +181,14 @@ class ServerCallUnaryTests {
             .newBlockingStub(grpcServerRule.channel)
             .withInterceptors(CancellingClientInterceptor)
 
-        assertFailsWithStatus(Status.CANCELLED,"CANCELLED"){
+        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
             stub.sayHello(HelloRequest.getDefaultInstance())
         }
 
         runBlocking {
-            do { delay(100) } while(serverCtx.get() == null)
-            assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
-            assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
+            val serverCtx = deferredCtx.await()
+            assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
             assertFalse(serverMethodCompleted.get(),"Server method should not complete")
         }
     }

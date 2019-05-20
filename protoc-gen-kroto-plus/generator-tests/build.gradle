@@ -2,6 +2,7 @@ apply plugin: 'com.google.protobuf'
 
 compileTestKotlin {
     kotlinOptions {
+        jvmTarget = "1.8"
         freeCompilerArgs += [
                 "-Xuse-experimental=kotlin.Experimental"
         ]

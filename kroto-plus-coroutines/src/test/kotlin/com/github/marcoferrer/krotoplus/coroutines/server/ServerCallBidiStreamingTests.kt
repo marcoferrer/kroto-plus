@@ -35,6 +35,7 @@ import io.mockk.coVerify
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -46,9 +47,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
@@ -384,23 +385,29 @@ class ServerCallBidiStreamingTests {
 
     @Test
     fun `Server method is at least invoked before being cancelled`(){
-        val respChannel = AtomicReference<SendChannel<HelloReply>?>()
-        val serverCtx = AtomicReference<CoroutineContext?>()
+        val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
+        val deferredCtx = CompletableDeferred<CoroutineContext>()
+
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+            override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
                 responseChannel: SendChannel<HelloReply>
             ) {
-                respChannel.set(spyk(responseChannel))
-                serverCtx.set(coroutineContext)
+                val respChan = spyk(responseChannel)
+                deferredCtx.complete(coroutineContext.apply {
+                    get(Job)!!.invokeOnCompletion {
+                        deferredRespChannel.complete(respChan)
+                    }
+                })
                 // Need to receive message since
                 // cancellation occurs in client
                 // half close.
                 requestChannel.receive()
-                delay(10)
+                delay(100)
+                yield()
                 repeat(3){
-                    respChannel.get()!!.send { message = "response" }
+                    respChan.send { message = "response" }
                 }
             }
         })
@@ -413,12 +420,14 @@ class ServerCallBidiStreamingTests {
         reqObserver.onCompleted()
 
         runBlocking {
-            do { delay(100) } while(serverCtx.get() == null)
-            assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
-            assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
-            assert(respChannel.get()!!.isClosedForSend){ "Abandoned response channel should be closed" }
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED")) }
-            coVerify(exactly = 0) { respChannel.get()!!.send(any()) }
+            val respChannel = deferredRespChannel.await()
+            assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            coVerify(exactly = 0) { respChannel.send(any()) }
+
+            val serverCtx = deferredCtx.await()
+            assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
         }
     }
 }

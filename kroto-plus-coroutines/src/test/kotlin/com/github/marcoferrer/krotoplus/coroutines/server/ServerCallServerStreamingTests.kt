@@ -36,6 +36,7 @@ import io.mockk.coVerify
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,7 +49,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
@@ -221,20 +221,24 @@ class ServerCallServerStreamingTests {
 
     @Test
     fun `Server method is at least invoked before being cancelled`(){
-        val respChannel = AtomicReference<SendChannel<HelloReply>?>()
-        val serverCtx = AtomicReference<CoroutineContext?>()
-
+        val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
+        val deferredCtx = CompletableDeferred<CoroutineContext>()
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+            override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloServerStreaming(
                 request: HelloRequest,
                 responseChannel: SendChannel<HelloReply>
             ) {
-                respChannel.set(spyk(responseChannel))
-                serverCtx.set(coroutineContext)
-                delay(5)
+                val respChan = spyk(responseChannel)
+                deferredCtx.complete(coroutineContext.apply {
+                    get(Job)!!.invokeOnCompletion {
+                        deferredRespChannel.complete(respChan)
+                    }
+                })
+                delay(100)
+                yield()
                 repeat(3){
-                    respChannel.get()!!.send { message = "response" }
+                    respChan.send { message = "response" }
                 }
             }
         })
@@ -242,17 +246,19 @@ class ServerCallServerStreamingTests {
         val stub = GreeterGrpc.newBlockingStub(grpcServerRule.channel)
             .withInterceptors(CancellingClientInterceptor)
 
-        assertFailsWithStatus(Status.CANCELLED,"CANCELLED"){
+        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
             val iter = stub.sayHelloServerStreaming(HelloRequest.getDefaultInstance())
             while(iter.hasNext()){}
         }
 
         runBlocking {
-            do { delay(100) } while(serverCtx.get() == null)
-            assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
-            assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
-            assert(respChannel.get()!!.isClosedForSend){ "Abandoned response channel should be closed" }
-            coVerify(exactly = 0) { respChannel.get()!!.send(any()) }
+            val respChannel = deferredRespChannel.await()
+            assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
+            coVerify(exactly = 0) { respChannel.send(any()) }
+
+            val serverCtx = deferredCtx.await()
+            assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
         }
     }
 }

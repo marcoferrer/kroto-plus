@@ -32,6 +32,7 @@ import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
 import io.mockk.spyk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -42,10 +43,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
@@ -254,20 +255,22 @@ class ServerCallClientStreamingTests {
 
     @Test
     fun `Server method is at least invoked before being cancelled`(){
-        val serverMethodExecuted = AtomicBoolean()
         val serverMethodCompleted = AtomicBoolean()
-        val serverCtx = AtomicReference<CoroutineContext?>()
-
+        val deferredCtx = CompletableDeferred<CoroutineContext>()
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+            override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
-                serverMethodExecuted.set(true)
-                serverCtx.set(coroutineContext)
+                coroutineContext.let { ctx ->
+                    ctx[Job]!!.invokeOnCompletion {
+                        deferredCtx.complete(ctx)
+                    }
+                }
                 // Need to receive message since
                 // cancellation occurs in client
                 // half close.
                 requestChannel.receive()
-                delay(10)
+                delay(100)
+                yield()
                 serverMethodCompleted.set(true)
                 return expectedResponse
             }
@@ -282,12 +285,11 @@ class ServerCallClientStreamingTests {
         reqObserver.onCompleted()
 
         runBlocking {
-            do { delay(100) } while(serverCtx.get() == null)
+            val serverCtx = deferredCtx.await()
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
 
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED")) }
-
-            assert(serverCtx.get()?.get(Job)!!.isCompleted){ "Server job should be completed" }
-            assert(serverCtx.get()?.get(Job)!!.isCancelled){ "Server job should be cancelled" }
+            assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
             assertFalse(serverMethodCompleted.get(),"Server method should not complete")
         }
     }
