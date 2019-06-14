@@ -22,6 +22,7 @@ import io.grpc.examples.helloworld.HelloWorldProtoDslBuilder
 import io.grpc.examples.helloworld.orDefault
 import org.junit.Test
 import test.message.*
+import test.message.multi.MappedMessage
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
@@ -101,5 +102,17 @@ class ProtoBuildersGeneratorTests {
         assertEquals(message1.field, result.field)
         assertNotEquals(message1.nestedMessage, result.nestedMessage)
         assertEquals(message2.nestedMessage.field, result.nestedMessage.field)
+    }
+
+    @Test
+    fun `Test message map omission`() {
+        val key = "test"
+        val value = "value"
+
+        val message = MappedMessage {
+            putTheField(key, value)
+        }
+
+        assertEquals(message.theFieldMap[key], value)
     }
 }

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package validate.test;
+
+option java_package = "test.message.multi";
+option java_multiple_files = true;
+
+message MappedMessage {
+    map<string, string> the_field = 1;
+}
+
+message RegularMessage {
+    int32 the_field = 1;
+}
