@@ -260,37 +260,45 @@ class ServerCallClientStreamingTests {
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
-                coroutineContext.let { ctx ->
-                    ctx[Job]!!.invokeOnCompletion {
-                        deferredCtx.complete(ctx)
-                    }
-                }
+                deferredCtx.complete(coroutineContext)
+
                 // Need to receive message since
                 // cancellation occurs in client
                 // half close.
                 requestChannel.receive()
-                delay(100)
+                delay(10000)
                 yield()
                 serverMethodCompleted.set(true)
                 return expectedResponse
             }
         })
 
-        val stub = GreeterGrpc
-            .newStub(grpcServerRule.channel)
-            .withInterceptors(CancellingClientInterceptor)
-
-        val reqObserver = stub.sayHelloClientStreaming(responseObserver)
-        reqObserver.onNext(HelloRequest.getDefaultInstance())
-        reqObserver.onCompleted()
-
         runBlocking {
+            val stub = GreeterGrpc
+                .newStub(grpcServerRule.channel)
+                .withInterceptors(CancellingClientInterceptor)
+
+            // Start the call
+            val reqObserver = stub.sayHelloClientStreaming(responseObserver)
+
+            // Wait for the server method to be invoked
             val serverCtx = deferredCtx.await()
+
+            // At this point the server method is suspended. We can send the first message.
+            reqObserver.onNext(HelloRequest.getDefaultInstance())
+
+            // Once we call `onCompleted` the server scope will be canceled
+            // because of the CancellingClientInterceptor
+            reqObserver.onCompleted()
+
+            // We wait for the server scope to complete before proceeding with assertions
+            serverCtx[Job]!!.join()
+
             verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
 
-            assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
-            assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
-            assertFalse(serverMethodCompleted.get(),"Server method should not complete")
+            assert(serverCtx[Job]!!.isCompleted) { "Server job should be completed" }
+            assert(serverCtx[Job]!!.isCancelled) { "Server job should be cancelled" }
+            assertFalse(serverMethodCompleted.get(), "Server method should not complete")
         }
     }
 }

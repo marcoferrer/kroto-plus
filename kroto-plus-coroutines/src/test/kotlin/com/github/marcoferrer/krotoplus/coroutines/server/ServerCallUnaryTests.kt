@@ -165,12 +165,8 @@ class ServerCallUnaryTests {
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHello(request: HelloRequest): HelloReply {
-                coroutineContext.let { ctx ->
-                    ctx[Job]!!.invokeOnCompletion {
-                        deferredCtx.complete(ctx)
-                    }
-                }
-                delay(100)
+                deferredCtx.complete(coroutineContext)
+                delay(10000)
                 yield()
                 serverMethodCompleted.set(true)
                 return expectedResponse
@@ -187,6 +183,7 @@ class ServerCallUnaryTests {
 
         runBlocking {
             val serverCtx = deferredCtx.await()
+            serverCtx[Job]!!.join()
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
             assertFalse(serverMethodCompleted.get(),"Server method should not complete")

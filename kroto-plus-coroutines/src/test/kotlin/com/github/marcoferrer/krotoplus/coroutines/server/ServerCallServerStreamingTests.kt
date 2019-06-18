@@ -235,7 +235,7 @@ class ServerCallServerStreamingTests {
                         deferredRespChannel.complete(respChan)
                     }
                 })
-                delay(100)
+                delay(10000)
                 yield()
                 repeat(3){
                     respChan.send { message = "response" }

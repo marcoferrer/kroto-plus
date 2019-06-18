@@ -404,7 +404,7 @@ class ServerCallBidiStreamingTests {
                 // cancellation occurs in client
                 // half close.
                 requestChannel.receive()
-                delay(100)
+                delay(10000)
                 yield()
                 repeat(3){
                     respChan.send { message = "response" }
@@ -412,20 +412,30 @@ class ServerCallBidiStreamingTests {
             }
         })
 
-        val stub = GreeterGrpc.newStub(grpcServerRule.channel)
-            .withInterceptors(CancellingClientInterceptor)
-
-        val reqObserver = stub.sayHelloStreaming(responseObserver)
-        reqObserver.onNext(HelloRequest.getDefaultInstance())
-        reqObserver.onCompleted()
-
         runBlocking {
+            val stub = GreeterGrpc.newStub(grpcServerRule.channel)
+                .withInterceptors(CancellingClientInterceptor)
+
+            // Start the call
+            val reqObserver = stub.sayHelloStreaming(responseObserver)
+
+            // Wait for the server method to be invoked
+            val serverCtx = deferredCtx.await()
+
+            // At this point the server method is suspended. We can send the first message.
+            reqObserver.onNext(HelloRequest.getDefaultInstance())
+
+            // Once we call `onCompleted` the server scope will be canceled
+            // because of the CancellingClientInterceptor
+            reqObserver.onCompleted()
+
+            // We wait for the server scope to complete before proceeding with assertions
+            serverCtx[Job]!!.join()
+
             val respChannel = deferredRespChannel.await()
             assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
             verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
             coVerify(exactly = 0) { respChannel.send(any()) }
-
-            val serverCtx = deferredCtx.await()
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
         }
