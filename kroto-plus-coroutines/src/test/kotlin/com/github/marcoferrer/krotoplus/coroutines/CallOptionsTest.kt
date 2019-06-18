@@ -19,8 +19,10 @@ package com.github.marcoferrer.krotoplus.coroutines
 import io.grpc.CallOptions
 import io.grpc.Channel
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -29,19 +31,20 @@ import kotlin.test.assertNotEquals
 class CallOptionsTest {
 
     @Test
-    fun `Test coroutine context call option defaults to EmptyCoroutineContext`(){
+    fun `Coroutine context call option defaults to EmptyCoroutineContext`(){
         assertEquals(EmptyCoroutineContext, CallOptions.DEFAULT.getOption(CALL_OPTION_COROUTINE_CONTEXT))
     }
 
     @Test
-    fun `Test stub coroutineContext is populated via call option value`(){
+    fun `Stub coroutineContext is populated via call option value`(){
         val channel = mockk<Channel>()
         val stub = TestStub(channel)
         assertEquals(EmptyCoroutineContext, stub.coroutineContext)
+        assertEquals(EmptyCoroutineContext, stub.context)
     }
 
     @Test
-    fun `Test attaching coroutineContext to stub explicitly`(){
+    fun `Attaching coroutineContext to stub explicitly`(){
         val channel = mockk<Channel>()
         val stub = TestStub(channel)
         assertEquals(EmptyCoroutineContext, stub.coroutineContext)
@@ -49,23 +52,66 @@ class CallOptionsTest {
             Dispatchers.Default,
             stub.withCoroutineContext(Dispatchers.Default).coroutineContext
         )
+
+        assertEquals(EmptyCoroutineContext, stub.context)
+        assertEquals(
+            Dispatchers.Default,
+            stub.withCoroutineContext(Dispatchers.Default).context
+        )
     }
 
     @Test
-    fun `Test attaching coroutineContext to stub implicitly`(){
+    fun `Attaching coroutineContext to stub implicitly`(){
         val channel = mockk<Channel>()
         val stub = TestStub(channel)
         assertEquals(EmptyCoroutineContext, stub.coroutineContext)
+        assertEquals(EmptyCoroutineContext, stub.context)
 
         runBlocking {
             val newStub = stub.withCoroutineContext()
+
             assertEquals(coroutineContext, newStub.coroutineContext)
+            assertEquals(coroutineContext, newStub.context)
+
             assertNotEquals(stub.coroutineContext, newStub.coroutineContext)
+            assertNotEquals(stub.context, newStub.context)
         }
     }
 
     @Test
-    fun `Test attaching coroutineContext to call options explicitly`(){
+    fun `Merging scope context with stub context implicitly`(){
+        val channel = mockk<Channel>()
+
+        val coroutineName = CoroutineName("testing")
+        val stub = TestStub(channel)
+            .withCoroutineContext(coroutineName)
+
+        runBlocking(Dispatchers.IO) {
+            val newStub = stub.plusCoroutineContext()
+
+            assertEquals(coroutineName.name,newStub.context[CoroutineName]?.name)
+            assertEquals(Dispatchers.IO,newStub.context[ContinuationInterceptor])
+            assertNotEquals(stub.context, newStub.context)
+        }
+    }
+
+    @Test
+    fun `Merging context with stub context explicitly`(){
+        val channel = mockk<Channel>()
+
+        val coroutineName = CoroutineName("testing")
+        val stub = TestStub(channel)
+            .withCoroutineContext(coroutineName)
+
+        val newStub = stub.plusCoroutineContext(Dispatchers.IO)
+
+        assertEquals(coroutineName.name,newStub.context[CoroutineName]?.name)
+        assertEquals(Dispatchers.IO,newStub.context[ContinuationInterceptor])
+        assertNotEquals(stub.context, newStub.context)
+    }
+
+    @Test
+    fun `Attaching coroutineContext to call options explicitly`(){
         val callOptions = CallOptions.DEFAULT.withCoroutineContext(Dispatchers.Default)
         assertEquals(
             Dispatchers.Default,
@@ -74,7 +120,7 @@ class CallOptionsTest {
     }
 
     @Test
-    fun `Test attaching coroutineContext to call options implicitly`() = runBlocking {
+    fun `Attaching coroutineContext to call options implicitly`() = runBlocking {
         val callOptions = CallOptions.DEFAULT.withCoroutineContext()
         assertEquals(
             coroutineContext,

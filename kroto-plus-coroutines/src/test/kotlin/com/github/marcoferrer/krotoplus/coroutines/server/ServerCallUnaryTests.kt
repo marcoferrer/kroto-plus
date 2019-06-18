@@ -16,12 +16,17 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
 import io.grpc.CallOptions
+import io.grpc.Channel
 import io.grpc.ClientCall
+import io.grpc.ClientInterceptor
+import io.grpc.ForwardingClientCall
+import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
@@ -30,13 +35,24 @@ import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
-import io.mockk.*
-import kotlinx.coroutines.*
+import io.mockk.spyk
+import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 
 class ServerCallUnaryTests {
@@ -139,10 +155,51 @@ class ServerCallUnaryTests {
 
         val call = newCall()
         call.cancel("test",null)
-        assert(serverSpy.job?.isCancelled == true)
+        assert(serverSpy.job!!.isCancelled){ "Server job must be cancelled" }
         verify(exactly = 1) {
-            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled"))
+            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED"))
         }
         assertEquals("Job was cancelled",serverSpy.error?.message)
+    }
+
+    @Test
+    fun `Server method is at least invoked before being cancelled`(){
+        val serverMethodCompleted = AtomicBoolean()
+        val deferredCtx = CompletableDeferred<CoroutineContext>()
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHello(request: HelloRequest): HelloReply {
+                deferredCtx.complete(coroutineContext)
+                delay(10000)
+                yield()
+                serverMethodCompleted.set(true)
+                return expectedResponse
+            }
+        })
+
+        lateinit var callSpy: ClientCall<*, *>
+        val stub = GreeterGrpc
+            .newStub(grpcServerRule.channel)
+            .withInterceptors(object : ClientInterceptor {
+                override fun <ReqT : Any?, RespT : Any?> interceptCall(
+                    method: MethodDescriptor<ReqT, RespT>?,
+                    callOptions: CallOptions?,
+                    next: Channel
+                ): ClientCall<ReqT, RespT> =
+                    spyk(next.newCall(method,callOptions))
+                        .also { callSpy = it }
+            })
+
+        runBlocking {
+
+            stub.sayHello(HelloRequest.getDefaultInstance(), responseObserver)
+            val serverCtx = deferredCtx.await()
+            callSpy.cancel("test",null)
+            serverCtx[Job]!!.join()
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
+            assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
+            assertFalse(serverMethodCompleted.get(),"Server method should not complete")
+        }
     }
 }

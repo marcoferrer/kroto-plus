@@ -16,8 +16,8 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
 import io.grpc.CallOptions
@@ -30,17 +30,27 @@ import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
-import io.mockk.*
-import kotlinx.coroutines.*
+import io.mockk.spyk
+import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
-import org.junit.Ignore
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class ServerCallClientStreamingTests {
 
@@ -202,7 +212,7 @@ class ServerCallClientStreamingTests {
         requestObserver.sendRequests(3)
         call.cancel("test",null)
         assert(serverSpy.job?.isCancelled == true)
-        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled")) }
+        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED")) }
         assertEquals("Job was cancelled",serverSpy.error?.message)
         assert(reqChannel.isClosedForReceive){ "Abandoned request channel should be closed"}
     }
@@ -239,7 +249,56 @@ class ServerCallClientStreamingTests {
         assertEquals("Job was cancelled",serverSpy.error?.message)
         assert(reqChannel.isClosedForReceive){ "Abandoned request channel should be closed"}
         verify(exactly = 1) {
-            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: Job was cancelled"))
+            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED"))
+        }
+    }
+
+    @Test
+    fun `Server method is at least invoked before being cancelled`(){
+        val serverMethodCompleted = AtomicBoolean()
+        val deferredCtx = CompletableDeferred<CoroutineContext>()
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
+                deferredCtx.complete(coroutineContext)
+
+                // Need to receive message since
+                // cancellation occurs in client
+                // half close.
+                requestChannel.receive()
+                delay(10000)
+                yield()
+                serverMethodCompleted.set(true)
+                return expectedResponse
+            }
+        })
+
+        runBlocking {
+            val stub = GreeterGrpc
+                .newStub(grpcServerRule.channel)
+                .withInterceptors(CancellingClientInterceptor)
+
+            // Start the call
+            val reqObserver = stub.sayHelloClientStreaming(responseObserver)
+
+            // Wait for the server method to be invoked
+            val serverCtx = deferredCtx.await()
+
+            // At this point the server method is suspended. We can send the first message.
+            reqObserver.onNext(HelloRequest.getDefaultInstance())
+
+            // Once we call `onCompleted` the server scope will be canceled
+            // because of the CancellingClientInterceptor
+            reqObserver.onCompleted()
+
+            // We wait for the server scope to complete before proceeding with assertions
+            serverCtx[Job]!!.join()
+
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+
+            assert(serverCtx[Job]!!.isCompleted) { "Server job should be completed" }
+            assert(serverCtx[Job]!!.isCancelled) { "Server job should be cancelled" }
+            assertFalse(serverMethodCompleted.get(), "Server method should not complete")
         }
     }
 }
