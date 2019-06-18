@@ -22,7 +22,11 @@ import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
 import io.grpc.CallOptions
+import io.grpc.Channel
 import io.grpc.ClientCall
+import io.grpc.ClientInterceptor
+import io.grpc.ForwardingClientCall
+import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
@@ -173,17 +177,26 @@ class ServerCallUnaryTests {
             }
         })
 
+        lateinit var callSpy: ClientCall<*, *>
         val stub = GreeterGrpc
-            .newBlockingStub(grpcServerRule.channel)
-            .withInterceptors(CancellingClientInterceptor)
-
-        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
-            stub.sayHello(HelloRequest.getDefaultInstance())
-        }
+            .newStub(grpcServerRule.channel)
+            .withInterceptors(object : ClientInterceptor {
+                override fun <ReqT : Any?, RespT : Any?> interceptCall(
+                    method: MethodDescriptor<ReqT, RespT>?,
+                    callOptions: CallOptions?,
+                    next: Channel
+                ): ClientCall<ReqT, RespT> =
+                    spyk(next.newCall(method,callOptions))
+                        .also { callSpy = it }
+            })
 
         runBlocking {
+
+            stub.sayHello(HelloRequest.getDefaultInstance(), responseObserver)
             val serverCtx = deferredCtx.await()
+            callSpy.cancel("test",null)
             serverCtx[Job]!!.join()
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
             assertFalse(serverMethodCompleted.get(),"Server method should not complete")
