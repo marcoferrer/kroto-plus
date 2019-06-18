@@ -1,12 +1,11 @@
 ## Version 0.4.0
-_\*\*-\*\*\-\*\*_
+_2019-06-17_
 * New: Update to kotlin `1.3.31`
 * New: Update to kotlin Coroutines `1.2.1`
 * New: Update to gRPC `1.20.1`
 
-#### Protoc Plugin
-* New: Added support for Yaml as a configuration format [GH-45](https://github.com/marcoferrer/kroto-plus/issues/45)
-* Fix: Address bug in parallelization of generator execution 
+#### Proto Builders (DSL)
+* Fix: Empty object generation when using maps and multiple files. [PR-51](https://github.com/marcoferrer/kroto-plus/pull/51) Thanks to @sauldhernandez
 
 #### Coroutines
 * New: Default server method execution to `CoroutineStart.ATOMIC`
@@ -15,6 +14,10 @@ _\*\*-\*\*\-\*\*_
 * Fix: Disable auto flow control for inbound client and server streams during bidi calls
 * Fix: Reduce visibility of `FlowControlledInboundStreamObserver` to `internal`
 * Deprecated: `AbstractStub.coroutineContext` ext in favor of `AbstractStub.context`     
+
+#### Protoc Plugin
+* New: Added support for Yaml as a configuration format [GH-45](https://github.com/marcoferrer/kroto-plus/issues/45)
+* Fix: Address bug in parallelization of generator execution
 
 
 ## Version 0.3.0
