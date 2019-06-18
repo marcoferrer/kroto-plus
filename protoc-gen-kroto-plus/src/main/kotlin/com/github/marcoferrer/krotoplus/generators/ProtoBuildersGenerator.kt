@@ -155,7 +155,7 @@ object ProtoBuildersGenerator : Generator {
 
             fileSpecBuilder.addFunctions(buildNestedBuildersForMessage(protoType))
 
-            if (protoType.nestedMessageTypes.filterNot { it.isMapEntry }.isNotEmpty()) {
+            if (protoType.nestedMessageTypes.any { !it.isMapEntry }) {
                 addType(
                     TypeSpec.objectBuilder(protoType.name)
                         .buildFunSpecsForTypes(fileSpecBuilder, protoType.nestedMessageTypes)
