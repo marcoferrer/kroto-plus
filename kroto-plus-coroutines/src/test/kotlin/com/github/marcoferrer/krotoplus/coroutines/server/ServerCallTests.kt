@@ -19,7 +19,6 @@ package com.github.marcoferrer.krotoplus.coroutines.server
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import io.grpc.Status
-import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.mockk.spyk
 import io.mockk.verify

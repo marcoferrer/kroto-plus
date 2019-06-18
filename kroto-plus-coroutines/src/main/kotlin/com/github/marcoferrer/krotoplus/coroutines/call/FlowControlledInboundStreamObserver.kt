@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-interface FlowControlledInboundStreamObserver<T> : StreamObserver<T>, CoroutineScope {
+internal interface FlowControlledInboundStreamObserver<T> : StreamObserver<T>, CoroutineScope {
 
     val inboundChannel: Channel<T>
 
