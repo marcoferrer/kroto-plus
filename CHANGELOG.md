@@ -1,3 +1,12 @@
+## Version 0.4.1
+_\*\*-\*\*_
+* New: Update to Kotlin `1.3.40`
+* New: Update to Kotlin Coroutines `1.2.2`
+* New: Update to gRPC `1.21.0`
+* New: Update to protobuf `3.7.1`
+
+
+
 ## Version 0.4.0
 _2019-06-17_
 * New: Update to kotlin `1.3.31`

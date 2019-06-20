@@ -54,7 +54,7 @@ private static final long serialVersionUID = 0L;
             done = true;
             break;
           case 162: {
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               grpcStubExts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions>();
               mutable_bitField0_ |= 0x00000001;
             }
@@ -63,7 +63,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 170: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               mockServices_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions>();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -72,7 +72,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 178: {
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
               protoBuilders_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions>();
               mutable_bitField0_ |= 0x00000004;
             }
@@ -81,7 +81,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 186: {
-            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
               extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions>();
               mutable_bitField0_ |= 0x00000008;
             }
@@ -90,7 +90,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 194: {
-            if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+            if (!((mutable_bitField0_ & 0x00000010) != 0)) {
               insertions_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions>();
               mutable_bitField0_ |= 0x00000010;
             }
@@ -99,7 +99,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 202: {
-            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+            if (!((mutable_bitField0_ & 0x00000020) != 0)) {
               generatorScripts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions>();
               mutable_bitField0_ |= 0x00000020;
             }
@@ -108,7 +108,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 210: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+            if (!((mutable_bitField0_ & 0x00000040) != 0)) {
               grpcCoroutines_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions>();
               mutable_bitField0_ |= 0x00000040;
             }
@@ -117,7 +117,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           default: {
-            if (!parseUnknownFieldProto3(
+            if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
@@ -131,25 +131,25 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         grpcStubExts_ = java.util.Collections.unmodifiableList(grpcStubExts_);
       }
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         mockServices_ = java.util.Collections.unmodifiableList(mockServices_);
       }
-      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((mutable_bitField0_ & 0x00000004) != 0)) {
         protoBuilders_ = java.util.Collections.unmodifiableList(protoBuilders_);
       }
-      if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((mutable_bitField0_ & 0x00000008) != 0)) {
         extendableMessages_ = java.util.Collections.unmodifiableList(extendableMessages_);
       }
-      if (((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((mutable_bitField0_ & 0x00000010) != 0)) {
         insertions_ = java.util.Collections.unmodifiableList(insertions_);
       }
-      if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((mutable_bitField0_ & 0x00000020) != 0)) {
         generatorScripts_ = java.util.Collections.unmodifiableList(generatorScripts_);
       }
-      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((mutable_bitField0_ & 0x00000040) != 0)) {
         grpcCoroutines_ = java.util.Collections.unmodifiableList(grpcCoroutines_);
       }
       this.unknownFields = unknownFields.build();
@@ -641,23 +641,22 @@ private static final long serialVersionUID = 0L;
     }
     com.github.marcoferrer.krotoplus.config.CompilerConfig other = (com.github.marcoferrer.krotoplus.config.CompilerConfig) obj;
 
-    boolean result = true;
-    result = result && getGrpcStubExtsList()
-        .equals(other.getGrpcStubExtsList());
-    result = result && getMockServicesList()
-        .equals(other.getMockServicesList());
-    result = result && getProtoBuildersList()
-        .equals(other.getProtoBuildersList());
-    result = result && getExtendableMessagesList()
-        .equals(other.getExtendableMessagesList());
-    result = result && getInsertionsList()
-        .equals(other.getInsertionsList());
-    result = result && getGeneratorScriptsList()
-        .equals(other.getGeneratorScriptsList());
-    result = result && getGrpcCoroutinesList()
-        .equals(other.getGrpcCoroutinesList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getGrpcStubExtsList()
+        .equals(other.getGrpcStubExtsList())) return false;
+    if (!getMockServicesList()
+        .equals(other.getMockServicesList())) return false;
+    if (!getProtoBuildersList()
+        .equals(other.getProtoBuildersList())) return false;
+    if (!getExtendableMessagesList()
+        .equals(other.getExtendableMessagesList())) return false;
+    if (!getInsertionsList()
+        .equals(other.getInsertionsList())) return false;
+    if (!getGeneratorScriptsList()
+        .equals(other.getGeneratorScriptsList())) return false;
+    if (!getGrpcCoroutinesList()
+        .equals(other.getGrpcCoroutinesList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -909,7 +908,7 @@ private static final long serialVersionUID = 0L;
       com.github.marcoferrer.krotoplus.config.CompilerConfig result = new com.github.marcoferrer.krotoplus.config.CompilerConfig(this);
       int from_bitField0_ = bitField0_;
       if (grpcStubExtsBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           grpcStubExts_ = java.util.Collections.unmodifiableList(grpcStubExts_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
@@ -918,7 +917,7 @@ private static final long serialVersionUID = 0L;
         result.grpcStubExts_ = grpcStubExtsBuilder_.build();
       }
       if (mockServicesBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000002) != 0)) {
           mockServices_ = java.util.Collections.unmodifiableList(mockServices_);
           bitField0_ = (bitField0_ & ~0x00000002);
         }
@@ -927,7 +926,7 @@ private static final long serialVersionUID = 0L;
         result.mockServices_ = mockServicesBuilder_.build();
       }
       if (protoBuildersBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((bitField0_ & 0x00000004) != 0)) {
           protoBuilders_ = java.util.Collections.unmodifiableList(protoBuilders_);
           bitField0_ = (bitField0_ & ~0x00000004);
         }
@@ -936,7 +935,7 @@ private static final long serialVersionUID = 0L;
         result.protoBuilders_ = protoBuildersBuilder_.build();
       }
       if (extendableMessagesBuilder_ == null) {
-        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((bitField0_ & 0x00000008) != 0)) {
           extendableMessages_ = java.util.Collections.unmodifiableList(extendableMessages_);
           bitField0_ = (bitField0_ & ~0x00000008);
         }
@@ -945,7 +944,7 @@ private static final long serialVersionUID = 0L;
         result.extendableMessages_ = extendableMessagesBuilder_.build();
       }
       if (insertionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((bitField0_ & 0x00000010) != 0)) {
           insertions_ = java.util.Collections.unmodifiableList(insertions_);
           bitField0_ = (bitField0_ & ~0x00000010);
         }
@@ -954,7 +953,7 @@ private static final long serialVersionUID = 0L;
         result.insertions_ = insertionsBuilder_.build();
       }
       if (generatorScriptsBuilder_ == null) {
-        if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((bitField0_ & 0x00000020) != 0)) {
           generatorScripts_ = java.util.Collections.unmodifiableList(generatorScripts_);
           bitField0_ = (bitField0_ & ~0x00000020);
         }
@@ -963,7 +962,7 @@ private static final long serialVersionUID = 0L;
         result.generatorScripts_ = generatorScriptsBuilder_.build();
       }
       if (grpcCoroutinesBuilder_ == null) {
-        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((bitField0_ & 0x00000040) != 0)) {
           grpcCoroutines_ = java.util.Collections.unmodifiableList(grpcCoroutines_);
           bitField0_ = (bitField0_ & ~0x00000040);
         }
@@ -977,35 +976,35 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
     @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
     @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
     @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
     @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
     @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -1234,7 +1233,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions> grpcStubExts_ =
       java.util.Collections.emptyList();
     private void ensureGrpcStubExtsIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         grpcStubExts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions>(grpcStubExts_);
         bitField0_ |= 0x00000001;
        }
@@ -1535,7 +1534,7 @@ private static final long serialVersionUID = 0L;
         grpcStubExtsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions, com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptionsOrBuilder>(
                 grpcStubExts_,
-                ((bitField0_ & 0x00000001) == 0x00000001),
+                ((bitField0_ & 0x00000001) != 0),
                 getParentForChildren(),
                 isClean());
         grpcStubExts_ = null;
@@ -1546,7 +1545,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions> mockServices_ =
       java.util.Collections.emptyList();
     private void ensureMockServicesIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         mockServices_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.MockServicesGenOptions>(mockServices_);
         bitField0_ |= 0x00000002;
        }
@@ -1847,7 +1846,7 @@ private static final long serialVersionUID = 0L;
         mockServicesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.MockServicesGenOptions, com.github.marcoferrer.krotoplus.config.MockServicesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.MockServicesGenOptionsOrBuilder>(
                 mockServices_,
-                ((bitField0_ & 0x00000002) == 0x00000002),
+                ((bitField0_ & 0x00000002) != 0),
                 getParentForChildren(),
                 isClean());
         mockServices_ = null;
@@ -1858,7 +1857,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions> protoBuilders_ =
       java.util.Collections.emptyList();
     private void ensureProtoBuildersIsMutable() {
-      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!((bitField0_ & 0x00000004) != 0)) {
         protoBuilders_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions>(protoBuilders_);
         bitField0_ |= 0x00000004;
        }
@@ -2159,7 +2158,7 @@ private static final long serialVersionUID = 0L;
         protoBuildersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions, com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ProtoBuildersGenOptionsOrBuilder>(
                 protoBuilders_,
-                ((bitField0_ & 0x00000004) == 0x00000004),
+                ((bitField0_ & 0x00000004) != 0),
                 getParentForChildren(),
                 isClean());
         protoBuilders_ = null;
@@ -2170,7 +2169,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> extendableMessages_ =
       java.util.Collections.emptyList();
     private void ensureExtendableMessagesIsMutable() {
-      if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (!((bitField0_ & 0x00000008) != 0)) {
         extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions>(extendableMessages_);
         bitField0_ |= 0x00000008;
        }
@@ -2471,7 +2470,7 @@ private static final long serialVersionUID = 0L;
         extendableMessagesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder>(
                 extendableMessages_,
-                ((bitField0_ & 0x00000008) == 0x00000008),
+                ((bitField0_ & 0x00000008) != 0),
                 getParentForChildren(),
                 isClean());
         extendableMessages_ = null;
@@ -2482,7 +2481,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions> insertions_ =
       java.util.Collections.emptyList();
     private void ensureInsertionsIsMutable() {
-      if (!((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (!((bitField0_ & 0x00000010) != 0)) {
         insertions_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions>(insertions_);
         bitField0_ |= 0x00000010;
        }
@@ -2783,7 +2782,7 @@ private static final long serialVersionUID = 0L;
         insertionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.InsertionsGenOptions, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.InsertionsGenOptionsOrBuilder>(
                 insertions_,
-                ((bitField0_ & 0x00000010) == 0x00000010),
+                ((bitField0_ & 0x00000010) != 0),
                 getParentForChildren(),
                 isClean());
         insertions_ = null;
@@ -2794,7 +2793,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions> generatorScripts_ =
       java.util.Collections.emptyList();
     private void ensureGeneratorScriptsIsMutable() {
-      if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (!((bitField0_ & 0x00000020) != 0)) {
         generatorScripts_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions>(generatorScripts_);
         bitField0_ |= 0x00000020;
        }
@@ -3095,7 +3094,7 @@ private static final long serialVersionUID = 0L;
         generatorScriptsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptionsOrBuilder>(
                 generatorScripts_,
-                ((bitField0_ & 0x00000020) == 0x00000020),
+                ((bitField0_ & 0x00000020) != 0),
                 getParentForChildren(),
                 isClean());
         generatorScripts_ = null;
@@ -3106,7 +3105,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions> grpcCoroutines_ =
       java.util.Collections.emptyList();
     private void ensureGrpcCoroutinesIsMutable() {
-      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (!((bitField0_ & 0x00000040) != 0)) {
         grpcCoroutines_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions>(grpcCoroutines_);
         bitField0_ |= 0x00000040;
        }
@@ -3407,7 +3406,7 @@ private static final long serialVersionUID = 0L;
         grpcCoroutinesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.GrpcCoroutinesGenOptionsOrBuilder>(
                 grpcCoroutines_,
-                ((bitField0_ & 0x00000040) == 0x00000040),
+                ((bitField0_ & 0x00000040) != 0),
                 getParentForChildren(),
                 isClean());
         grpcCoroutines_ = null;
@@ -3417,7 +3416,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.setUnknownFieldsProto3(unknownFields);
+      return super.setUnknownFields(unknownFields);
     }
 
     @java.lang.Override
