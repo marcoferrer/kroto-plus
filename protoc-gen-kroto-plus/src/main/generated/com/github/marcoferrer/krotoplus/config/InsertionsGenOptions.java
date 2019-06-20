@@ -63,7 +63,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               entry_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry>();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -72,7 +72,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           default: {
-            if (!parseUnknownFieldProto3(
+            if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
@@ -86,7 +86,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         entry_ = java.util.Collections.unmodifiableList(entry_);
       }
       this.unknownFields = unknownFields.build();
@@ -306,7 +306,7 @@ private static final long serialVersionUID = 0L;
             }
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
                 content_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000002;
               }
@@ -315,7 +315,7 @@ private static final long serialVersionUID = 0L;
             }
             case 26: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                 scriptPath_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000004;
               }
@@ -329,7 +329,7 @@ private static final long serialVersionUID = 0L;
               break;
             }
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -343,10 +343,10 @@ private static final long serialVersionUID = 0L;
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((mutable_bitField0_ & 0x00000002) != 0)) {
           content_ = content_.getUnmodifiableView();
         }
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((mutable_bitField0_ & 0x00000004) != 0)) {
           scriptPath_ = scriptPath_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
@@ -633,16 +633,15 @@ private static final long serialVersionUID = 0L;
       }
       com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry other = (com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry) obj;
 
-      boolean result = true;
-      result = result && point_ == other.point_;
-      result = result && getContentList()
-          .equals(other.getContentList());
-      result = result && getScriptPathList()
-          .equals(other.getScriptPathList());
-      result = result && getScriptBundle()
-          .equals(other.getScriptBundle());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (point_ != other.point_) return false;
+      if (!getContentList()
+          .equals(other.getContentList())) return false;
+      if (!getScriptPathList()
+          .equals(other.getScriptPathList())) return false;
+      if (!getScriptBundle()
+          .equals(other.getScriptBundle())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -838,12 +837,12 @@ private static final long serialVersionUID = 0L;
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         result.point_ = point_;
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000002) != 0)) {
           content_ = content_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.content_ = content_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((bitField0_ & 0x00000004) != 0)) {
           scriptPath_ = scriptPath_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00000004);
         }
@@ -856,35 +855,35 @@ private static final long serialVersionUID = 0L;
 
       @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
       @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
       @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
       @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
       @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
       @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -1022,7 +1021,7 @@ private static final long serialVersionUID = 0L;
 
       private com.google.protobuf.LazyStringList content_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureContentIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (!((bitField0_ & 0x00000002) != 0)) {
           content_ = new com.google.protobuf.LazyStringArrayList(content_);
           bitField0_ |= 0x00000002;
          }
@@ -1179,7 +1178,7 @@ private static final long serialVersionUID = 0L;
 
       private com.google.protobuf.LazyStringList scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureScriptPathIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (!((bitField0_ & 0x00000004) != 0)) {
           scriptPath_ = new com.google.protobuf.LazyStringArrayList(scriptPath_);
           bitField0_ |= 0x00000004;
          }
@@ -1452,7 +1451,7 @@ private static final long serialVersionUID = 0L;
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
       @java.lang.Override
@@ -1646,16 +1645,15 @@ private static final long serialVersionUID = 0L;
     }
     com.github.marcoferrer.krotoplus.config.InsertionsGenOptions other = (com.github.marcoferrer.krotoplus.config.InsertionsGenOptions) obj;
 
-    boolean result = true;
-    result = result && (hasFilter() == other.hasFilter());
+    if (hasFilter() != other.hasFilter()) return false;
     if (hasFilter()) {
-      result = result && getFilter()
-          .equals(other.getFilter());
+      if (!getFilter()
+          .equals(other.getFilter())) return false;
     }
-    result = result && getEntryList()
-        .equals(other.getEntryList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getEntryList()
+        .equals(other.getEntryList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -1859,7 +1857,7 @@ private static final long serialVersionUID = 0L;
         result.filter_ = filterBuilder_.build();
       }
       if (entryBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000002) != 0)) {
           entry_ = java.util.Collections.unmodifiableList(entry_);
           bitField0_ = (bitField0_ & ~0x00000002);
         }
@@ -1874,35 +1872,35 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
     @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
     @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
     @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
     @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
     @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -1975,7 +1973,7 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.github.marcoferrer.krotoplus.config.FileFilter filter_ = null;
+    private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
     private com.google.protobuf.SingleFieldBuilderV3<
         com.github.marcoferrer.krotoplus.config.FileFilter, com.github.marcoferrer.krotoplus.config.FileFilter.Builder, com.github.marcoferrer.krotoplus.config.FileFilterOrBuilder> filterBuilder_;
     /**
@@ -2140,7 +2138,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry> entry_ =
       java.util.Collections.emptyList();
     private void ensureEntryIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         entry_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry>(entry_);
         bitField0_ |= 0x00000002;
        }
@@ -2441,7 +2439,7 @@ private static final long serialVersionUID = 0L;
         entryBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.EntryOrBuilder>(
                 entry_,
-                ((bitField0_ & 0x00000002) == 0x00000002),
+                ((bitField0_ & 0x00000002) != 0),
                 getParentForChildren(),
                 isClean());
         entry_ = null;
@@ -2451,7 +2449,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.setUnknownFieldsProto3(unknownFields);
+      return super.setUnknownFields(unknownFields);
     }
 
     @java.lang.Override

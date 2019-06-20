@@ -53,7 +53,7 @@ private static final long serialVersionUID = 0L;
             break;
           case 10: {
             java.lang.String s = input.readStringRequireUtf8();
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               includePath_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000001;
             }
@@ -62,7 +62,7 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             java.lang.String s = input.readStringRequireUtf8();
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               excludePath_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -70,7 +70,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           default: {
-            if (!parseUnknownFieldProto3(
+            if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
@@ -84,10 +84,10 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         includePath_ = includePath_.getUnmodifiableView();
       }
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         excludePath_ = excludePath_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
@@ -285,13 +285,12 @@ private static final long serialVersionUID = 0L;
     }
     com.github.marcoferrer.krotoplus.config.FileFilter other = (com.github.marcoferrer.krotoplus.config.FileFilter) obj;
 
-    boolean result = true;
-    result = result && getIncludePathList()
-        .equals(other.getIncludePathList());
-    result = result && getExcludePathList()
-        .equals(other.getExcludePathList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getIncludePathList()
+        .equals(other.getIncludePathList())) return false;
+    if (!getExcludePathList()
+        .equals(other.getExcludePathList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -480,12 +479,12 @@ private static final long serialVersionUID = 0L;
     public com.github.marcoferrer.krotoplus.config.FileFilter buildPartial() {
       com.github.marcoferrer.krotoplus.config.FileFilter result = new com.github.marcoferrer.krotoplus.config.FileFilter(this);
       int from_bitField0_ = bitField0_;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         includePath_ = includePath_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000001);
       }
       result.includePath_ = includePath_;
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         excludePath_ = excludePath_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000002);
       }
@@ -496,35 +495,35 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
     @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
     @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
     @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
     @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
     @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -590,7 +589,7 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList includePath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureIncludePathIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         includePath_ = new com.google.protobuf.LazyStringArrayList(includePath_);
         bitField0_ |= 0x00000001;
        }
@@ -765,7 +764,7 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList excludePath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureExcludePathIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         excludePath_ = new com.google.protobuf.LazyStringArrayList(excludePath_);
         bitField0_ |= 0x00000002;
        }
@@ -913,7 +912,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.setUnknownFieldsProto3(unknownFields);
+      return super.setUnknownFields(unknownFields);
     }
 
     @java.lang.Override

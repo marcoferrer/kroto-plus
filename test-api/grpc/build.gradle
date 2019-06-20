@@ -4,6 +4,7 @@ apply plugin: 'java-library'
 dependencies{
     protobuf project(':test-api')
     api "io.grpc:grpc-protobuf:${Versions.grpc}"
+    api "io.grpc:grpc-api:${Versions.grpc}"
     api "io.grpc:grpc-stub:${Versions.grpc}"
     api "io.grpc:grpc-testing:${Versions.grpc}"
 }
