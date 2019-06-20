@@ -18,10 +18,11 @@ cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
 
-## Version 0.3.0
+## Version 0.4.0
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
-  * 🎉 Release of Full Client & Server Stub Generation 🎉
+  * Misc bugfixes and API improvements
+  * Support for Yaml configuration format
 * **In Progress:** Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 
 ## Getting Started
