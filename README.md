@@ -79,6 +79,11 @@ The generated extensions allow composition of proto messages in a dsl style. Sup
 ```
 ---
 
+Note: while naming your proto files, only snake_case is supported:
+* `some_service.proto` - snake_case, good
+* `some-service.proto` - kebab-case, bad
+* `someService.proto` - camelCase, bad
+
 ### gRPC Coroutines Client & Server &nbsp;&nbsp; [![codecov](https://codecov.io/gh/marcoferrer/kroto-plus/branch/master/graph/badge.svg)](https://codecov.io/gh/marcoferrer/kroto-plus)
 This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpccoroutinesgenoptions)
