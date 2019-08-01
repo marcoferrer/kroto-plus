@@ -21,9 +21,13 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ChannelIterator
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
@@ -42,19 +46,20 @@ internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
     }
 }
 
+/*
 internal fun <T> CoroutineScope.applyOutboundFlowControl(
-    streamObserver: CallStreamObserver<T>,
-    targetChannel: Channel<T>
+        streamObserver: CallStreamObserver<T>,
+        targetChannel: Channel<T>
 ){
     val isOutboundJobRunning = AtomicBoolean()
     val channelIterator = targetChannel.iterator()
     streamObserver.setOnReadyHandler {
         if(targetChannel.isClosedForReceive){
             streamObserver.completeSafely()
-        }else if(
-            streamObserver.isReady &&
-            !targetChannel.isClosedForReceive &&
-            isOutboundJobRunning.compareAndSet(false, true)
+        }else if( synchronized(isOutboundJobRunning) {
+                streamObserver.isReady &&
+                !targetChannel.isClosedForReceive &&
+                isOutboundJobRunning.compareAndSet(false, true) }
         ){
             launch(Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
                 streamObserver.completeSafely(e)
@@ -62,10 +67,15 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
             }) {
                 try{
                     while(
-                        streamObserver.isReady &&
-                        !targetChannel.isClosedForReceive &&
-                        channelIterator.hasNext()
+                            !targetChannel.isClosedForReceive &&
+                            channelIterator.hasNext()
                     ){
+                        synchronized(isOutboundJobRunning) {
+                            if (streamObserver.isReady.not()) {
+                                isOutboundJobRunning.set(false)
+                                return@launch
+                            }
+                        }
                         val value = channelIterator.next()
                         streamObserver.onNext(value)
                     }
@@ -76,6 +86,66 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
                     isOutboundJobRunning.set(false)
                 }
             }
+        }
+    }
+}
+ */
+
+internal fun <T> CoroutineScope.applyOutboundFlowControl(
+    streamObserver: CallStreamObserver<T>,
+    targetChannel: Channel<T>
+){
+    val channelAdapter = ChannelToStreamObserverAdapter(targetChannel, streamObserver)
+
+    launch(CoroutineExceptionHandler { _, e ->
+        streamObserver.completeSafely(e)
+        targetChannel.close(e)
+    }) {
+        channelAdapter.run()
+    }
+}
+
+private class ChannelToStreamObserverAdapter<T>(private val sourceChannel: Channel<T>,
+                                                private val destStreamObserver: CallStreamObserver<T>) {
+
+    private var currentCont: Continuation<Unit>? = null
+
+    init {
+        destStreamObserver.setOnReadyHandler {
+            if(sourceChannel.isClosedForReceive)
+                destStreamObserver.completeSafely()
+            else synchronized(this@ChannelToStreamObserverAdapter) {
+                currentCont?.resume(Unit)
+                currentCont = null
+            }
+        }
+    }
+
+    /**
+     * Dispatch messages from the [sourceChannel] to the [destStreamObserver]. This coroutine runs for the entire
+     * duration of the underlying call and suspends while either source is empty or destination is not ready.
+     */
+    suspend fun run() {
+        val channelIterator = sourceChannel.iterator()
+        while (
+            !sourceChannel.isClosedForReceive &&
+            channelIterator.hasNext()
+        ) {
+            if (destStreamObserver.isReady.not()) {
+                suspendCoroutine<Unit> {
+                    synchronized(this@ChannelToStreamObserverAdapter) {
+                        if (destStreamObserver.isReady)
+                            it.resume(Unit)
+                        else
+                            currentCont = it
+                    }
+                }
+            }
+            val value = channelIterator.next()
+            destStreamObserver.onNext(value)
+        }
+        if (sourceChannel.isClosedForReceive) {
+            destStreamObserver.onCompleted()
         }
     }
 }
