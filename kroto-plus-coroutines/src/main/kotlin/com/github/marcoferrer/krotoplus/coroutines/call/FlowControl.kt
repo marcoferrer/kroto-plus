@@ -20,10 +20,9 @@ import io.grpc.stub.CallStreamObserver
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.ActorScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -43,51 +42,40 @@ internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
     }
 }
 
-private typealias MessageHandler = suspend ActorScope<*>.() -> Unit
-
 internal fun <T> CoroutineScope.applyOutboundFlowControl(
     streamObserver: CallStreamObserver<T>,
     targetChannel: Channel<T>
 ){
-
+    val isOutboundJobRunning = AtomicBoolean()
     val channelIterator = targetChannel.iterator()
-    val messageHandlerBlock: MessageHandler = {
-        while(
-            streamObserver.isReady &&
-            channelIterator.hasNext()
-        ){
-            val value = channelIterator.next()
-            streamObserver.onNext(value)
-        }
-        if(targetChannel.isClosedForReceive){
-            channel.close()
-        }
-    }
-
-    val messageHandlerActor = actor<MessageHandler>(
-        capacity = 1,
-        context = Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
-            streamObserver.completeSafely(e)
-            targetChannel.close(e)
-        }
-    ) {
-        consumeEach { it.invoke(this) }
-        if(targetChannel.isClosedForReceive){
-            streamObserver.onCompleted()
-        }
-    }
-
     streamObserver.setOnReadyHandler {
-        try {
-            if(targetChannel.isClosedForReceive){
-                messageHandlerActor.close()
-            }else{
-                messageHandlerActor.offer(messageHandlerBlock)
+        if(targetChannel.isClosedForReceive){
+            streamObserver.completeSafely()
+        }else if(
+            streamObserver.isReady &&
+            !targetChannel.isClosedForReceive &&
+            isOutboundJobRunning.compareAndSet(false, true)
+        ){
+            launch(Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
+                streamObserver.completeSafely(e)
+                targetChannel.close(e)
+            }) {
+                try{
+                    while(
+                        streamObserver.isReady &&
+                        !targetChannel.isClosedForReceive &&
+                        channelIterator.hasNext()
+                    ){
+                        val value = channelIterator.next()
+                        streamObserver.onNext(value)
+                    }
+                    if(targetChannel.isClosedForReceive){
+                        streamObserver.onCompleted()
+                    }
+                } finally {
+                    isOutboundJobRunning.set(false)
+                }
             }
-        }catch (e: Throwable){
-            // If offer throws an exception then it is
-            // either already closed or there was a failure
-            // which has already cleaned up call resources
         }
     }
 }
