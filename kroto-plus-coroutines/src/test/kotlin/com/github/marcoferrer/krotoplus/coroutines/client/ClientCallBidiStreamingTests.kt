@@ -149,7 +149,7 @@ class ClientCallBidiStreamingTests {
                 requestChannel.close()
             }
 
-            responseChannel.map { it.message }.toList()
+            responseChannel.consumeAsFlow().map { it.message }.toList()
         }
 
         assertEquals(3,result.size)

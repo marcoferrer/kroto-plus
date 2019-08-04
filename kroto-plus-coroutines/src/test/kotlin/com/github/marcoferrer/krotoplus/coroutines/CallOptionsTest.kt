@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package com.github.marcoferrer.krotoplus.coroutines
 
 import io.grpc.CallOptions
@@ -28,6 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
+@Suppress("DEPRECATION")
 class CallOptionsTest {
 
     @Test

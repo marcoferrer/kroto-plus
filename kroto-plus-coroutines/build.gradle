@@ -8,6 +8,7 @@ def experimentalFlags = [
     "-Xuse-experimental=kotlin.Experimental",
     "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
     "-Xuse-experimental=kotlinx.coroutines.ObsoleteCoroutinesApi",
+    "-Xuse-experimental=kotlinx.coroutines.FlowPreview",
     "-Xuse-experimental=com.github.marcoferrer.krotoplus.coroutines.KrotoPlusInternalApi"
 ]
 
@@ -35,6 +36,7 @@ dependencies {
     testImplementation project(':test-api:java')
     testImplementation "io.mockk:mockk:${Versions.mockk}"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutines}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}"
 }
 
 tasks.withType(JavaCompile) {

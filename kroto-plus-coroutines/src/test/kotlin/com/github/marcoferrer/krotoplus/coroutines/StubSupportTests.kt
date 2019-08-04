@@ -36,7 +36,7 @@ class NewGrpcStubTests {
         val stub = scope
             .newGrpcStub(GreeterCoroutineGrpc.GreeterCoroutineStub, channel)
 
-        assertEquals(nameElement.name, stub.coroutineContext[CoroutineName]?.name)
+        assertEquals(nameElement.name, stub.context[CoroutineName]?.name)
     }
 
 
@@ -50,7 +50,7 @@ class NewGrpcStubTests {
         val stub = CoroutineScope(scopeNameElement + scopeJob)
             .newGrpcStub(GreeterCoroutineGrpc.GreeterCoroutineStub, channel,expectedNameElement)
 
-        assertEquals(expectedNameElement.name, stub.coroutineContext[CoroutineName]?.name)
-        assertEquals(scopeJob, stub.coroutineContext[Job])
+        assertEquals(expectedNameElement.name, stub.context[CoroutineName]?.name)
+        assertEquals(scopeJob, stub.context[Job])
     }
 }

@@ -42,9 +42,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.mapTo
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
@@ -63,7 +64,9 @@ class ServerCallBidiStreamingTests {
     private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()
     private val responseObserver = spyk<StreamObserver<HelloReply>>(object : StreamObserver<HelloReply> {
         override fun onNext(value: HelloReply?) {}
-        override fun onError(t: Throwable?) {}
+        override fun onError(t: Throwable?) {
+            print(t?.message)
+        }
         override fun onCompleted() {}
     })
 
@@ -93,9 +96,11 @@ class ServerCallBidiStreamingTests {
             ) {
                 reqChannel = requestChannel
                 respChannel = responseChannel
-                requestChannel.mapTo(responseChannel) {
-                    HelloReply.newBuilder().setMessage("Reply: ${it.name}").build()
-                }
+                requestChannel
+                    .consumeAsFlow()
+                    .collect {
+                        responseChannel.send(HelloReply.newBuilder().setMessage("Reply: ${it.name}").build())
+                    }
             }
         })
 
@@ -128,10 +133,11 @@ class ServerCallBidiStreamingTests {
                 respChannel = responseChannel
                 var groupCount = 0
                 val requestIter = requestChannel.iterator()
+
                 while (requestIter.hasNext()) {
                     val requestValues = listOf(
-                        requestIter.next(),
-                        requestIter.next(),
+                        requestIter.next().also { requestIter.hasNext() },
+                        requestIter.next().also { requestIter.hasNext() },
                         requestIter.next()
                     )
                     responseChannel.send {
