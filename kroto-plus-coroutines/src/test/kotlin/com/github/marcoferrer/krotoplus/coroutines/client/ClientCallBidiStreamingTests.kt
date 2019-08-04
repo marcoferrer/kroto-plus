@@ -23,6 +23,7 @@ import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.ClientCall
 import io.grpc.Status
+import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
@@ -38,13 +39,19 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.map
-import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.debug.DebugProbes
+import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -54,6 +61,10 @@ class ClientCallBidiStreamingTests {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
+
+    @[Rule JvmField]
+    public val timeout = CoroutinesTimeout.seconds(30)
+
 
     private val methodDescriptor = GreeterGrpc.getSayHelloStreamingMethod()
     private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
@@ -330,6 +341,60 @@ class ClientCallBidiStreamingTests {
         verify { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
+
+    @Test
+    fun `High throughput call succeeds`() {
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHelloStreaming(
+                requestChannel: ReceiveChannel<HelloRequest>,
+                responseChannel: SendChannel<HelloReply>
+            ) {
+                requestChannel.consumeAsFlow().collectIndexed { index, value ->
+                    if (index % 1000 == 0) {
+//                          println("Server received $index")
+                    }
+
+                    responseChannel.send(HelloReply.newBuilder().setMessage(value.name).build())
+                }
+                responseChannel.close()
+            }
+        })
+        val stub = GreeterCoroutineGrpc.newStub(grpcServerRule.channel)
+
+        val (requestChannel, responseChannel) = stub
+            .clientCallBidiStreaming(methodDescriptor)
+
+        val numMessages = 100000
+        val receivedCount = AtomicInteger()
+        runBlocking(Dispatchers.Default) {
+            DebugProbes.install()
+            val req = HelloRequest.newBuilder()
+                .setName("test").build()
+
+            launch {
+                repeat(numMessages) {
+//                     if (it % 1000 == 0) println("Client sent $it")
+                    requestChannel.send(req)
+                }
+                requestChannel.close()
+            }
+
+            launch {
+                repeat(numMessages) {
+//                     if (it % 1000 == 0) println("Client received $it")
+                    responseChannel.receive()
+                    receivedCount.incrementAndGet()
+                }
+            }
+        }
+        // Sleep so that we can ensure the response channel
+        // has had enough time to close before being asserted on
+        Thread.sleep(50)
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+        assertEquals(numMessages, receivedCount.get(), "Must response count must equal request count")
     }
 
 }
