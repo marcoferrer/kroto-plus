@@ -21,11 +21,16 @@ import javafx.application.Application.launch
 import kotlinx.coroutines.*
 import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.sendBlocking
+import java.lang.Math.random
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.random.Random
 
 internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
     targetChannel: Channel<T>,
@@ -43,19 +48,20 @@ internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
     }
 }
 
-internal fun <T> CoroutineScope.applyOutboundFlowControl_minSynchronized(
-        streamObserver: CallStreamObserver<T>,
-        targetChannel: Channel<T>
+// Kroto+ 0.4.0 version
+internal fun <T> CoroutineScope.applyOutboundFlowControl(
+    streamObserver: CallStreamObserver<T>,
+    targetChannel: Channel<T>
 ){
     val isOutboundJobRunning = AtomicBoolean()
     val channelIterator = targetChannel.iterator()
     streamObserver.setOnReadyHandler {
         if(targetChannel.isClosedForReceive){
             streamObserver.completeSafely()
-        }else if( synchronized(isOutboundJobRunning) {
-                streamObserver.isReady &&
-                !targetChannel.isClosedForReceive &&
-                isOutboundJobRunning.compareAndSet(false, true) }
+        }else if(
+            streamObserver.isReady &&
+            !targetChannel.isClosedForReceive &&
+            isOutboundJobRunning.compareAndSet(false, true)
         ){
             launch(Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
                 streamObserver.completeSafely(e)
@@ -63,15 +69,10 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl_minSynchronized(
             }) {
                 try{
                     while(
-                            !targetChannel.isClosedForReceive &&
-                            channelIterator.hasNext()
+                        streamObserver.isReady &&
+                        !targetChannel.isClosedForReceive &&
+                        channelIterator.hasNext()
                     ){
-                        synchronized(isOutboundJobRunning) {
-                            if (streamObserver.isReady.not()) {
-                                isOutboundJobRunning.set(false)
-                                return@launch
-                            }
-                        }
                         val value = channelIterator.next()
                         streamObserver.onNext(value)
                     }
@@ -86,64 +87,140 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl_minSynchronized(
     }
 }
 
-internal fun <T> CoroutineScope.applyOutboundFlowControl(
+// Minimally invasive synchronized blocks
+internal fun <T> CoroutineScope.applyOutboundFlowControl_minSync(
     streamObserver: CallStreamObserver<T>,
     targetChannel: Channel<T>
 ){
-    ChannelToStreamObserverAdapter(targetChannel, streamObserver, this)
-}
-
-private class ChannelToStreamObserverAdapter<T>(private val sourceChannel: Channel<T>,
-                                                private val destStreamObserver: CallStreamObserver<T>,
-                                                private val coscope: CoroutineScope) {
-
-    private val isOutboundJobRunning = AtomicBoolean()
-    private var currentCont: Continuation<Unit>? = null
-
-    init {
-        destStreamObserver.setOnReadyHandler {
-            if(sourceChannel.isClosedForReceive)
-                destStreamObserver.completeSafely()
-            else if (destStreamObserver.isReady &&
-                    !sourceChannel.isClosedForReceive &&
-                    isOutboundJobRunning.compareAndSet(false, true)) {
-                coscope.launch(Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
-                    destStreamObserver.completeSafely(e)
-                    sourceChannel.close(e)
-                }) {
-                    run()
+    val isOutboundJobRunning = AtomicBoolean()
+    val channelIterator = targetChannel.iterator()
+    streamObserver.setOnReadyHandler {
+        if(targetChannel.isClosedForReceive){
+            streamObserver.completeSafely()
+        }else if(
+            synchronized(isOutboundJobRunning) { streamObserver.isReady &&
+                        !targetChannel.isClosedForReceive &&
+                        isOutboundJobRunning.compareAndSet(false, true) }
+        ){
+            launch(Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
+                streamObserver.completeSafely(e)
+                targetChannel.close(e)
+            }) {
+                try{
+                    while( synchronized(isOutboundJobRunning) { streamObserver.isReady.apply { if (this.not()) isOutboundJobRunning.set(false) } }&&
+                        !targetChannel.isClosedForReceive &&
+                        channelIterator.hasNext()
+                    ){
+                        val value = channelIterator.next()
+                        streamObserver.onNext(value)
+                    }
+                    if(targetChannel.isClosedForReceive){
+                        streamObserver.onCompleted()
+                    }
+                } finally {
+                    isOutboundJobRunning.set(false)
                 }
             }
-            else synchronized(this@ChannelToStreamObserverAdapter) {
-                currentCont?.resume(Unit)
-                currentCont = null
+        }
+    }
+}
+
+// long coroutine with suspend/resume, work in progress, hangs horribly
+internal fun <T> CoroutineScope.applyOutboundFlowControl_longco(
+    streamObserver: CallStreamObserver<T>,
+    targetChannel: Channel<T>
+){
+    val isOutboundJobRunning = AtomicBoolean()
+    val channelIterator = targetChannel.iterator()
+    var cont: CancellableContinuation<Unit>? = null
+    streamObserver.setOnReadyHandler {
+        if(targetChannel.isClosedForReceive){
+            streamObserver.completeSafely()
+        }else if(
+                    streamObserver.isReady &&
+                    !targetChannel.isClosedForReceive
+        ){
+            if (isOutboundJobRunning.compareAndSet(false, true))
+                launch(Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
+                    streamObserver.completeSafely(e)
+                    targetChannel.close(e)
+                }) {
+                    while(!targetChannel.isClosedForReceive){
+                        if (!streamObserver.isReady) {
+                            suspendCancellableCoroutine<Unit> {
+                                synchronized(isOutboundJobRunning) {
+                                    if (streamObserver.isReady)
+                                        it.resume(Unit)
+                                    else
+                                        cont = it
+                                }
+                            }
+                        }
+                        if (!channelIterator.hasNext())
+                            break
+                        val value = channelIterator.next()
+                        streamObserver.onNext(value)
+                    }
+                    if(targetChannel.isClosedForReceive){
+                        streamObserver.onCompleted()
+                    }
+                }
+            else synchronized (isOutboundJobRunning) {
+                cont?.resume(Unit)
+                cont = null
+            }
+        }
+    }
+}
+
+private typealias MessageHandler = suspend CoroutineScope.() -> Unit
+
+internal fun <T> CoroutineScope.applyOutboundFlowControl_marcoProposal(
+    streamObserver: CallStreamObserver<T>,
+    targetChannel: Channel<T>
+){
+
+    val channelIterator = targetChannel.iterator()
+    val messageHandlerBlock: MessageHandler = {
+        while(
+            streamObserver.isReady &&
+            !targetChannel.isClosedForReceive &&
+            channelIterator.hasNext()
+        ){
+            val value = channelIterator.next()
+            streamObserver.onNext(value)
+        }
+        if(targetChannel.isClosedForReceive){
+            streamObserver.onCompleted()
+        }
+    }
+
+    val messageHandlerActor = actor<MessageHandler>(
+        start = CoroutineStart.LAZY,
+        capacity = Channel.CONFLATED,
+        context = Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
+            streamObserver.completeSafely(e)
+            targetChannel.close(e)
+        }
+    ) {
+        consumeEach {
+            if(streamObserver.isReady && !targetChannel.isClosedForReceive){
+                it.invoke(this)
+            }else{
+                streamObserver.completeSafely()
             }
         }
     }
 
-    /**
-     * Dispatch messages from the [sourceChannel] to the [destStreamObserver]. This coroutine runs for the entire
-     * duration of the underlying call and suspends while either source is empty or destination is not ready.
-     */
-    private suspend fun run() {
-        val channelIterator = sourceChannel.iterator()
-        while (!sourceChannel.isClosedForReceive) {
-            if (!destStreamObserver.isReady) {
-                suspendCancellableCoroutine<Unit> {
-                    synchronized(this@ChannelToStreamObserverAdapter) {
-                        if (destStreamObserver.isReady)
-                            it.resume(Unit)
-                        else
-                            currentCont = it
-                    }
-                }
-            }
-            if (!channelIterator.hasNext())
-                break
-            destStreamObserver.onNext(channelIterator.next())
-        }
-        if (sourceChannel.isClosedForReceive) {
-            destStreamObserver.onCompleted()
+    streamObserver.setOnReadyHandler {
+        if(targetChannel.isClosedForReceive){
+            streamObserver.completeSafely()
+        }else if(
+            streamObserver.isReady &&
+            !targetChannel.isClosedForReceive
+        ){
+            // Using sendBlocking here is safe since we're using a conflated channel
+            messageHandlerActor.sendBlocking(messageHandlerBlock)
         }
     }
 }

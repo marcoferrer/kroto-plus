@@ -23,6 +23,7 @@ import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.ClientCall
 import io.grpc.Status
+import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
@@ -31,20 +32,15 @@ import io.grpc.testing.GrpcServerRule
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.map
 import kotlinx.coroutines.channels.toList
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -332,4 +328,54 @@ class ClientCallBidiStreamingTests {
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
 
+    @[Rule JvmField]
+    var grpcServerRule2 = GrpcServerRule()
+    
+    @Test
+    fun `High throughput call succeeds`() {
+        grpcServerRule2.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHelloStreaming(
+                requestChannel: ReceiveChannel<HelloRequest>,
+                responseChannel: SendChannel<HelloReply>
+            ) {
+                for (request in requestChannel) {
+                    responseChannel.send(HelloReply.newBuilder().setMessage(request.name).build())
+                }
+            }
+        })
+        val stub = GreeterCoroutineGrpc.newStub(grpcServerRule2.channel)
+
+        val (requestChannel, responseChannel) = stub
+            .clientCallBidiStreaming(methodDescriptor)
+
+        runBlocking(Dispatchers.Default) {
+            val numMessages = 100000
+            val req = HelloRequest.newBuilder()
+                .setName("test").build()
+            val job1 = launch {
+                repeat(numMessages){
+                    if (it % 1000 == 0)
+                        println("1 sending $it")
+                    requestChannel.send(req)
+                }
+            }
+
+            val job2 = launch {
+                repeat(numMessages) {
+                    if (it % 1000 == 0)
+                        println("2 receiving $it")
+                    responseChannel.receive()
+                }
+            }
+
+            println("waiting")
+            job1.join()
+            job2.join()
+            requestChannel.close()
+            Thread.sleep(100)
+        }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
 }
