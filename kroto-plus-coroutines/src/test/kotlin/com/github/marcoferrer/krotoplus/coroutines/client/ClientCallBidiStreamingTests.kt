@@ -344,9 +344,13 @@ class ClientCallBidiStreamingTests {
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
 
+
+    @[Rule JvmField]
+    var grpcServerRule2 = GrpcServerRule()
+
     @Test
     fun `High throughput call succeeds`() {
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        grpcServerRule2.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -362,7 +366,7 @@ class ClientCallBidiStreamingTests {
                 responseChannel.close()
             }
         })
-        val stub = GreeterCoroutineGrpc.newStub(grpcServerRule.channel)
+        val stub = GreeterCoroutineGrpc.newStub(grpcServerRule2.channel)
 
         val (requestChannel, responseChannel) = stub
             .clientCallBidiStreaming(methodDescriptor)
