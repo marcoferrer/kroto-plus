@@ -17,6 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
@@ -63,7 +64,7 @@ class ClientCallBidiStreamingTests {
     var grpcServerRule = GrpcServerRule().directExecutor()
 
     @[Rule JvmField]
-    public val timeout = CoroutinesTimeout.seconds(30)
+    public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
 
     private val methodDescriptor = GreeterGrpc.getSayHelloStreamingMethod()
@@ -369,7 +370,6 @@ class ClientCallBidiStreamingTests {
         val numMessages = 100000
         val receivedCount = AtomicInteger()
         runBlocking(Dispatchers.Default) {
-            DebugProbes.install()
             val req = HelloRequest.newBuilder()
                 .setName("test").build()
 

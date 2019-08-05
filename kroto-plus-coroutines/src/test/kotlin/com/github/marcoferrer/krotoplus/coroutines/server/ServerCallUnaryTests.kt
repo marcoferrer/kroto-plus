@@ -16,7 +16,6 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
@@ -25,7 +24,6 @@ import io.grpc.CallOptions
 import io.grpc.Channel
 import io.grpc.ClientCall
 import io.grpc.ClientInterceptor
-import io.grpc.ForwardingClientCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
