@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ActorScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.channels.consumeEach
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -50,40 +50,37 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
     targetChannel: Channel<T>
 ){
 
+    val isCompleted = AtomicBoolean()
     val channelIterator = targetChannel.iterator()
-    val messageHandlerBlock: MessageHandler = {
+    val messageHandlerBlock: MessageHandler = handler@ {
         while(
             streamObserver.isReady &&
             channelIterator.hasNext()
         ){
-            val value = channelIterator.next()
-            streamObserver.onNext(value)
+            streamObserver.onNext(channelIterator.next())
         }
-        if(targetChannel.isClosedForReceive){
+        if(targetChannel.isClosedForReceive && isCompleted.compareAndSet(false,true)){
+            streamObserver.onCompleted()
             channel.close()
         }
     }
 
     val messageHandlerActor = actor<MessageHandler>(
-        capacity = 1,
+        capacity = Channel.UNLIMITED,
         context = Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
             streamObserver.completeSafely(e)
             targetChannel.close(e)
         }
     ) {
-        consumeEach { it.invoke(this) }
-        if(targetChannel.isClosedForReceive){
-            streamObserver.onCompleted()
+        for(handler in channel){
+            if(isCompleted.get()) break
+            handler(this)
         }
     }
 
     streamObserver.setOnReadyHandler {
         try {
-            if(targetChannel.isClosedForReceive){
-                messageHandlerActor.close()
-            }else{
-                messageHandlerActor.offer(messageHandlerBlock)
-            }
+            messageHandlerActor.offer(messageHandlerBlock)
         }catch (e: Throwable){
             // If offer throws an exception then it is
             // either already closed or there was a failure
