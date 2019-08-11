@@ -20,6 +20,7 @@ import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStr
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -106,7 +107,7 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
 
     override fun onError(t: Throwable) {
         outboundChannel.close(t)
-        outboundChannel.cancel()
+        outboundChannel.cancel(CancellationException(t.message,t))
         inboundChannel.close(t)
     }
 }

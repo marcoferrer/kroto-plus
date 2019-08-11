@@ -17,9 +17,11 @@
 package com.github.marcoferrer.krotoplus.coroutines.call
 
 import io.grpc.stub.CallStreamObserver
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ActorScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
@@ -72,6 +74,14 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
             targetChannel.close(e)
         }
     ) {
+        coroutineContext[Job]?.let { job ->
+            job.invokeOnCompletion {
+                if(job.isCancelled && !targetChannel.isClosedForSend){
+                    targetChannel.cancel(it as? CancellationException)
+                }
+            }
+        }
+
         for(handler in channel){
             if(isCompleted.get()) break
             handler(this)
