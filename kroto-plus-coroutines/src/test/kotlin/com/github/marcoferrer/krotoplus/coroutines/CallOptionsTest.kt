@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.github.marcoferrer.krotoplus.coroutines
 
 import io.grpc.CallOptions
