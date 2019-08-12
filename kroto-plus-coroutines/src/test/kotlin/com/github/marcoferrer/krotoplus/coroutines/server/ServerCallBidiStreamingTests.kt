@@ -42,8 +42,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -72,9 +72,7 @@ class ServerCallBidiStreamingTests {
     private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()
     private val responseObserver = spyk<StreamObserver<HelloReply>>(object : StreamObserver<HelloReply> {
         override fun onNext(value: HelloReply?) {}
-        override fun onError(t: Throwable?) {
-            print(t?.message)
-        }
+        override fun onError(t: Throwable?) {}
         override fun onCompleted() {}
     })
 
@@ -241,6 +239,10 @@ class ServerCallBidiStreamingTests {
             ) {
                 reqChannel = requestChannel
                 respChannel = responseChannel
+                // Its only acceptable for server impls to not return
+                // any messages and complete successfully if they have
+                // successfully consumed all of the clients messages
+                reqChannel.toList()
             }
         })
 
@@ -402,7 +404,7 @@ class ServerCallBidiStreamingTests {
         val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
 
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -427,7 +429,7 @@ class ServerCallBidiStreamingTests {
         })
 
         runBlocking {
-            val stub = GreeterGrpc.newStub(grpcServerRule.channel)
+            val stub = GreeterGrpc.newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(CancellingClientInterceptor)
 
             // Start the call
