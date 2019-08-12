@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package message.malformed.filenames;
+
+// 'someProto-File_name-test--' -> 'SomeProtoFileNameTest'
+
+option java_package = "test.message";
+
+message SomeProtoMessage1{
+
+    string field = 1;
+
+    message Nested1{
+        string field =1;
+    }
+
+    message Nested2{
+        string field = 1;
+    }
+}

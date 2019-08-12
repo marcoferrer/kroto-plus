@@ -64,7 +64,8 @@ val DescriptorProtos.FileDescriptorProto.javaOuterClassname: String
         .substringAfterLast("/")
         .substringBefore(".proto")
         .let { fileName ->
-            val outerClassname = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fileName)
+            val outerClassname = fileName
+                .split("_", "-").joinToString(separator = "") { it.capitalize() }
 
             if (enumTypeList.any { it.name == outerClassname } ||
                 messageTypeList.any { it.name == outerClassname } ||

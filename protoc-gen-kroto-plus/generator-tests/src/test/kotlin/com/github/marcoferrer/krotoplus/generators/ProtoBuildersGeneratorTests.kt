@@ -115,4 +115,11 @@ class ProtoBuildersGeneratorTests {
 
         assertEquals(message.theFieldMap[key], value)
     }
+
+    @Test
+    fun `Builders from malformed filenames`(){
+        SomeProtoMessage1{
+            field = "test"
+        }
+    }
 }
