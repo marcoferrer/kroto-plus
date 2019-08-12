@@ -58,6 +58,9 @@ class ServerCallUnaryTests {
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
 
+    @[Rule JvmField]
+    var nonDirectGrpcServerRule = GrpcServerRule()
+
     private val methodDescriptor = GreeterGrpc.getSayHelloMethod()
     private val request = HelloRequest.newBuilder().setName("request").build()
     private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()
@@ -143,7 +146,7 @@ class ServerCallUnaryTests {
     fun `Server is cancelled when client sends cancellation`() {
         lateinit var serverSpy: ServerSpy
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+            override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 serverSpy = serverRpcSpy(coroutineContext)
                 delay(300000L)
@@ -155,7 +158,7 @@ class ServerCallUnaryTests {
         call.cancel("test",null)
         assert(serverSpy.job!!.isCancelled){ "Server job must be cancelled" }
         verify(exactly = 1) {
-            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED"))
+            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED: test"))
         }
         assertEquals("Job was cancelled",serverSpy.error?.message)
     }
@@ -164,7 +167,7 @@ class ServerCallUnaryTests {
     fun `Server method is at least invoked before being cancelled`(){
         val serverMethodCompleted = AtomicBoolean()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 deferredCtx.complete(coroutineContext)
@@ -175,9 +178,9 @@ class ServerCallUnaryTests {
             }
         })
 
-        lateinit var callSpy: ClientCall<*, *>
+        val deferredCallSpy = CompletableDeferred<ClientCall<*, *>>()
         val stub = GreeterGrpc
-            .newStub(grpcServerRule.channel)
+            .newStub(nonDirectGrpcServerRule.channel)
             .withInterceptors(object : ClientInterceptor {
                 override fun <ReqT : Any?, RespT : Any?> interceptCall(
                     method: MethodDescriptor<ReqT, RespT>?,
@@ -185,14 +188,14 @@ class ServerCallUnaryTests {
                     next: Channel
                 ): ClientCall<ReqT, RespT> =
                     spyk(next.newCall(method,callOptions))
-                        .also { callSpy = it }
+                        .also { deferredCallSpy.complete(it) }
             })
 
         runBlocking {
 
             stub.sayHello(HelloRequest.getDefaultInstance(), responseObserver)
             val serverCtx = deferredCtx.await()
-            callSpy.cancel("test",null)
+            deferredCallSpy.await().cancel("test",null)
             serverCtx[Job]!!.join()
             verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }

@@ -17,7 +17,6 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
@@ -40,8 +39,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.debug.DebugProbes
-import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -347,13 +344,9 @@ class ClientCallBidiStreamingTests {
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
 
-
-    @[Rule JvmField]
-    var grpcServerRule2 = GrpcServerRule()
-
     @Test
-    fun `High throughput call succeeds`() {
-        grpcServerRule2.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+    fun `High volume call succeeds`() {
+        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -369,7 +362,7 @@ class ClientCallBidiStreamingTests {
                 responseChannel.close()
             }
         })
-        val stub = GreeterCoroutineGrpc.newStub(grpcServerRule2.channel)
+        val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
 
         val (requestChannel, responseChannel) = stub
             .clientCallBidiStreaming(methodDescriptor)

@@ -265,7 +265,7 @@ class ServerCallClientStreamingTests {
     fun `Server method is at least invoked before being cancelled`(){
         val serverMethodCompleted = AtomicBoolean()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
                 deferredCtx.complete(coroutineContext)
@@ -283,7 +283,7 @@ class ServerCallClientStreamingTests {
 
         runBlocking {
             val stub = GreeterGrpc
-                .newStub(grpcServerRule.channel)
+                .newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(CancellingClientInterceptor)
 
             // Start the call
