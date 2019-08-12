@@ -17,13 +17,12 @@
 package com.github.marcoferrer.krotoplus.coroutines.call
 
 import io.grpc.stub.CallStreamObserver
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ActorScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -45,12 +44,12 @@ internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
     }
 }
 
-private typealias MessageHandler = suspend ActorScope<*>.() -> Unit
+internal typealias MessageHandler = suspend ActorScope<*>.() -> Unit
 
 internal fun <T> CoroutineScope.applyOutboundFlowControl(
     streamObserver: CallStreamObserver<T>,
     targetChannel: Channel<T>
-){
+): SendChannel<MessageHandler> {
 
     val isCompleted = AtomicBoolean()
     val channelIterator = targetChannel.iterator()
@@ -74,27 +73,31 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
             targetChannel.close(e)
         }
     ) {
-        coroutineContext[Job]?.let { job ->
-            job.invokeOnCompletion {
-                if(job.isCancelled && !targetChannel.isClosedForSend){
-                    targetChannel.cancel(it as? CancellationException)
-                }
-            }
-        }
 
-        for(handler in channel){
-            if(isCompleted.get()) break
+        for (handler in channel) {
+            if (isCompleted.get()) break
             handler(this)
         }
+        if(!isCompleted.get()) {
+            streamObserver.completeSafely()
+        }
+    }
+
+    targetChannel.invokeOnClose {
+        messageHandlerActor.close()
     }
 
     streamObserver.setOnReadyHandler {
         try {
-            messageHandlerActor.offer(messageHandlerBlock)
+            if(!messageHandlerActor.isClosedForSend){
+                messageHandlerActor.offer(messageHandlerBlock)
+            }
         }catch (e: Throwable){
             // If offer throws an exception then it is
             // either already closed or there was a failure
             // which has already cleaned up call resources
         }
     }
+
+    return messageHandlerActor
 }
