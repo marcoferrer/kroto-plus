@@ -64,7 +64,10 @@ class ClientCallBidiStreamingTests {
     var grpcServerRule = GrpcServerRule().directExecutor()
 
     @[Rule JvmField]
-    public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
+    var nonDirectGrpcServerRule = GrpcServerRule()
+
+    // @[Rule JvmField]
+    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
 
     private val methodDescriptor = GreeterGrpc.getSayHelloStreamingMethod()

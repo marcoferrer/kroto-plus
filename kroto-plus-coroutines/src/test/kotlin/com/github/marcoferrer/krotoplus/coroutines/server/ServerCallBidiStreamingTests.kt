@@ -17,7 +17,6 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
@@ -63,7 +62,11 @@ class ServerCallBidiStreamingTests {
     var grpcServerRule = GrpcServerRule().directExecutor()
 
     @[Rule JvmField]
-    public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
+    var nonDirectGrpcServerRule = GrpcServerRule()
+
+
+    // @[Rule JvmField]
+    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
     private val methodDescriptor = GreeterGrpc.getSayHelloStreamingMethod()
     private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()

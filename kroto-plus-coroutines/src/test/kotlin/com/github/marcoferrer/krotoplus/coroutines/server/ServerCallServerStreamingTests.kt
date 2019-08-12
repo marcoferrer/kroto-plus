@@ -60,8 +60,8 @@ class ServerCallServerStreamingTests {
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
 
-    @[Rule JvmField]
-    public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
+    // @[Rule JvmField]
+    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
     private val methodDescriptor = GreeterGrpc.getSayHelloServerStreamingMethod()
     private val request = HelloRequest.newBuilder().setName("abc").build()

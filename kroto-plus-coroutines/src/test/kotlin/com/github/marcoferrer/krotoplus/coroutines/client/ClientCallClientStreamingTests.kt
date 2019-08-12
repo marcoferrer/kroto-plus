@@ -54,8 +54,8 @@ class ClientCallClientStreamingTests {
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
 
-    @[Rule JvmField]
-    public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
+    // @[Rule JvmField]
+    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
     private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
     private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})

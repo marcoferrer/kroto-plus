@@ -36,8 +36,17 @@ dependencies {
     testImplementation project(':test-api:java')
     testImplementation "io.mockk:mockk:${Versions.mockk}"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutines}"
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}"
+
+    // Not included by default due to the following issue
+    // https://github.com/Kotlin/kotlinx.coroutines/issues/1060
+    // testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}"
 }
+
+
+//test {
+//    systemProperty "kotlinx.coroutines.scheduler.core.pool.size", "1"
+//    systemProperty "kotlinx.coroutines.scheduler.core.max.size", "1"
+//}
 
 tasks.withType(JavaCompile) {
     enabled = false
