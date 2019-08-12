@@ -5,7 +5,6 @@ dependencies{
     protobuf project(':test-api')
     api "com.google.protobuf:protobuf-java:${Versions.protobuf}"
     api "io.grpc:grpc-protobuf:${Versions.grpc}"
-//    api "io.grpc:grpc-api:${Versions.grpc}"
     api "io.grpc:grpc-stub:${Versions.grpc}"
     api "io.grpc:grpc-testing:${Versions.grpc}"
 }
