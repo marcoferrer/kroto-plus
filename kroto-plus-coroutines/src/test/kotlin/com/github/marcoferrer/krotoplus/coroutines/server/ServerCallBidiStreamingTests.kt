@@ -21,6 +21,7 @@ import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterce
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
+import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.ClientCall
 import io.grpc.Status
@@ -431,6 +432,7 @@ class ServerCallBidiStreamingTests {
         runBlocking {
             val stub = GreeterGrpc.newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(CancellingClientInterceptor)
+                .withCoroutineContext()
 
             // Start the call
             val reqObserver = stub.sayHelloStreaming(responseObserver)
