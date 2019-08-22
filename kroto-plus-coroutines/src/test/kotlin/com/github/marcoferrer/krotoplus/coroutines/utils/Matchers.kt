@@ -17,12 +17,19 @@
 package com.github.marcoferrer.krotoplus.coroutines.utils
 
 import io.grpc.Status
+import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
 import io.mockk.MockKMatcherScope
 
 
 fun MockKMatcherScope.matchStatus(status: Status, message: String? = null) =
-    match<StatusRuntimeException> {sre ->
+    match<Throwable> { sre ->
+        // Deliberately not using Status.fromThrowable so that we dont have to
+        // worry about false position for matching status unknown
+        val actualCode = (sre as? StatusException)?.status?.code
+            ?: (sre as? StatusRuntimeException)?.status?.code
+
         val matchesMessage = message?.let { it == sre.message } ?: true
-        sre.status.code == status.code && matchesMessage
+
+        actualCode == status.code && matchesMessage
     }

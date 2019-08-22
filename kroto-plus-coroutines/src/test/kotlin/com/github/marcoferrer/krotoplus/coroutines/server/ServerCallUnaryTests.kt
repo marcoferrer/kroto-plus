@@ -172,7 +172,7 @@ class ServerCallUnaryTests {
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 deferredCtx.complete(coroutineContext)
-                delay(10000)
+                delay(30_000)
                 yield()
                 serverMethodCompleted.set(true)
                 return expectedResponse
