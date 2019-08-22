@@ -36,7 +36,7 @@ subprojects{ subproject ->
     apply plugin: 'kotlin'
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.4.1-SNAPSHOT'
+    version = '0.5.0-RC'
 
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"

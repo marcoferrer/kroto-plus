@@ -100,7 +100,7 @@ class MockServiceResponseQueueTest {
             fail("Exception was expected with status code: ${Status.INVALID_ARGUMENT.code}")
         } catch (e: StatusRuntimeException) {
             assertEquals(Status.PERMISSION_DENIED.code, e.status.code)
-            assertEquals("some_metadata_value", e.trailers.get(metadataTestKey))
+            assertEquals("some_metadata_value", e.trailers?.get(metadataTestKey))
         }
 
         //Test default instance fall back when the response queue is empty
