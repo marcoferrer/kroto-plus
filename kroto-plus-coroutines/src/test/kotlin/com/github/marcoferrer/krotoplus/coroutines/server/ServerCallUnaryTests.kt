@@ -160,6 +160,7 @@ class ServerCallUnaryTests {
         verify(exactly = 1) {
             responseObserver.onError(matchStatus(Status.CANCELLED))
         }
+        runBlocking { serverSpy.job?.join() }
         assertEquals("Job was cancelled",serverSpy.error?.message)
     }
 

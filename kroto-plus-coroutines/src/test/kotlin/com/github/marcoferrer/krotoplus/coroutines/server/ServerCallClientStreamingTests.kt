@@ -302,7 +302,7 @@ class ServerCallClientStreamingTests {
             // We wait for the server scope to complete before proceeding with assertions
             serverCtx[Job]!!.join()
 
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
 
             assert(serverCtx[Job]!!.isCompleted) { "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled) { "Server job should be cancelled" }

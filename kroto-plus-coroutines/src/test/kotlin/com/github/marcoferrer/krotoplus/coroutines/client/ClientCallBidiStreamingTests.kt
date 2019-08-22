@@ -227,7 +227,7 @@ class ClientCallBidiStreamingTests {
 
         runBlocking {
             launch(Dispatchers.Default) {
-                val job = launch {
+                val job = launch(start = CoroutineStart.ATOMIC) {
                     launch(start = CoroutineStart.UNDISPATCHED){
                         assertFailsWithStatus(Status.CANCELLED) {
                             responseChannel.receive()

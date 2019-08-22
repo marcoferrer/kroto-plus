@@ -119,7 +119,7 @@ class BidiStreamingTests {
 
                 val reqChanSpy = spyk(requestChannel)
                 launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
-                    assertFailsWithStatus(Status.CANCELLED, "CANCELLED: Call has been cancelled") {
+                    assertFailsWithStatus(Status.CANCELLED) {
                         repeat(6) {
                             reqChanSpy.send { name = "name $it" }
                         }

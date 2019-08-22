@@ -452,7 +452,7 @@ class ServerCallBidiStreamingTests {
 
             val respChannel = deferredRespChannel.await()
             assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
             coVerify(exactly = 0) { respChannel.send(any()) }
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
