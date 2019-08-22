@@ -10,18 +10,18 @@ package com.github.marcoferrer.krotoplus.config;
  * its outputDir must match that of the protoc java plugin.
  * </pre>
  *
- * Protobuf type {@code krotoplus.compiler.ExtenableMessagesGenOptions}
+ * Protobuf type {@code krotoplus.compiler.ExtendableMessagesGenOptions}
  */
-public  final class ExtenableMessagesGenOptions extends
+public  final class ExtendableMessagesGenOptions extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:krotoplus.compiler.ExtenableMessagesGenOptions)
-    ExtenableMessagesGenOptionsOrBuilder {
+    // @@protoc_insertion_point(message_implements:krotoplus.compiler.ExtendableMessagesGenOptions)
+    ExtendableMessagesGenOptionsOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use ExtenableMessagesGenOptions.newBuilder() to construct.
-  private ExtenableMessagesGenOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use ExtendableMessagesGenOptions.newBuilder() to construct.
+  private ExtendableMessagesGenOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private ExtenableMessagesGenOptions() {
+  private ExtendableMessagesGenOptions() {
     companionFieldName_ = "";
     companionClassName_ = "";
     companionExtends_ = "";
@@ -29,11 +29,18 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new ExtendableMessagesGenOptions();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
   }
-  private ExtenableMessagesGenOptions(
+  private ExtendableMessagesGenOptions(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -41,7 +48,6 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
-    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -110,15 +116,15 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_descriptor;
+    return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtendableMessagesGenOptions_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_fieldAccessorTable
+    return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtendableMessagesGenOptions_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.class, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder.class);
+            com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.class, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder.class);
   }
 
   public static final int FILTER_FIELD_NUMBER = 1;
@@ -403,10 +409,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions)) {
+    if (!(obj instanceof com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions)) {
       return super.equals(obj);
     }
-    com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions other = (com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions) obj;
+    com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions other = (com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions) obj;
 
     if (hasFilter() != other.hasFilter()) return false;
     if (hasFilter()) {
@@ -449,69 +455,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(byte[] data)
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(java.io.InputStream input)
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseDelimitedFrom(java.io.InputStream input)
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseDelimitedFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parseFrom(
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -524,7 +530,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions prototype) {
+  public static Builder newBuilder(com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -546,26 +552,26 @@ private static final long serialVersionUID = 0L;
    * its outputDir must match that of the protoc java plugin.
    * </pre>
    *
-   * Protobuf type {@code krotoplus.compiler.ExtenableMessagesGenOptions}
+   * Protobuf type {@code krotoplus.compiler.ExtendableMessagesGenOptions}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:krotoplus.compiler.ExtenableMessagesGenOptions)
-      com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:krotoplus.compiler.ExtendableMessagesGenOptions)
+      com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_descriptor;
+      return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtendableMessagesGenOptions_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_fieldAccessorTable
+      return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtendableMessagesGenOptions_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.class, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder.class);
+              com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.class, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder.class);
     }
 
-    // Construct using com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.newBuilder()
+    // Construct using com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -603,17 +609,17 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtenableMessagesGenOptions_descriptor;
+      return com.github.marcoferrer.krotoplus.config.Config.internal_static_krotoplus_compiler_ExtendableMessagesGenOptions_descriptor;
     }
 
     @java.lang.Override
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getDefaultInstanceForType() {
-      return com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.getDefaultInstance();
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions getDefaultInstanceForType() {
+      return com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.getDefaultInstance();
     }
 
     @java.lang.Override
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions build() {
-      com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions result = buildPartial();
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions build() {
+      com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -621,8 +627,8 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions buildPartial() {
-      com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions result = new com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions(this);
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions buildPartial() {
+      com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions result = new com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions(this);
       if (filterBuilder_ == null) {
         result.filter_ = filter_;
       } else {
@@ -670,16 +676,16 @@ private static final long serialVersionUID = 0L;
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions) {
-        return mergeFrom((com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions)other);
+      if (other instanceof com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions) {
+        return mergeFrom((com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions other) {
-      if (other == com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.getDefaultInstance()) return this;
+    public Builder mergeFrom(com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions other) {
+      if (other == com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.getDefaultInstance()) return this;
       if (other.hasFilter()) {
         mergeFilter(other.getFilter());
       }
@@ -714,11 +720,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions parsedMessage = null;
+      com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions) e.getUnfinishedMessage();
+        parsedMessage = (com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -1293,41 +1299,41 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:krotoplus.compiler.ExtenableMessagesGenOptions)
+    // @@protoc_insertion_point(builder_scope:krotoplus.compiler.ExtendableMessagesGenOptions)
   }
 
-  // @@protoc_insertion_point(class_scope:krotoplus.compiler.ExtenableMessagesGenOptions)
-  private static final com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:krotoplus.compiler.ExtendableMessagesGenOptions)
+  private static final com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions();
+    DEFAULT_INSTANCE = new com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions();
   }
 
-  public static com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getDefaultInstance() {
+  public static com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<ExtenableMessagesGenOptions>
-      PARSER = new com.google.protobuf.AbstractParser<ExtenableMessagesGenOptions>() {
+  private static final com.google.protobuf.Parser<ExtendableMessagesGenOptions>
+      PARSER = new com.google.protobuf.AbstractParser<ExtendableMessagesGenOptions>() {
     @java.lang.Override
-    public ExtenableMessagesGenOptions parsePartialFrom(
+    public ExtendableMessagesGenOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new ExtenableMessagesGenOptions(input, extensionRegistry);
+      return new ExtendableMessagesGenOptions(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<ExtenableMessagesGenOptions> parser() {
+  public static com.google.protobuf.Parser<ExtendableMessagesGenOptions> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<ExtenableMessagesGenOptions> getParserForType() {
+  public com.google.protobuf.Parser<ExtendableMessagesGenOptions> getParserForType() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getDefaultInstanceForType() {
+  public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

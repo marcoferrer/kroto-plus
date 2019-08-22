@@ -144,7 +144,6 @@ class GrpcCoroutinesGeneratorTests {
 
             val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
-//            launchProducerJob(requestChannel) {
             launch(Dispatchers.Default) {
                 repeat(3) {
                     requestChannel.send { name = "name $it" }
@@ -153,7 +152,6 @@ class GrpcCoroutinesGeneratorTests {
             }
 
             val results = responseChannel.toList()
-            println(results)
             assertEquals(9, results.size)
 
             val expected = "name 0|name 0|name 0" +

@@ -17,6 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
@@ -43,6 +44,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -57,6 +59,9 @@ class ServerCallServerStreamingTests {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
+
+    // @[Rule JvmField]
+    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
     private val methodDescriptor = GreeterGrpc.getSayHelloServerStreamingMethod()
     private val request = HelloRequest.newBuilder().setName("abc").build()
@@ -132,7 +137,8 @@ class ServerCallServerStreamingTests {
 
     @Test
     fun `Server responds with cancellation when scope cancelled normally`(){
-        lateinit var respChannel: SendChannel<HelloReply>
+
+        val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             // We're using `Dispatchers.Unconfined` so that we can make sure the response was returned
             // before verifying the result.
@@ -141,7 +147,7 @@ class ServerCallServerStreamingTests {
                 request: HelloRequest,
                 responseChannel: SendChannel<HelloReply>
             ) {
-                respChannel = responseChannel
+                deferredRespChannel.complete(responseChannel)
                 coroutineScope {
                     launch {
                         delay(5L)
@@ -160,19 +166,22 @@ class ServerCallServerStreamingTests {
         verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
         verify(exactly = 0) { responseObserver.onNext(any()) }
         verify(exactly = 0) { responseObserver.onCompleted() }
-        assert(respChannel.isClosedForSend){ "Server response channel should be closed" }
+        runBlocking {
+            assert(deferredRespChannel.await().isClosedForSend){ "Server response channel should be closed" }
+        }
     }
 
     @Test
     fun `Server responds with error when scope cancelled exceptionally`(){
-        lateinit var respChannel: SendChannel<HelloReply>
+
+        val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloServerStreaming(
                 request: HelloRequest,
                 responseChannel: SendChannel<HelloReply>
             ) {
-                respChannel = responseChannel
+                deferredRespChannel.complete(responseChannel)
                 coroutineScope {
                     launch(start = CoroutineStart.UNDISPATCHED) {
                         throw Status.INVALID_ARGUMENT.asRuntimeException()
@@ -191,7 +200,9 @@ class ServerCallServerStreamingTests {
         verify(exactly = 1) { responseObserver.onError(matchStatus(Status.INVALID_ARGUMENT)) }
         verify(exactly = 0) { responseObserver.onNext(any()) }
         verify(exactly = 0) { responseObserver.onCompleted() }
-        assert(respChannel.isClosedForSend){ "Server response channel should be closed" }
+        runBlocking {
+            assert(deferredRespChannel.await().isClosedForSend){ "Server response channel should be closed" }
+        }
     }
 
     @Test

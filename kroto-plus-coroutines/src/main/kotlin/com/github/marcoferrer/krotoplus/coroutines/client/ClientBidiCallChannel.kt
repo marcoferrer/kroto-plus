@@ -17,9 +17,11 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStreamObserver
+import com.github.marcoferrer.krotoplus.coroutines.call.MessageHandler
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -97,17 +99,35 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
 
     override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
 
+    private lateinit var outboundMessageHandler: SendChannel<MessageHandler>
+
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
         callStreamObserver = requestStream.apply { disableAutoInboundFlowControl() }
-        applyOutboundFlowControl(requestStream,outboundChannel)
+        outboundMessageHandler = applyOutboundFlowControl(requestStream,outboundChannel)
+
+        inboundChannel.invokeOnClose {
+            // If the client prematurely closes the response channel
+            // we need to propagate this as a cancellation to the underlying call
+            if(!outboundChannel.isClosedForSend){
+                callStreamObserver.cancel("Call has been cancelled", it)
+            }
+        }
     }
 
     override fun onNext(value: RespT): Unit = onNextWithBackPressure(value)
 
     override fun onError(t: Throwable) {
         outboundChannel.close(t)
-        outboundChannel.cancel()
+        outboundChannel.cancel(CancellationException(t.message,t))
         inboundChannel.close(t)
+        outboundMessageHandler.close(t)
+    }
+
+    override fun onCompleted() {
+        super.onCompleted()
+        if (isChannelReadyForClose) {
+            outboundMessageHandler.close()
+        }
     }
 }
 

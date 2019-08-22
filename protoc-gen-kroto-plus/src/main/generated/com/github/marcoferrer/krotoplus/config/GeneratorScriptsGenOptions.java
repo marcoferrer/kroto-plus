@@ -25,6 +25,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new GeneratorScriptsGenOptions();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -63,9 +70,9 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             java.lang.String s = input.readStringRequireUtf8();
-            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               scriptPath_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000002;
+              mutable_bitField0_ |= 0x00000001;
             }
             scriptPath_.add(s);
             break;
@@ -91,7 +98,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) != 0)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         scriptPath_ = scriptPath_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
@@ -111,7 +118,6 @@ private static final long serialVersionUID = 0L;
             com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.class, com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions.Builder.class);
   }
 
-  private int bitField0_;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
@@ -499,7 +505,7 @@ private static final long serialVersionUID = 0L;
         filterBuilder_ = null;
       }
       scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000002);
+      bitField0_ = (bitField0_ & ~0x00000001);
       scriptBundle_ = "";
 
       return this;
@@ -529,19 +535,17 @@ private static final long serialVersionUID = 0L;
     public com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions buildPartial() {
       com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions result = new com.github.marcoferrer.krotoplus.config.GeneratorScriptsGenOptions(this);
       int from_bitField0_ = bitField0_;
-      int to_bitField0_ = 0;
       if (filterBuilder_ == null) {
         result.filter_ = filter_;
       } else {
         result.filter_ = filterBuilder_.build();
       }
-      if (((bitField0_ & 0x00000002) != 0)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         scriptPath_ = scriptPath_.getUnmodifiableView();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
       }
       result.scriptPath_ = scriptPath_;
       result.scriptBundle_ = scriptBundle_;
-      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -596,7 +600,7 @@ private static final long serialVersionUID = 0L;
       if (!other.scriptPath_.isEmpty()) {
         if (scriptPath_.isEmpty()) {
           scriptPath_ = other.scriptPath_;
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000001);
         } else {
           ensureScriptPathIsMutable();
           scriptPath_.addAll(other.scriptPath_);
@@ -801,9 +805,9 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureScriptPathIsMutable() {
-      if (!((bitField0_ & 0x00000002) != 0)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         scriptPath_ = new com.google.protobuf.LazyStringArrayList(scriptPath_);
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
        }
     }
     /**
@@ -962,7 +966,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder clearScriptPath() {
       scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000002);
+      bitField0_ = (bitField0_ & ~0x00000001);
       onChanged();
       return this;
     }

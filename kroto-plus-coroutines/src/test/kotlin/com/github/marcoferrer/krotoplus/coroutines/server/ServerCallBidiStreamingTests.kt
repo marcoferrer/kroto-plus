@@ -21,6 +21,7 @@ import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterce
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
+import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.ClientCall
 import io.grpc.Status
@@ -42,9 +43,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.mapTo
+import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
@@ -58,6 +61,13 @@ class ServerCallBidiStreamingTests {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
+
+    @[Rule JvmField]
+    var nonDirectGrpcServerRule = GrpcServerRule()
+
+
+    // @[Rule JvmField]
+    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
     private val methodDescriptor = GreeterGrpc.getSayHelloStreamingMethod()
     private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()
@@ -93,9 +103,11 @@ class ServerCallBidiStreamingTests {
             ) {
                 reqChannel = requestChannel
                 respChannel = responseChannel
-                requestChannel.mapTo(responseChannel) {
-                    HelloReply.newBuilder().setMessage("Reply: ${it.name}").build()
-                }
+                requestChannel
+                    .consumeAsFlow()
+                    .collect {
+                        responseChannel.send(HelloReply.newBuilder().setMessage("Reply: ${it.name}").build())
+                    }
             }
         })
 
@@ -128,10 +140,11 @@ class ServerCallBidiStreamingTests {
                 respChannel = responseChannel
                 var groupCount = 0
                 val requestIter = requestChannel.iterator()
+
                 while (requestIter.hasNext()) {
                     val requestValues = listOf(
-                        requestIter.next(),
-                        requestIter.next(),
+                        requestIter.next().also { requestIter.hasNext() },
+                        requestIter.next().also { requestIter.hasNext() },
                         requestIter.next()
                     )
                     responseChannel.send {
@@ -227,6 +240,10 @@ class ServerCallBidiStreamingTests {
             ) {
                 reqChannel = requestChannel
                 respChannel = responseChannel
+                // Its only acceptable for server impls to not return
+                // any messages and complete successfully if they have
+                // successfully consumed all of the clients messages
+                reqChannel.toList()
             }
         })
 
@@ -388,7 +405,7 @@ class ServerCallBidiStreamingTests {
         val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
 
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -413,8 +430,9 @@ class ServerCallBidiStreamingTests {
         })
 
         runBlocking {
-            val stub = GreeterGrpc.newStub(grpcServerRule.channel)
+            val stub = GreeterGrpc.newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(CancellingClientInterceptor)
+                .withCoroutineContext()
 
             // Start the call
             val reqObserver = stub.sayHelloStreaming(responseObserver)
@@ -434,7 +452,7 @@ class ServerCallBidiStreamingTests {
 
             val respChannel = deferredRespChannel.await()
             assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
             coVerify(exactly = 0) { respChannel.send(any()) }
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }

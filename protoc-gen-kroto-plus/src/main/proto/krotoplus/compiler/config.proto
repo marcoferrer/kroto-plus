@@ -25,7 +25,7 @@ message CompilerConfig {
     repeated ProtoBuildersGenOptions proto_builders = 22;
 
     // Configuration entries for the 'Extendable Messages' code generator.
-    repeated ExtenableMessagesGenOptions extendable_messages = 23;
+    repeated ExtendableMessagesGenOptions extendable_messages = 23;
 
     // Configuration entries for the 'Protoc Insertions' code generator.
     repeated InsertionsGenOptions insertions = 24;
@@ -126,7 +126,7 @@ message GeneratorScriptsGenOptions {
 // Configuration used by the 'Extendable Messages' code generator.
 // Since this code generator relies on the protoc insertion point API,
 // its outputDir must match that of the protoc java plugin.
-message ExtenableMessagesGenOptions{
+message ExtendableMessagesGenOptions{
 
     // Filter used for limiting the input files that are processed by the code generator
     // The default filter will match true against all input files.

@@ -42,15 +42,24 @@ internal class ClientResponseStreamChannel<ReqT, RespT>(
 
     override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
 
+    private var aborted: Boolean = false
+
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
         callStreamObserver = requestStream.apply {
             applyInboundFlowControl(inboundChannel,transientInboundMessageCount)
+        }
+
+        inboundChannel.invokeOnClose {
+            if(!isInboundCompleted.get() && !aborted){
+                callStreamObserver.cancel("Call has been cancelled", it)
+            }
         }
     }
 
     override fun onNext(value: RespT): Unit = onNextWithBackPressure(value)
 
     override fun onError(t: Throwable) {
+        aborted = true
         inboundChannel.close(t)
     }
 }

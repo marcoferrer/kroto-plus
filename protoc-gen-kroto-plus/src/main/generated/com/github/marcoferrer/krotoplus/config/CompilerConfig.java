@@ -30,6 +30,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new CompilerConfig();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -82,11 +89,11 @@ private static final long serialVersionUID = 0L;
           }
           case 186: {
             if (!((mutable_bitField0_ & 0x00000008) != 0)) {
-              extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions>();
+              extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions>();
               mutable_bitField0_ |= 0x00000008;
             }
             extendableMessages_.add(
-                input.readMessage(com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.parser(), extensionRegistry));
+                input.readMessage(com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.parser(), extensionRegistry));
             break;
           }
           case 194: {
@@ -335,15 +342,15 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int EXTENDABLE_MESSAGES_FIELD_NUMBER = 23;
-  private java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> extendableMessages_;
+  private java.util.List<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions> extendableMessages_;
   /**
    * <pre>
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  public java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> getExtendableMessagesList() {
+  public java.util.List<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions> getExtendableMessagesList() {
     return extendableMessages_;
   }
   /**
@@ -351,9 +358,9 @@ private static final long serialVersionUID = 0L;
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> 
+  public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder> 
       getExtendableMessagesOrBuilderList() {
     return extendableMessages_;
   }
@@ -362,7 +369,7 @@ private static final long serialVersionUID = 0L;
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
   public int getExtendableMessagesCount() {
     return extendableMessages_.size();
@@ -372,9 +379,9 @@ private static final long serialVersionUID = 0L;
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getExtendableMessages(int index) {
+  public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions getExtendableMessages(int index) {
     return extendableMessages_.get(index);
   }
   /**
@@ -382,9 +389,9 @@ private static final long serialVersionUID = 0L;
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
+  public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
       int index) {
     return extendableMessages_.get(index);
   }
@@ -2166,26 +2173,26 @@ private static final long serialVersionUID = 0L;
       return protoBuildersBuilder_;
     }
 
-    private java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> extendableMessages_ =
+    private java.util.List<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions> extendableMessages_ =
       java.util.Collections.emptyList();
     private void ensureExtendableMessagesIsMutable() {
       if (!((bitField0_ & 0x00000008) != 0)) {
-        extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions>(extendableMessages_);
+        extendableMessages_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions>(extendableMessages_);
         bitField0_ |= 0x00000008;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> extendableMessagesBuilder_;
+        com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder> extendableMessagesBuilder_;
 
     /**
      * <pre>
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> getExtendableMessagesList() {
+    public java.util.List<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions> getExtendableMessagesList() {
       if (extendableMessagesBuilder_ == null) {
         return java.util.Collections.unmodifiableList(extendableMessages_);
       } else {
@@ -2197,7 +2204,7 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public int getExtendableMessagesCount() {
       if (extendableMessagesBuilder_ == null) {
@@ -2211,9 +2218,9 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getExtendableMessages(int index) {
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions getExtendableMessages(int index) {
       if (extendableMessagesBuilder_ == null) {
         return extendableMessages_.get(index);
       } else {
@@ -2225,10 +2232,10 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder setExtendableMessages(
-        int index, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions value) {
+        int index, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions value) {
       if (extendableMessagesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -2246,10 +2253,10 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder setExtendableMessages(
-        int index, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder builderForValue) {
+        int index, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder builderForValue) {
       if (extendableMessagesBuilder_ == null) {
         ensureExtendableMessagesIsMutable();
         extendableMessages_.set(index, builderForValue.build());
@@ -2264,9 +2271,9 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public Builder addExtendableMessages(com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions value) {
+    public Builder addExtendableMessages(com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions value) {
       if (extendableMessagesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -2284,10 +2291,10 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addExtendableMessages(
-        int index, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions value) {
+        int index, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions value) {
       if (extendableMessagesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -2305,10 +2312,10 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addExtendableMessages(
-        com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder builderForValue) {
+        com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder builderForValue) {
       if (extendableMessagesBuilder_ == null) {
         ensureExtendableMessagesIsMutable();
         extendableMessages_.add(builderForValue.build());
@@ -2323,10 +2330,10 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addExtendableMessages(
-        int index, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder builderForValue) {
+        int index, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder builderForValue) {
       if (extendableMessagesBuilder_ == null) {
         ensureExtendableMessagesIsMutable();
         extendableMessages_.add(index, builderForValue.build());
@@ -2341,10 +2348,10 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder addAllExtendableMessages(
-        java.lang.Iterable<? extends com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> values) {
+        java.lang.Iterable<? extends com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions> values) {
       if (extendableMessagesBuilder_ == null) {
         ensureExtendableMessagesIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -2360,7 +2367,7 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder clearExtendableMessages() {
       if (extendableMessagesBuilder_ == null) {
@@ -2377,7 +2384,7 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
     public Builder removeExtendableMessages(int index) {
       if (extendableMessagesBuilder_ == null) {
@@ -2394,9 +2401,9 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder getExtendableMessagesBuilder(
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder getExtendableMessagesBuilder(
         int index) {
       return getExtendableMessagesFieldBuilder().getBuilder(index);
     }
@@ -2405,9 +2412,9 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
         int index) {
       if (extendableMessagesBuilder_ == null) {
         return extendableMessages_.get(index);  } else {
@@ -2419,9 +2426,9 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> 
+    public java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder> 
          getExtendableMessagesOrBuilderList() {
       if (extendableMessagesBuilder_ != null) {
         return extendableMessagesBuilder_.getMessageOrBuilderList();
@@ -2434,41 +2441,41 @@ private static final long serialVersionUID = 0L;
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder addExtendableMessagesBuilder() {
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder addExtendableMessagesBuilder() {
       return getExtendableMessagesFieldBuilder().addBuilder(
-          com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.getDefaultInstance());
+          com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.getDefaultInstance());
     }
     /**
      * <pre>
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder addExtendableMessagesBuilder(
+    public com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder addExtendableMessagesBuilder(
         int index) {
       return getExtendableMessagesFieldBuilder().addBuilder(
-          index, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.getDefaultInstance());
+          index, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.getDefaultInstance());
     }
     /**
      * <pre>
      * Configuration entries for the 'Extendable Messages' code generator.
      * </pre>
      *
-     * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+     * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
      */
-    public java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder> 
+    public java.util.List<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder> 
          getExtendableMessagesBuilderList() {
       return getExtendableMessagesFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> 
+        com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder> 
         getExtendableMessagesFieldBuilder() {
       if (extendableMessagesBuilder_ == null) {
         extendableMessagesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder>(
+            com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions.Builder, com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder>(
                 extendableMessages_,
                 ((bitField0_ & 0x00000008) != 0),
                 getParentForChildren(),

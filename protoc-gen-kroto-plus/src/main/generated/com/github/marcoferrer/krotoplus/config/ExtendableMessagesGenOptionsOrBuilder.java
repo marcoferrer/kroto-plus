@@ -3,8 +3,8 @@
 
 package com.github.marcoferrer.krotoplus.config;
 
-public interface ExtenableMessagesGenOptionsOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:krotoplus.compiler.ExtenableMessagesGenOptions)
+public interface ExtendableMessagesGenOptionsOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:krotoplus.compiler.ExtendableMessagesGenOptions)
     com.google.protobuf.MessageOrBuilder {
 
   /**

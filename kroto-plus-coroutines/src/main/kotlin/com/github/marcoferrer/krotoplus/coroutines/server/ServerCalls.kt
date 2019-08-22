@@ -66,7 +66,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     val serverCallObserver = responseObserver as ServerCallStreamObserver<RespT>
     with(newRpcScope(initialContext, methodDescriptor)) {
         bindToClientCancellation(serverCallObserver)
-        applyOutboundFlowControl(serverCallObserver,responseChannel)
+        val outboundMessageHandler = applyOutboundFlowControl(serverCallObserver,responseChannel)
         launch(start = CoroutineStart.ATOMIC) {
             try{
                 block(responseChannel)
@@ -75,6 +75,8 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
                 val rpcError = e.toRpcException()
                 serverCallObserver.completeSafely(rpcError)
                 responseChannel.close(rpcError)
+            }finally {
+                outboundMessageHandler.close()
             }
         }
 
@@ -144,7 +146,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
 
     with(newRpcScope(initialContext, methodDescriptor)) rpcScope@ {
         bindToClientCancellation(serverCallObserver)
-        applyOutboundFlowControl(serverCallObserver,responseChannel)
+        val outboundMessageHandler = applyOutboundFlowControl(serverCallObserver,responseChannel)
         val requestChannel = ServerRequestStreamChannel<ReqT>(
             coroutineContext = coroutineContext,
             callStreamObserver = serverCallObserver,
@@ -176,6 +178,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
                 if (!requestChannel.isClosedForReceive) {
                     requestChannel.cancel()
                 }
+                outboundMessageHandler.close()
             }
         }
 

@@ -30,6 +30,7 @@ import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -74,10 +75,10 @@ class ClientStreamingBackPressureTests {
 
     @Test
     fun `Client send suspends until server invokes receive`() {
-        lateinit var serverRequestChannel: ReceiveChannel<HelloRequest>
+        val deferredServerChannel = CompletableDeferred<ReceiveChannel<HelloRequest>>()
         grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
-                serverRequestChannel = spyk(requestChannel)
+                deferredServerChannel.complete(spyk(requestChannel))
                 delay(Long.MAX_VALUE)
                 return HelloReply.getDefaultInstance()
             }
@@ -105,6 +106,7 @@ class ClientStreamingBackPressureTests {
                     }
                 }
 
+                val serverRequestChannel = deferredServerChannel.await()
                 repeat(3){
                     delay(10L)
                     assertEquals(it + 1, requestCount.get())

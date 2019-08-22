@@ -28,6 +28,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
+@Suppress("DEPRECATION")
 class CallOptionsTest {
 
     @Test

@@ -144,24 +144,24 @@ public interface CompilerConfigOrBuilder extends
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  java.util.List<com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions> 
+  java.util.List<com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions> 
       getExtendableMessagesList();
   /**
    * <pre>
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptions getExtendableMessages(int index);
+  com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptions getExtendableMessages(int index);
   /**
    * <pre>
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
   int getExtendableMessagesCount();
   /**
@@ -169,18 +169,18 @@ public interface CompilerConfigOrBuilder extends
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder> 
+  java.util.List<? extends com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder> 
       getExtendableMessagesOrBuilderList();
   /**
    * <pre>
    * Configuration entries for the 'Extendable Messages' code generator.
    * </pre>
    *
-   * <code>repeated .krotoplus.compiler.ExtenableMessagesGenOptions extendable_messages = 23;</code>
+   * <code>repeated .krotoplus.compiler.ExtendableMessagesGenOptions extendable_messages = 23;</code>
    */
-  com.github.marcoferrer.krotoplus.config.ExtenableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
+  com.github.marcoferrer.krotoplus.config.ExtendableMessagesGenOptionsOrBuilder getExtendableMessagesOrBuilder(
       int index);
 
   /**

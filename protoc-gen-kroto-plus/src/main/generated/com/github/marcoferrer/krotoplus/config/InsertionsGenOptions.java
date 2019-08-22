@@ -26,6 +26,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new InsertionsGenOptions();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -63,9 +70,9 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               entry_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry>();
-              mutable_bitField0_ |= 0x00000002;
+              mutable_bitField0_ |= 0x00000001;
             }
             entry_.add(
                 input.readMessage(com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.parser(), extensionRegistry));
@@ -86,7 +93,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) != 0)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         entry_ = java.util.Collections.unmodifiableList(entry_);
       }
       this.unknownFields = unknownFields.build();
@@ -275,6 +282,13 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Entry();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -306,18 +320,18 @@ private static final long serialVersionUID = 0L;
             }
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 content_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000002;
+                mutable_bitField0_ |= 0x00000001;
               }
               content_.add(s);
               break;
             }
             case 26: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
                 scriptPath_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000004;
+                mutable_bitField0_ |= 0x00000002;
               }
               scriptPath_.add(s);
               break;
@@ -343,10 +357,10 @@ private static final long serialVersionUID = 0L;
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000002) != 0)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           content_ = content_.getUnmodifiableView();
         }
-        if (((mutable_bitField0_ & 0x00000004) != 0)) {
+        if (((mutable_bitField0_ & 0x00000002) != 0)) {
           scriptPath_ = scriptPath_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
@@ -366,7 +380,6 @@ private static final long serialVersionUID = 0L;
               com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.class, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder.class);
     }
 
-    private int bitField0_;
     public static final int POINT_FIELD_NUMBER = 1;
     private int point_;
     /**
@@ -803,9 +816,9 @@ private static final long serialVersionUID = 0L;
         point_ = 0;
 
         content_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         scriptBundle_ = "";
 
         return this;
@@ -835,20 +848,18 @@ private static final long serialVersionUID = 0L;
       public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry buildPartial() {
         com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry result = new com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.point_ = point_;
-        if (((bitField0_ & 0x00000002) != 0)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           content_ = content_.getUnmodifiableView();
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.content_ = content_;
-        if (((bitField0_ & 0x00000004) != 0)) {
+        if (((bitField0_ & 0x00000002) != 0)) {
           scriptPath_ = scriptPath_.getUnmodifiableView();
-          bitField0_ = (bitField0_ & ~0x00000004);
+          bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.scriptPath_ = scriptPath_;
         result.scriptBundle_ = scriptBundle_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
@@ -903,7 +914,7 @@ private static final long serialVersionUID = 0L;
         if (!other.content_.isEmpty()) {
           if (content_.isEmpty()) {
             content_ = other.content_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureContentIsMutable();
             content_.addAll(other.content_);
@@ -913,7 +924,7 @@ private static final long serialVersionUID = 0L;
         if (!other.scriptPath_.isEmpty()) {
           if (scriptPath_.isEmpty()) {
             scriptPath_ = other.scriptPath_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000002);
           } else {
             ensureScriptPathIsMutable();
             scriptPath_.addAll(other.scriptPath_);
@@ -1021,9 +1032,9 @@ private static final long serialVersionUID = 0L;
 
       private com.google.protobuf.LazyStringList content_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureContentIsMutable() {
-        if (!((bitField0_ & 0x00000002) != 0)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           content_ = new com.google.protobuf.LazyStringArrayList(content_);
-          bitField0_ |= 0x00000002;
+          bitField0_ |= 0x00000001;
          }
       }
       /**
@@ -1150,7 +1161,7 @@ private static final long serialVersionUID = 0L;
        */
       public Builder clearContent() {
         content_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -1178,9 +1189,9 @@ private static final long serialVersionUID = 0L;
 
       private com.google.protobuf.LazyStringList scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureScriptPathIsMutable() {
-        if (!((bitField0_ & 0x00000004) != 0)) {
+        if (!((bitField0_ & 0x00000002) != 0)) {
           scriptPath_ = new com.google.protobuf.LazyStringArrayList(scriptPath_);
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000002;
          }
       }
       /**
@@ -1331,7 +1342,7 @@ private static final long serialVersionUID = 0L;
        */
       public Builder clearScriptPath() {
         scriptPath_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
@@ -1501,7 +1512,6 @@ private static final long serialVersionUID = 0L;
 
   }
 
-  private int bitField0_;
   public static final int FILTER_FIELD_NUMBER = 1;
   private com.github.marcoferrer.krotoplus.config.FileFilter filter_;
   /**
@@ -1819,7 +1829,7 @@ private static final long serialVersionUID = 0L;
       }
       if (entryBuilder_ == null) {
         entry_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
       } else {
         entryBuilder_.clear();
       }
@@ -1850,22 +1860,20 @@ private static final long serialVersionUID = 0L;
     public com.github.marcoferrer.krotoplus.config.InsertionsGenOptions buildPartial() {
       com.github.marcoferrer.krotoplus.config.InsertionsGenOptions result = new com.github.marcoferrer.krotoplus.config.InsertionsGenOptions(this);
       int from_bitField0_ = bitField0_;
-      int to_bitField0_ = 0;
       if (filterBuilder_ == null) {
         result.filter_ = filter_;
       } else {
         result.filter_ = filterBuilder_.build();
       }
       if (entryBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) != 0)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           entry_ = java.util.Collections.unmodifiableList(entry_);
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.entry_ = entry_;
       } else {
         result.entry_ = entryBuilder_.build();
       }
-      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -1921,7 +1929,7 @@ private static final long serialVersionUID = 0L;
         if (!other.entry_.isEmpty()) {
           if (entry_.isEmpty()) {
             entry_ = other.entry_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureEntryIsMutable();
             entry_.addAll(other.entry_);
@@ -1934,7 +1942,7 @@ private static final long serialVersionUID = 0L;
             entryBuilder_.dispose();
             entryBuilder_ = null;
             entry_ = other.entry_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
             entryBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                  getEntryFieldBuilder() : null;
@@ -2138,9 +2146,9 @@ private static final long serialVersionUID = 0L;
     private java.util.List<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry> entry_ =
       java.util.Collections.emptyList();
     private void ensureEntryIsMutable() {
-      if (!((bitField0_ & 0x00000002) != 0)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         entry_ = new java.util.ArrayList<com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry>(entry_);
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
        }
     }
 
@@ -2334,7 +2342,7 @@ private static final long serialVersionUID = 0L;
     public Builder clearEntry() {
       if (entryBuilder_ == null) {
         entry_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
       } else {
         entryBuilder_.clear();
@@ -2439,7 +2447,7 @@ private static final long serialVersionUID = 0L;
         entryBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.Entry.Builder, com.github.marcoferrer.krotoplus.config.InsertionsGenOptions.EntryOrBuilder>(
                 entry_,
-                ((bitField0_ & 0x00000002) != 0),
+                ((bitField0_ & 0x00000001) != 0),
                 getParentForChildren(),
                 isClean());
         entry_ = null;

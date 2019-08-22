@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
@@ -40,6 +41,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -56,6 +58,12 @@ class ServerCallClientStreamingTests {
 
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
+
+    @[Rule JvmField]
+    var nonDirectGrpcServerRule = GrpcServerRule()
+
+    // @[Rule JvmField]
+    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
     private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
     private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()
@@ -257,7 +265,7 @@ class ServerCallClientStreamingTests {
     fun `Server method is at least invoked before being cancelled`(){
         val serverMethodCompleted = AtomicBoolean()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
                 deferredCtx.complete(coroutineContext)
@@ -275,7 +283,7 @@ class ServerCallClientStreamingTests {
 
         runBlocking {
             val stub = GreeterGrpc
-                .newStub(grpcServerRule.channel)
+                .newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(CancellingClientInterceptor)
 
             // Start the call
@@ -294,7 +302,7 @@ class ServerCallClientStreamingTests {
             // We wait for the server scope to complete before proceeding with assertions
             serverCtx[Job]!!.join()
 
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED, "CANCELLED: test")) }
+            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
 
             assert(serverCtx[Job]!!.isCompleted) { "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled) { "Server job should be cancelled" }
