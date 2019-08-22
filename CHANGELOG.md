@@ -1,10 +1,22 @@
 ## Version 0.5.0-RC
-_\*\*-\*\*_
+_2019-08-22_
 * New: Update to Kotlin `1.3.41`
 * New: Update to Kotlin Coroutines `1.3.0-RC2`
 * New: Update to gRPC `1.23.0`
 * New: Update to protobuf `3.9.0`
 
+#### Protoc Plugin
+* Fix: Support malformed protobuf filenames [PR-63](https://github.com/marcoferrer/kroto-plus/pull/63) Thanks to @AlexeySoshin 
+* Fix: Typo in config message name [GH-45](https://github.com/marcoferrer/kroto-plus/issues/57) Thanks to @RdeWilde
+
+#### Coroutines
+* Fix: Propagate inbound channel close as call cancellation
+
+Thanks to @chris-blacker [PR-61](https://github.com/marcoferrer/kroto-plus/pull/61)
+* Fix: Race condition in outbound flow control
+* New: Improvements to the efficiency of outbound flow control handler 
+* New: Integration tests for client and server coroutine implementations
+* New: Improvements to determinism of unit tests
 
 
 ## Version 0.4.0
