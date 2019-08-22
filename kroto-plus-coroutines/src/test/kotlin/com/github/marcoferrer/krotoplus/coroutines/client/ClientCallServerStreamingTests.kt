@@ -58,6 +58,9 @@ class ClientCallServerStreamingTests {
     @[Rule JvmField]
     var grpcServerRule = GrpcServerRule().directExecutor()
 
+    @[Rule JvmField]
+    var nonDirectGrpcServerRule = GrpcServerRule()
+
     // @[Rule JvmField]
     // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
@@ -77,16 +80,16 @@ class ClientCallServerStreamingTests {
         }
     }
 
-    inner class RpcSpy{
+    inner class RpcSpy(val channel: Channel = grpcServerRule.channel){
         val stub: GreeterGrpc.GreeterStub
         lateinit var call: ClientCall<HelloRequest,HelloReply>
 
         init {
-            val channelSpy = spyk(grpcServerRule.channel)
+            val channelSpy = spyk(channel)
             stub = GreeterGrpc.newStub(channelSpy)
 
             every { channelSpy.newCall(methodDescriptor, any()) } answers {
-                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
+                spyk(channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
                     this@RpcSpy.call = it
                 }
             }
@@ -100,6 +103,7 @@ class ClientCallServerStreamingTests {
     @BeforeTest
     fun setupService() {
         grpcServerRule.serviceRegistry.addService(service)
+        nonDirectGrpcServerRule.serviceRegistry.addService(service)
     }
 
     @Test
@@ -134,7 +138,7 @@ class ClientCallServerStreamingTests {
 
     @Test
     fun `Call fails on server error`() {
-        val rpcSpy = RpcSpy()
+        val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
         val stub = rpcSpy.stub
 
         every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
