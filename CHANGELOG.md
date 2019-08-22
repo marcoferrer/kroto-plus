@@ -1,7 +1,7 @@
 ## Version 0.5.0-RC
 _\*\*-\*\*_
 * New: Update to Kotlin `1.3.41`
-* New: Update to Kotlin Coroutines `1.3.0-RC`
+* New: Update to Kotlin Coroutines `1.3.0-RC2`
 * New: Update to gRPC `1.23.0`
 * New: Update to protobuf `3.9.0`
 

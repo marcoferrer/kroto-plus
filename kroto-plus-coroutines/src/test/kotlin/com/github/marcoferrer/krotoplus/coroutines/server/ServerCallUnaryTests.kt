@@ -169,7 +169,7 @@ class ServerCallUnaryTests {
         val serverMethodCompleted = AtomicBoolean()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
         nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+            override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 deferredCtx.complete(coroutineContext)
                 delay(30_000)
@@ -183,12 +183,11 @@ class ServerCallUnaryTests {
         val stub = GreeterGrpc
             .newStub(nonDirectGrpcServerRule.channel)
             .withInterceptors(object : ClientInterceptor {
-                override fun <ReqT : Any?, RespT : Any?> interceptCall(
-                    method: MethodDescriptor<ReqT, RespT>?,
-                    callOptions: CallOptions?,
+                override fun <ReqT, RespT> interceptCall(
+                    method: MethodDescriptor<ReqT, RespT>,
+                    callOptions: CallOptions,
                     next: Channel
-                ): ClientCall<ReqT, RespT> =
-                    spyk(next.newCall(method,callOptions))
+                ): ClientCall<ReqT, RespT> = next.newCall(method,callOptions)
                         .also { deferredCallSpy.complete(it) }
             })
 
