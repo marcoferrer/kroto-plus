@@ -169,7 +169,7 @@ class ServerCallUnaryTests {
         val serverMethodCompleted = AtomicBoolean()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
         nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Default
+            override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 deferredCtx.complete(coroutineContext)
                 delay(10000)
