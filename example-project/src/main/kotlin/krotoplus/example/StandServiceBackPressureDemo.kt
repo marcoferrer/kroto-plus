@@ -47,8 +47,8 @@ class StandServiceBackPressureDemo : StandServiceCoroutineGrpc.StandServiceImplB
         while (requestIter.hasNext()) {
 
             val requestValues = listOf(
-                requestIter.next(),
-                requestIter.next(),
+                requestIter.next().also { requestIter.hasNext() },
+                requestIter.next().also { requestIter.hasNext() },
                 requestIter.next()
             )
 

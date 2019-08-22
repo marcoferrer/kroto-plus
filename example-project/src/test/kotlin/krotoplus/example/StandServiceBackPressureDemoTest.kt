@@ -12,7 +12,8 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertNotNull
 import kotlin.test.fail
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.consumeEachIndexed
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.consumeAsFlow
 
 
 class StandServiceCoroutineImplTest {
@@ -76,7 +77,7 @@ class StandServiceCoroutineImplTest {
             launch(Dispatchers.Default) {
                 var responseQty = 0
 
-                responseChannel.consumeEachIndexed { (index, response) ->
+                responseChannel.consumeAsFlow().collectIndexed { index, response ->
                     responseQty = index
                     println("<- Resp#: $index, Client Received '${response.toString().trim()}' ")
                 }
