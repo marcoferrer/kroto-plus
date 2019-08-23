@@ -1,3 +1,9 @@
+## Version 0.5.0
+_\*\*-\*\*_
+* New: Update to Kotlin `1.3.50`
+* New: Update to Kotlin Coroutines `1.3.0`
+
+
 ## Version 0.5.0-RC
 _2019-08-22_
 * New: Update to Kotlin `1.3.41`
