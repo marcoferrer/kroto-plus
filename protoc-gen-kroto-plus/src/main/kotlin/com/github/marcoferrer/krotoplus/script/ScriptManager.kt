@@ -32,12 +32,22 @@ import javax.script.ScriptEngineManager
 import javax.script.SimpleScriptContext
 import java.security.MessageDigest
 
+private const val CONFIG_KEY_SCRIPT_CACHE_DIR = "script_cache_dir"
+private const val PROP_KEY_SCRIPT_CACHE_DIR = "krotoplus.script.cache.dir"
+private const val ENV_KEY_SCRIPT_CACHE_DIR = "KROTOPLUS_SCRIPT_CACHE_DIR"
 
 object ScriptManager {
 
-    private val cacheDirPath = System.getProperty("krotoplus.script.cache.dir") ?: ("${System.getProperty("user.home")
-        ?: System.getProperty("HOME")}/.kroto/cache/${Manifest.implVersion}")
+    private val cacheDirPath = run {
+        val systemProp = System.getProperty(PROP_KEY_SCRIPT_CACHE_DIR)
+        val envVar = System.getenv(ENV_KEY_SCRIPT_CACHE_DIR)
+        val configVal = context.args.options[CONFIG_KEY_SCRIPT_CACHE_DIR]
+        val userHome = System.getProperty("user.home") ?: System.getProperty("HOME")
 
+        val baseCachePath = systemProp ?: envVar ?: configVal ?: userHome
+
+        "$baseCachePath/.kroto/cache/${Manifest.implVersion}"
+    }
     private val compileCacheDir = File(cacheDirPath).apply { mkdirs() }
 
     private val scriptEngine by lazy {
