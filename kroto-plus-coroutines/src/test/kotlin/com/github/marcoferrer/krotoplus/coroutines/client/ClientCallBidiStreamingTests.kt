@@ -240,6 +240,7 @@ class ClientCallBidiStreamingTests {
                                     .setName(it.toString())
                                     .build()
                             )
+                            delay(10)
                         }
                     }
                 }
