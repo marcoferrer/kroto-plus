@@ -49,7 +49,7 @@ interface Generator : () -> PluginProtos.CodeGeneratorResponse {
 
     fun isFileToGenerate(path: String, filter: FileFilter): Boolean =
         if(filter == FileFilter.getDefaultInstance()) {
-            path in GrpcCoroutinesGenerator.context.request.fileToGenerateList
+            path in context.request.fileToGenerateList
         } else {
             filter.getRegexFilter().matches(path)
         }
@@ -66,23 +66,18 @@ val ScriptTemplateWithArgs.context: GeneratorContext
 val ScriptManager.context: GeneratorContext
     get() = contextInstance
 
+internal lateinit var contextInstance: GeneratorContext
+    private set
+
 fun initializeContext(compilerConfig: CompilerConfig? = null) {
-    compilerConfigOverride = compilerConfig
-    contextInstance
-}
 
-private var compilerConfigOverride: CompilerConfig? = null
-
-private val contextInstance by lazy {
     val inputStream = System.getProperty("krotoplus.debug.request.src")
         ?.let { File(it).inputStream() }
         ?: System.`in`
 
     val protoRequest = PluginProtos.CodeGeneratorRequest.parseFrom(inputStream)
 
-    compilerConfigOverride
+    contextInstance = compilerConfig
         ?.let { GeneratorContext(protoRequest, config = it) }
         ?: GeneratorContext(protoRequest)
 }
-
-

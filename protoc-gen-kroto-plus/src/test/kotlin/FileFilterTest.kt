@@ -20,6 +20,7 @@ import com.github.marcoferrer.krotoplus.config.FileFilter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Suppress("DEPRECATION")
 class FileFilterTest {
 
     val testPaths = listOf(
