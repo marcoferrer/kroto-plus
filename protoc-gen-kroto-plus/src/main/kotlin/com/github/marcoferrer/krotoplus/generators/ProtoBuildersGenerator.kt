@@ -41,7 +41,7 @@ object ProtoBuildersGenerator : Generator {
             .filter { it.protoMessages.isNotEmpty() }
             .forEach { protoFile ->
                 for (options in context.config.protoBuildersList) {
-                    if (options.filter.matches(protoFile.name))
+                    if(isFileToGenerate(protoFile.name,options.filter))
                         buildFileSpec(protoFile, options, responseBuilder)
                 }
             }
@@ -52,7 +52,7 @@ object ProtoBuildersGenerator : Generator {
             .filterNot { it.isMapEntry }
             .forEach { protoMessage ->
                 for (options in context.config.protoBuildersList) {
-                    if (options.filter.matches(protoMessage.protoFile.name))
+                    if (isFileToGenerate(protoMessage.protoFile.name,options.filter))
                         responseBuilder.addFile(protoMessage.buildDslInsertion())
                 }
             }

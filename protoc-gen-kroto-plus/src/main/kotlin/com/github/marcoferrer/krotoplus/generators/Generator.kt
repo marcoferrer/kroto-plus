@@ -17,7 +17,9 @@
 package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.config.CompilerConfig
+import com.github.marcoferrer.krotoplus.config.FileFilter
 import com.github.marcoferrer.krotoplus.script.ScriptManager
+import com.github.marcoferrer.krotoplus.utils.getRegexFilter
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.FileSpec
 import java.io.File
@@ -43,6 +45,14 @@ interface Generator : () -> PluginProtos.CodeGeneratorResponse {
                 content = this@toResponseFileProto.toString()
             }
             .build()
+
+
+    fun isFileToGenerate(path: String, filter: FileFilter): Boolean =
+        if(filter == FileFilter.getDefaultInstance()) {
+            path in GrpcCoroutinesGenerator.context.request.fileToGenerateList
+        } else {
+            filter.getRegexFilter().matches(path)
+        }
 
     companion object {
         const val AutoGenerationDisclaimer =

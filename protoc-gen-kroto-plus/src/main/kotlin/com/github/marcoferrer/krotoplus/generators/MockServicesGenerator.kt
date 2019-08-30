@@ -21,7 +21,6 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.*
 import com.github.marcoferrer.krotoplus.utils.CommonClassNames
-import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
 import io.grpc.BindableService
@@ -47,7 +46,7 @@ object MockServicesGenerator : Generator {
         context.schema.protoServices.forEach { service ->
 
             for (options in context.config.mockServicesList) {
-                if (options.filter.matches(service.protoFile.name)) {
+                if (isFileToGenerate(service.protoFile.name,options.filter)) {
                     //TODO: Need clean up from v0.1.0
                     service.buildFileSpec(options)?.let { fileSpecBuilder ->
 

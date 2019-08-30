@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.generators
 
+import com.github.marcoferrer.krotoplus.config.FileFilter
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.*
@@ -51,7 +52,6 @@ object GrpcCoroutinesGenerator : Generator {
     private val ProtoService.stubClassName: ClassName
             get() = ClassName(protoFile.javaPackage, outerObjectName, stubName)
 
-
     override fun invoke(): PluginProtos.CodeGeneratorResponse {
         val responseBuilder = PluginProtos.CodeGeneratorResponse.newBuilder()
 
@@ -61,7 +61,7 @@ object GrpcCoroutinesGenerator : Generator {
 
             for (options in context.config.grpcCoroutinesList) {
 
-                if (options.filter.matches(service.protoFile.name)) {
+                if (isFileToGenerate(service.protoFile.name,options.filter)) {
                     service.buildGrpcFileSpec()?.let {
                         responseBuilder.addFile(it.toResponseFileProto())
                     }
