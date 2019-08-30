@@ -179,25 +179,32 @@ class ServerCallUnaryTests {
             }
         })
 
-        val deferredCallSpy = CompletableDeferred<ClientCall<*, *>>()
-        val stub = GreeterGrpc
-            .newStub(nonDirectGrpcServerRule.channel)
-            .withInterceptors(object : ClientInterceptor {
-                override fun <ReqT, RespT> interceptCall(
-                    method: MethodDescriptor<ReqT, RespT>,
-                    callOptions: CallOptions,
-                    next: Channel
-                ): ClientCall<ReqT, RespT> = next.newCall(method,callOptions)
-                        .also { deferredCallSpy.complete(it) }
+        runBlocking {
+            val respObserver = spyk(object: StreamObserver<HelloReply>{
+                val completed = AtomicBoolean()
+                override fun onNext(value: HelloReply?) {}
+                override fun onError(t: Throwable?) { completed.set(true) }
+                override fun onCompleted() { completed.set(true) }
             })
 
-        runBlocking {
+            val deferredCallSpy = CompletableDeferred<ClientCall<*, *>>(coroutineContext[Job])
+            val stub = GreeterGrpc
+                .newStub(nonDirectGrpcServerRule.channel)
+                .withInterceptors(object : ClientInterceptor {
+                    override fun <ReqT, RespT> interceptCall(
+                        method: MethodDescriptor<ReqT, RespT>,
+                        callOptions: CallOptions,
+                        next: Channel
+                    ): ClientCall<ReqT, RespT> = next.newCall(method,callOptions)
+                        .also { deferredCallSpy.complete(it) }
+                })
 
-            stub.sayHello(HelloRequest.getDefaultInstance(), responseObserver)
+            stub.sayHello(HelloRequest.getDefaultInstance(), respObserver)
             val serverCtx = deferredCtx.await()
             deferredCallSpy.await().cancel("test",null)
             serverCtx[Job]!!.join()
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
+            while(!respObserver.completed.get()){}
+            verify(exactly = 1) { respObserver.onError(matchStatus(Status.CANCELLED)) }
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
             assertFalse(serverMethodCompleted.get(),"Server method should not complete")
