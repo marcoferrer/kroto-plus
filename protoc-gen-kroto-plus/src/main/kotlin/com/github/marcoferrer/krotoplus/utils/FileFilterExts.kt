@@ -44,4 +44,8 @@ fun FileFilter.getRegexFilter(): RegexFilter =
         )
     }
 
+@Deprecated(
+    "This method does not account for files requested for generation by protoc",
+    ReplaceWith("isFileToGenerate(path, filter)")
+)
 fun FileFilter.matches(path: String): Boolean = getRegexFilter().matches(path)

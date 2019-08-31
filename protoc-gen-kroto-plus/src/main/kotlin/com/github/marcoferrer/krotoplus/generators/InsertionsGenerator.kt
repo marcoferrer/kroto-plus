@@ -18,13 +18,11 @@ package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.config.InsertionPoint
 import com.github.marcoferrer.krotoplus.config.InsertionsGenOptions
-import com.github.marcoferrer.krotoplus.generators.InsertionsGenerator.buildInsertions
 import com.github.marcoferrer.krotoplus.proto.*
 import com.github.marcoferrer.krotoplus.script.ScriptManager
 import com.github.marcoferrer.krotoplus.utils.addFile
 import com.github.marcoferrer.krotoplus.utils.funcName
 import com.github.marcoferrer.krotoplus.utils.key
-import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 
 object InsertionsGenerator : Generator {
@@ -39,12 +37,12 @@ object InsertionsGenerator : Generator {
         for (options in context.config.insertionsList) {
 
             for (protoFile in context.schema.protoFiles)
-                if (options.filter.matches(protoFile.name)) {
+                if (isFileToGenerate(protoFile.name,options.filter)) {
                     protoFile.buildInsertions(options, responseBuilder)
                 }
 
             for (protoType in context.schema.protoTypes.values)
-                if (options.filter.matches(protoType.protoFile.name)) {
+                if (isFileToGenerate(protoType.protoFile.name,options.filter)) {
                     protoType.buildInsertions(options, responseBuilder)
                 }
         }

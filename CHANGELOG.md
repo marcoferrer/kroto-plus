@@ -3,6 +3,9 @@ _\*\*-\*\*_
 * New: Update to Kotlin `1.3.50`
 * New: Update to Kotlin Coroutines `1.3.0`
 
+#### Protoc Plugin
+* Fix: If no file filter is defined, fallback to `CodeGeneratorRequest.fileToGenerateList` [PR-70](https://github.com/marcoferrer/kroto-plus/pull/70) 
+
 
 ## Version 0.5.0-RC
 _2019-08-22_

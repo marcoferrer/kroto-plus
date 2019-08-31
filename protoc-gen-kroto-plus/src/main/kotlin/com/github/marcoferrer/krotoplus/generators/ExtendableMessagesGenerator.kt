@@ -17,7 +17,6 @@
 package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.proto.ProtoMessage
-import com.github.marcoferrer.krotoplus.utils.matches
 import com.google.protobuf.compiler.PluginProtos
 
 object ExtendableMessagesGenerator : Generator {
@@ -35,7 +34,7 @@ object ExtendableMessagesGenerator : Generator {
 
                 for (options in context.config.extendableMessagesList) {
 
-                    if (!options.filter.matches(protoMessage.protoFile.name) || protoMessage.isMapEntry)
+                    if (!isFileToGenerate(protoMessage.protoFile.name, options.filter) || protoMessage.isMapEntry)
                         continue
 
                     val kpPackage = "com.github.marcoferrer.krotoplus.message"

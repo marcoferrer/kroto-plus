@@ -52,7 +52,8 @@ object GrpcStubExtsGenerator : Generator {
     class FileBuilder(val options: GrpcStubExtsGenOptions) {
 
         fun buildFile(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? = with(service) {
-            if (!options.filter.matches(protoFile.name))
+
+            if (!isFileToGenerate(protoFile.name,options.filter))
                 return null
 
             val filename = "${name}RpcOverloads"
