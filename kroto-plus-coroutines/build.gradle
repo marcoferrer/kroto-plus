@@ -32,6 +32,7 @@ dependencies {
     implementation "io.grpc:grpc-stub:${Versions.grpc}"
 
     testProtobuf project(':test-api')
+    testImplementation "com.google.api.grpc:proto-google-common-protos:${Versions.commonProto}"
     testImplementation project(':test-api:grpc')
     testImplementation project(':test-api:java')
     testImplementation "io.mockk:mockk:${Versions.mockk}"
