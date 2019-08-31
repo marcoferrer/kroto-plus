@@ -53,6 +53,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
@@ -430,12 +431,19 @@ class ServerCallBidiStreamingTests {
         })
 
         runBlocking {
+            val respObserver = spyk(object: StreamObserver<HelloReply>{
+                val completed = AtomicBoolean()
+                override fun onNext(value: HelloReply?) {}
+                override fun onError(t: Throwable?) { completed.set(true) }
+                override fun onCompleted() { completed.set(true) }
+            })
+
             val stub = GreeterGrpc.newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(CancellingClientInterceptor)
                 .withCoroutineContext()
 
             // Start the call
-            val reqObserver = stub.sayHelloStreaming(responseObserver)
+            val reqObserver = stub.sayHelloStreaming(respObserver)
 
             // Wait for the server method to be invoked
             val serverCtx = deferredCtx.await()
@@ -451,8 +459,10 @@ class ServerCallBidiStreamingTests {
             serverCtx[Job]!!.join()
 
             val respChannel = deferredRespChannel.await()
+            while(!respObserver.completed.get()){}
+
             assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
+            verify(exactly = 1) { respObserver.onError(matchStatus(Status.CANCELLED)) }
             coVerify(exactly = 0) { respChannel.send(any()) }
             assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }

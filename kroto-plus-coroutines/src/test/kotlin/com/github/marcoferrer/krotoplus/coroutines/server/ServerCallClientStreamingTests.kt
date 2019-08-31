@@ -282,12 +282,19 @@ class ServerCallClientStreamingTests {
         })
 
         runBlocking {
+            val respObserver = spyk(object: StreamObserver<HelloReply>{
+                val completed = AtomicBoolean()
+                override fun onNext(value: HelloReply?) {}
+                override fun onError(t: Throwable?) { completed.set(true) }
+                override fun onCompleted() { completed.set(true) }
+            })
+
             val stub = GreeterGrpc
                 .newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(CancellingClientInterceptor)
 
             // Start the call
-            val reqObserver = stub.sayHelloClientStreaming(responseObserver)
+            val reqObserver = stub.sayHelloClientStreaming(respObserver)
 
             // Wait for the server method to be invoked
             val serverCtx = deferredCtx.await()
@@ -301,9 +308,8 @@ class ServerCallClientStreamingTests {
 
             // We wait for the server scope to complete before proceeding with assertions
             serverCtx[Job]!!.join()
-
-            verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
-
+            while(!respObserver.completed.get()){}
+            verify(exactly = 1) { respObserver.onError(matchStatus(Status.CANCELLED)) }
             assert(serverCtx[Job]!!.isCompleted) { "Server job should be completed" }
             assert(serverCtx[Job]!!.isCancelled) { "Server job should be cancelled" }
             assertFalse(serverMethodCompleted.get(), "Server method should not complete")
