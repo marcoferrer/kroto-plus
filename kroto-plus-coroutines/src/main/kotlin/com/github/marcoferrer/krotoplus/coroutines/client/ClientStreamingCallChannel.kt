@@ -16,9 +16,11 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.client
 
+import com.github.marcoferrer.krotoplus.coroutines.call.MessageHandler
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -63,9 +65,19 @@ internal class ClientStreamingCallChannelImpl<ReqT,RespT>(
 
     private lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
 
+    private lateinit var outboundMessageHandler: SendChannel<MessageHandler>
+
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
         callStreamObserver = requestStream
-        applyOutboundFlowControl(requestStream, outboundChannel)
+        outboundMessageHandler = applyOutboundFlowControl(requestStream, outboundChannel)
+
+        completableResponse.invokeOnCompletion {
+            // If the client prematurely cancels the response
+            // we need to propagate this as a cancellation to the underlying call
+            if(!outboundChannel.isClosedForSend && coroutineContext[Job]?.isCancelled == false){
+                callStreamObserver.cancel("Client has cancelled call", it)
+            }
+        }
     }
 
     override fun onNext(value: RespT) {
@@ -74,8 +86,9 @@ internal class ClientStreamingCallChannelImpl<ReqT,RespT>(
 
     override fun onError(t: Throwable) {
         outboundChannel.close(t)
-        outboundChannel.cancel()
+        outboundChannel.cancel(CancellationException(t.message,t))
         completableResponse.completeExceptionally(t)
+        outboundMessageHandler.close(t)
     }
 
     override fun onCompleted() {

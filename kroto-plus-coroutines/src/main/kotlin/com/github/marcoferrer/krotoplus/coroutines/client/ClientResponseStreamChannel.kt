@@ -50,8 +50,10 @@ internal class ClientResponseStreamChannel<ReqT, RespT>(
         }
 
         inboundChannel.invokeOnClose {
+            // If the client prematurely cancels the responseChannel
+            // we need to propagate this as a cancellation to the underlying call
             if(!isInboundCompleted.get() && !aborted){
-                callStreamObserver.cancel("Call has been cancelled", it)
+                callStreamObserver.cancel("Client has cancelled call", it)
             }
         }
     }

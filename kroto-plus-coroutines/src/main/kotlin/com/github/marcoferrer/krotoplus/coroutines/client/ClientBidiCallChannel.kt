@@ -22,6 +22,7 @@ import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -108,8 +109,8 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
         inboundChannel.invokeOnClose {
             // If the client prematurely closes the response channel
             // we need to propagate this as a cancellation to the underlying call
-            if(!outboundChannel.isClosedForSend){
-                callStreamObserver.cancel("Call has been cancelled", it)
+            if(!outboundChannel.isClosedForSend && coroutineContext[Job]?.isCancelled == false){
+                callStreamObserver.cancel("Client has cancelled call", it)
             }
         }
     }
