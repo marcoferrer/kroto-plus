@@ -49,8 +49,12 @@ data class GeneratorContext(
 fun CompilerArgs.getCompilerConfig(): CompilerConfig =
     options[ARG_KEY_CONFIG_PATH]
         ?.firstOrNull()
-        //TODO: Should we throw an error if the config is missing?
-        ?.let { path -> File(path).takeIf { it.exists() } }
+        ?.let { path ->
+            val configFile = File(path)
+            configFile
+                .takeIf { it.exists() }
+                ?: error("Config file does not exist. '${configFile.absolutePath}'")
+        }
         ?.let { configFile ->
             CompilerConfig.newBuilder().also { builder ->
                 when (configFile.extension.toLowerCase()) {

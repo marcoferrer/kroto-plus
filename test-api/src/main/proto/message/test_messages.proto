@@ -2,12 +2,16 @@ syntax = "proto3";
 
 package validate.test;
 
+import "google/api/client.proto";
+
 option java_package = "test.message";
 option java_outer_classname = "TestMessages";
 
 message L1Message1{
 
     string field = 1;
+
+    L2Nested1 nested_message = 2;
 
     message L2Nested1{
         string field =1;
@@ -23,6 +27,8 @@ message L1Message1{
 message L1Message2{
 
     string field = 1;
+
+    L2Nested1 nested_message = 2;
 
     message L2Nested1{
         string field = 1;
@@ -87,7 +93,16 @@ message TestRepeated {
 
 service __MalformedService__ {
 
-    rpc say_hello (L1Message1) returns (L1Message2);
+    rpc say_hello (L1Message1) returns (L1Message2){
+        option (google.api.method_signature) = "field";
+        option (google.api.method_signature) = "nested_message";
+    };
+
+
+    rpc sayHelloServerStreaming (L1Message1) returns (stream L1Message2){
+        option (google.api.method_signature) = "field";
+        option (google.api.method_signature) = "nested_message";
+    };
 
     rpc sayHelloStreaming (stream L1Message1) returns (stream L1Message2);
 }

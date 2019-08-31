@@ -2,6 +2,8 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'java-library'
 
 dependencies{
+    compileOnly "com.google.api.grpc:proto-google-common-protos:${Versions.commonProto}"
+
     protobuf project(':test-api')
     api "com.google.protobuf:protobuf-java:${Versions.protobuf}"
     api "io.grpc:grpc-protobuf:${Versions.grpc}"

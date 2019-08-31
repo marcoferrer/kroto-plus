@@ -20,6 +20,9 @@ import com.github.marcoferrer.krotoplus.config.CompilerConfig
 import com.github.marcoferrer.krotoplus.config.FileFilter
 import com.github.marcoferrer.krotoplus.script.ScriptManager
 import com.github.marcoferrer.krotoplus.utils.getRegexFilter
+import com.google.api.AnnotationsProto
+import com.google.api.ClientProto
+import com.google.protobuf.ExtensionRegistry
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.FileSpec
 import java.io.File
@@ -75,9 +78,15 @@ fun initializeContext(compilerConfig: CompilerConfig? = null) {
         ?.let { File(it).inputStream() }
         ?: System.`in`
 
-    val protoRequest = PluginProtos.CodeGeneratorRequest.parseFrom(inputStream)
+    val protoRequest = PluginProtos.CodeGeneratorRequest
+        .parseFrom(inputStream, OptionsExtRegistry)
 
     contextInstance = compilerConfig
         ?.let { GeneratorContext(protoRequest, config = it) }
         ?: GeneratorContext(protoRequest)
+}
+
+
+private val OptionsExtRegistry = ExtensionRegistry.newInstance().also {
+    ClientProto.registerAllExtensions(it)
 }

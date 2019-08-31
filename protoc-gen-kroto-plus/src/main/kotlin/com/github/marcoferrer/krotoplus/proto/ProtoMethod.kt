@@ -17,6 +17,7 @@
 package com.github.marcoferrer.krotoplus.proto
 
 import com.github.marcoferrer.krotoplus.utils.toUpperCamelCase
+import com.google.api.ClientProto
 import com.google.protobuf.DescriptorProtos
 import io.grpc.MethodDescriptor
 
@@ -32,13 +33,15 @@ class ProtoMethod(
 
     val methodDefinitionGetterName = "get${descriptorProto.name.toUpperCamelCase()}Method"
 
-    val requestType = protoService.protoFile.schema.protoTypes[descriptorProto.inputType]
-        ?: throw IllegalStateException("${descriptorProto.inputType} was not found in schema type map.")
+    val requestType: ProtoMessage = requireNotNull(protoService.protoFile.schema.protoTypes[descriptorProto.inputType] as? ProtoMessage){
+        "${descriptorProto.inputType} was not found in schema type map, or was not or was not of type 'ProtoMessage'"
+    }
 
     val requestClassName = requestType.className
 
-    val responseType = protoService.protoFile.schema.protoTypes[descriptorProto.outputType]
-        ?: throw IllegalStateException("${descriptorProto.inputType} was not found in schema type map.")
+    val responseType: ProtoMessage = requireNotNull(protoService.protoFile.schema.protoTypes[descriptorProto.outputType] as? ProtoMessage){
+        "${descriptorProto.outputType} was not found in schema type map, or was not or was not of type 'ProtoMessage'"
+    }
 
     val responseClassName = responseType.className
 
@@ -62,4 +65,18 @@ class ProtoMethod(
             isClientStream ->  MethodDescriptor.MethodType.CLIENT_STREAMING
             else -> throw IllegalStateException("Unknown method type")
         }
+
+    val methodSignatureFields: List<DescriptorProtos.FieldDescriptorProto> = getMethodSignatureFields()
+
 }
+
+private fun ProtoMethod.getMethodSignatureFields(): List<DescriptorProtos.FieldDescriptorProto> =
+    descriptorProto.options
+        .runCatching { getExtension(ClientProto.methodSignature) }
+        .getOrNull()
+        ?.takeUnless { it.isEmpty() }
+        ?.let { signatureFields ->
+            requestType.descriptorProto.fieldList
+                .filter { it.name in signatureFields }
+        }
+        .orEmpty()

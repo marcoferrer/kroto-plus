@@ -21,7 +21,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.TypeSpec
 
-fun PluginProtos.CodeGeneratorResponse.Builder.addFile(block: PluginProtos.CodeGeneratorResponse.File.Builder.() -> Unit)
+inline fun PluginProtos.CodeGeneratorResponse.Builder.addFile(block: PluginProtos.CodeGeneratorResponse.File.Builder.() -> Unit)
         : PluginProtos.CodeGeneratorResponse.Builder {
     this.addFile(PluginProtos.CodeGeneratorResponse.File.newBuilder().apply(block).build())
     return this
@@ -41,4 +41,10 @@ fun FileSpec.Builder.addFunctions(funSpecs: Iterable<FunSpec>): FileSpec.Builder
 fun FileSpec.Builder.addTypes(typeSpecs: Iterable<TypeSpec>): FileSpec.Builder {
     for (typeSpec in typeSpecs) this.addType(typeSpec)
     return this
+}
+
+inline fun <T> FunSpec.Builder.addForEach(list: List<T>, block: FunSpec.Builder.(T) -> Unit): FunSpec.Builder = apply {
+    for(item in list){
+        block(item)
+    }
 }

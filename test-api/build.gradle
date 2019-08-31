@@ -1,5 +1,9 @@
 apply plugin: 'com.google.protobuf'
 
+dependencies {
+    compileOnly "com.google.api.grpc:proto-google-common-protos:${Versions.commonProto}"
+}
+
 protobuf {
     generateProtoTasks {
         all().each { task ->
