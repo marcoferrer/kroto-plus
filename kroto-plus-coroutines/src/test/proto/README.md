@@ -1,0 +1,1 @@
+This file exists so that we can ensure this directory remains committed. A bug in the protobuf gradle plugin will randomly required this directory to exist when compiling proto sources provided via artifacts.

@@ -11,6 +11,8 @@ compileTestKotlin {
 
 dependencies{
 
+    testImplementation "com.google.api.grpc:proto-google-common-protos:${Versions.commonProto}"
+    
     testImplementation "io.mockk:mockk:${Versions.mockk}"
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"

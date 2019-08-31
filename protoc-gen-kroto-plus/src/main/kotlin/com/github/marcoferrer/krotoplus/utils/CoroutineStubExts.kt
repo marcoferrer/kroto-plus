@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.utils
 
+import com.google.protobuf.DescriptorProtos
 import com.squareup.kotlinpoet.*
 
 val ClassName.requestParamSpec: ParameterSpec
@@ -26,6 +27,22 @@ val ClassName.requestParamSpec: ParameterSpec
 
 val ClassName.requestValueBuilderCodeBlock: CodeBlock
     inline get() = CodeBlock.of("val request = %T.newBuilder().apply(block).build()\n", this)
+
+fun ClassName.requestValueMethodSigCodeBlock(fields: List<DescriptorProtos.FieldDescriptorProto>): CodeBlock {
+
+    val codeBuilder = CodeBlock.builder()
+        .addStatement("val request = %T.newBuilder()", this)
+        .indent()
+        .apply {
+            for(field in fields){
+                val fieldName = upperCamelCase(field.name)
+
+                addStatement(".set${fieldName}(${fieldName.decapitalize()})")
+            }
+        }
+
+    return codeBuilder.addStatement(".build()").unindent().build()
+}
 
 val ClassName.requestValueDefaultCodeBlock: CodeBlock
     inline get() = CodeBlock.of("val request = %T.getDefaultInstance()\n", this)

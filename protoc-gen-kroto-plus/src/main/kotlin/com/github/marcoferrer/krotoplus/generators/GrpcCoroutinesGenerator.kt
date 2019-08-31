@@ -381,7 +381,7 @@ object GrpcCoroutinesGenerator : Generator {
             .receiver(receiverClassName)
             .addParameter(
                 "block", LambdaTypeName.get(
-                    receiver = (responseType as ProtoMessage).builderClassName,
+                    receiver = responseType.builderClassName,
                     returnType = UNIT
                 )
             )
@@ -432,6 +432,7 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .addFunctions(buildClientStubRpcMethods())
             .addFunctions(buildClientStubRpcRequestOverloads())
+            .addFunctions(buildClientStubRpcSignatureOverloads())
             .addType(buildClientStubCompanion())
             .build()
 
@@ -542,6 +543,15 @@ object GrpcCoroutinesGenerator : Generator {
                     .build()
             }
 
+    private fun ProtoService.buildClientStubRpcSignatureOverloads(): List<FunSpec> =
+        methodDefinitions.mapNotNull {
+            when(it.type){
+                MethodType.UNARY -> it.buildStubUnaryMethodSignatureOverload()
+                MethodType.SERVER_STREAMING -> it.buildStubServerStreamingSignatureOverload()
+                else -> null
+            }
+        }
+
     private fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
         methodDefinitions.mapNotNull {
             when(it.type){
@@ -582,6 +592,17 @@ object GrpcCoroutinesGenerator : Generator {
             .addStatement("return %N(request)",functionName)
             .build()
 
+    private fun ProtoMethod.buildStubUnaryMethodSignatureOverload(): FunSpec? =
+        if(methodSignatureFields.isEmpty())
+            null else FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND)
+            .returns(responseClassName)
+            .addForEach(methodSignatureFields){
+                addParameter(upperCamelCase(it.name).decapitalize(), it.getFieldClassName(context.schema))
+            }
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("return %N(request)",functionName)
+            .build()
 
     private fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
         FunSpec.builder(functionName)
@@ -589,6 +610,17 @@ object GrpcCoroutinesGenerator : Generator {
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addParameter("block", requestClassName.builderLambdaTypeName)
             .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addStatement("return %N(request)",functionName)
+            .build()
+
+    private fun ProtoMethod.buildStubServerStreamingSignatureOverload(): FunSpec? =
+        if(methodSignatureFields.isEmpty())
+            null else FunSpec.builder(functionName)
+            .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
+            .addForEach(methodSignatureFields){
+                addParameter(upperCamelCase(it.name).decapitalize(), it.getFieldClassName(context.schema))
+            }
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
             .addStatement("return %N(request)",functionName)
             .build()
 

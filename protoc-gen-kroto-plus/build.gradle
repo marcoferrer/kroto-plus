@@ -21,6 +21,7 @@ targetCompatibility = 1.8
 dependencies{
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
     implementation "io.grpc:grpc-protobuf:${Versions.grpc}"
+    implementation "com.google.api.grpc:proto-google-common-protos:${Versions.commonProto}"
     implementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation ("com.squareup:kotlinpoet:1.0.1") {
@@ -38,6 +39,7 @@ dependencies{
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8"
 
+    testImplementation "io.mockk:mockk:${Versions.mockk}"
 }
 
 protobuf {

@@ -42,3 +42,9 @@ fun FileSpec.Builder.addTypes(typeSpecs: Iterable<TypeSpec>): FileSpec.Builder {
     for (typeSpec in typeSpecs) this.addType(typeSpec)
     return this
 }
+
+fun <T> FunSpec.Builder.addForEach(list: List<T>, block: FunSpec.Builder.(T) -> Unit): FunSpec.Builder = apply {
+    for(item in list){
+        block(item)
+    }
+}

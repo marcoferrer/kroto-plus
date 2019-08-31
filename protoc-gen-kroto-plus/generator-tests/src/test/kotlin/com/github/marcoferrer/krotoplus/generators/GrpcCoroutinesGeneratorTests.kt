@@ -20,7 +20,12 @@ import com.github.marcoferrer.krotoplus.coroutines.launchProducerJob
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.examples.helloworld.*
 import io.grpc.testing.GrpcServerRule
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.slot
+import io.mockk.spyk
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -28,6 +33,8 @@ import kotlinx.coroutines.channels.toList
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import test.message.TestMessages
+import test.message.__MalformedService__CoroutineGrpc
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -86,6 +93,51 @@ class GrpcCoroutinesGeneratorTests {
         assertEquals(expectedMessage,stub.sayHello(HelloRequest.getDefaultInstance()).message)
         assertEquals(expectedMessage,stub.sayHello().message)
         assertEquals(expectedMessage,stub.sayHello { name = "test" }.message)
+
+    }
+
+    @Test
+    fun `Server streaming methods with method signature are generated`() = runBlocking {
+
+        val expectedField = "anything"
+        val nestedMessage = TestMessages.L1Message1.L2Nested1.newBuilder()
+            .setField("testing")
+            .build()
+        val expectedRequest = TestMessages.L1Message1.newBuilder()
+            .setField(expectedField)
+            .setNestedMessage(nestedMessage)
+            .build()
+
+        val stub = spyk(__MalformedService__CoroutineGrpc.newStub(grpcServerRule.channel))
+
+        val requestSlot = slot<TestMessages.L1Message1>()
+        coEvery { stub.sayHelloServerStreaming(capture(requestSlot)) } returns Channel()
+
+        stub.sayHelloServerStreaming(expectedField, nestedMessage).cancel()
+
+        assertEquals(expectedRequest,requestSlot.captured)
+    }
+
+    @Test
+    fun `Unary rpc methods with method signature are generated`() = runBlocking {
+
+        val expectedField = "anything"
+        val nestedMessage = TestMessages.L1Message1.L2Nested1.newBuilder()
+            .setField("testing")
+            .build()
+        val expectedRequest = TestMessages.L1Message1.newBuilder()
+            .setField(expectedField)
+            .setNestedMessage(nestedMessage)
+            .build()
+
+        val stub = spyk(__MalformedService__CoroutineGrpc.newStub(grpcServerRule.channel))
+
+        val requestSlot = slot<TestMessages.L1Message1>()
+        coEvery { stub.sayHello(capture(requestSlot)) } returns TestMessages.L1Message2.getDefaultInstance()
+
+        stub.sayHello(expectedField, nestedMessage)
+
+        assertEquals(expectedRequest,requestSlot.captured)
     }
 
     @Test
