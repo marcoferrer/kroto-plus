@@ -3,6 +3,7 @@ jdk:
   - openjdk8
   - openjdk10
   - openjdk11
+  - openjdk12
 dist: trusty
 sudo: false
 addons:
@@ -20,10 +21,8 @@ before_cache:
 jobs:
   include:
     - name: Gradle Check
-      install:
-        - ./gradlew assemble
       script:
-        - ./gradlew check
-        - cd example-project && ./gradlew test
+        - ./gradlew clean check
+        - cd example-project && ./gradlew clean test
 after_success:
   - bash <(curl -s https://codecov.io/bash)

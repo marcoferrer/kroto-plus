@@ -10,7 +10,7 @@ compileTestKotlin {
 }
 
 dependencies{
-
+    
     testImplementation "com.google.api.grpc:proto-google-common-protos:${Versions.commonProto}"
     
     testImplementation "io.mockk:mockk:${Versions.mockk}"
@@ -27,6 +27,12 @@ dependencies{
     testImplementation project(':kroto-plus-message')
     testImplementation project(':kroto-plus-coroutines')
     testImplementation project(':kroto-plus-test')
+
+    // For jdk 9+ you need to include javax.annotations
+    // The reason is outlined in this grpc issue
+    // https://github.com/grpc/grpc-java/issues/4725
+    testImplementation("javax.annotation:javax.annotation-api:1.2")
+
 }
 
 protobuf {

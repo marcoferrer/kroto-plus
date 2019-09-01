@@ -22,7 +22,6 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
         freeCompilerArgs += experimentalFlags
     }
 }
@@ -38,6 +37,11 @@ dependencies {
     testImplementation "io.mockk:mockk:${Versions.mockk}"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutines}"
 
+    // For jdk 9+ you need to include javax.annotations
+    // The reason is outlined in this grpc issue
+    // https://github.com/grpc/grpc-java/issues/4725
+    testImplementation "javax.annotation:javax.annotation-api:1.2"
+    
     // Not included by default due to the following issue
     // https://github.com/Kotlin/kotlinx.coroutines/issues/1060
     // testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}"
