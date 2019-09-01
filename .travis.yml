@@ -6,10 +6,6 @@ jdk:
   - openjdk12
 dist: trusty
 sudo: false
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
 cache:
   directories:
     - $HOME/.gradle/caches/
@@ -21,8 +17,10 @@ before_cache:
 jobs:
   include:
     - name: Gradle Check
+      install:
+        - ./gradlew assemble
       script:
-        - ./gradlew clean check
-        - cd example-project && ./gradlew clean test
+        - ./gradlew check
+        - cd example-project && ./gradlew test
 after_success:
   - bash <(curl -s https://codecov.io/bash)
