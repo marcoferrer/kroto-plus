@@ -41,7 +41,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

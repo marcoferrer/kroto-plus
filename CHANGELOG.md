@@ -2,6 +2,8 @@
 _\*\*-\*\*_
 * New: Update to Kotlin `1.3.50`
 * New: Update to Kotlin Coroutines `1.3.0`
+* New: Update CI to execute tests against `jdk10`,`jdk11`,`jdk12`
+* New: Update to project gradle to `5.6.2`
 
 #### Protoc Plugin
 * Fix: If no file filter is defined, fallback to `CodeGeneratorRequest.fileToGenerateList` [PR-70](https://github.com/marcoferrer/kroto-plus/pull/70) 
