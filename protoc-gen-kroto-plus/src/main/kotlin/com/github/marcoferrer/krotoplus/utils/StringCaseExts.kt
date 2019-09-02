@@ -16,6 +16,8 @@
 
 package com.github.marcoferrer.krotoplus.utils
 
+import com.google.common.base.CaseFormat
+
 val upperCamelCase = { it: String ->
     // We cant use CaseFormat.UPPER_CAMEL since
     // protoc is lenient with malformed field names
@@ -26,3 +28,13 @@ val upperCamelCase = { it: String ->
 }.memoize()
 
 fun String.toUpperCamelCase(): String = upperCamelCase(this)
+
+private val upperSnakeCase = { it: String ->
+
+    val valueCamel = it.toUpperCamelCase()
+    CaseFormat.UPPER_CAMEL
+        .converterTo(CaseFormat.UPPER_UNDERSCORE)
+        .convert(valueCamel) ?: error("Failed to convert '${valueCamel}' to case 'UPPER_UNDERSCORE'")
+}.memoize()
+
+fun String.toUpperSnakeCase(): String = upperSnakeCase(this)

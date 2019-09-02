@@ -51,6 +51,14 @@ object CommonClassNames{
     val grpcServerServiceDefinition = ClassName("io.grpc", "ServerServiceDefinition")
     val grpcAbstractStub = ClassName("io.grpc.stub", "AbstractStub")
     val grpcStubRpcMethod = ClassName("io.grpc.stub.annotations","RpcMethod")
+    val grpcMethodDescriptor = ClassName("io.grpc","MethodDescriptor")
+
+    object GrpcServerCallHandler {
+        val unary = ClassName("io.grpc.stub","ServerCalls","UnaryMethod")
+        val serverStreaming = ClassName("io.grpc.stub","ServerCalls","ServerStreamingMethod")
+        val clientStreaming = ClassName("io.grpc.stub","ServerCalls","ClientStreamingMethod")
+        val bidiStreaming = ClassName("io.grpc.stub","ServerCalls","BidiStreamingMethod")
+    }
 
     val streamObserver: ClassName = ClassName("io.grpc.stub", "StreamObserver")
 
