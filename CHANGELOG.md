@@ -6,7 +6,8 @@ _\*\*-\*\*_
 * New: Update to project gradle to `5.6.2`
 
 #### Protoc Plugin
-* Fix: If no file filter is defined, fallback to `CodeGeneratorRequest.fileToGenerateList` [PR-70](https://github.com/marcoferrer/kroto-plus/pull/70) 
+* Fix: If no file filter is defined, fallback to `CodeGeneratorRequest.fileToGenerateList` [PR-70](https://github.com/marcoferrer/kroto-plus/pull/70)
+* Fix: File filter is no longer ignored in stub extension generator 
 
 
 ## Version 0.5.0-RC
