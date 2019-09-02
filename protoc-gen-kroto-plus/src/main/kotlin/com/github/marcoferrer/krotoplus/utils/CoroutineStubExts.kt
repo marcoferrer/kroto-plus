@@ -26,7 +26,13 @@ val ClassName.requestParamSpec: ParameterSpec
         .build()
 
 val ClassName.requestValueBuilderCodeBlock: CodeBlock
-    inline get() = CodeBlock.of("val request = %T.newBuilder().apply(block).build()\n", this)
+    inline get() = CodeBlock.builder()
+        .addStatement("val request = %T.newBuilder()", this)
+        .indent()
+        .addStatement(".apply(block)")
+        .addStatement(".build()")
+        .unindent()
+        .build()
 
 fun ClassName.requestValueMethodSigCodeBlock(fields: List<DescriptorProtos.FieldDescriptorProto>): CodeBlock {
 

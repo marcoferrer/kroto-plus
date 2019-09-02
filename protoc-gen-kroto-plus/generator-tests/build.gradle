@@ -27,7 +27,8 @@ dependencies{
     testImplementation project(':kroto-plus-message')
     testImplementation project(':kroto-plus-coroutines')
     testImplementation project(':kroto-plus-test')
-
+    testImplementation "io.mockk:mockk:${Versions.mockk}"
+    
     // For jdk 9+ you need to include javax.annotations
     // The reason is outlined in this grpc issue
     // https://github.com/grpc/grpc-java/issues/4725

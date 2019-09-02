@@ -20,7 +20,10 @@ import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
+import com.github.marcoferrer.krotoplus.proto.Schema
+import com.github.marcoferrer.krotoplus.proto.getFieldClassName
 import com.github.marcoferrer.krotoplus.utils.*
+import com.google.protobuf.DescriptorProtos
 import com.google.protobuf.compiler.PluginProtos
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -39,9 +42,10 @@ object GrpcStubExtsGenerator : Generator {
             val fileBuilder = FileBuilder(options)
 
             for (service in context.schema.protoServices) {
-
-                fileBuilder.buildFile(service)?.let { file ->
-                    responseBuilder.addFile(file)
+                if(isFileToGenerate(service.protoFile.name, options.filter)){
+                    fileBuilder.buildFile(service)?.let { file ->
+                        responseBuilder.addFile(file)
+                    }
                 }
             }
         }
@@ -50,6 +54,9 @@ object GrpcStubExtsGenerator : Generator {
     }
 
     class FileBuilder(val options: GrpcStubExtsGenOptions) {
+
+        private val unaryExtBuilder = UnaryStubExtsBuilder(context)
+        private val serverStreamingExtBuilder = ServerStreamingStubExtsBuilder(context)
 
         fun buildFile(service: ProtoService): PluginProtos.CodeGeneratorResponse.File? = with(service) {
 
@@ -68,11 +75,22 @@ object GrpcStubExtsGenerator : Generator {
                 )
 
             fileSpecBuilder.apply {
-                addFunctions(buildDefaultStubExts())
+                methodDefinitions.forEach { method ->
+                    when (method.type) {
+                        MethodType.UNARY ->
+                            addFunctions(unaryExtBuilder.buildStubExts(service, options))
 
-                if (options.supportCoroutines) {
-                    addFunctions(buildStubCoroutineExts())
-                    addFunctions(buildClientStubRpcRequestOverloads())
+                        MethodType.SERVER_STREAMING ->
+                            addFunctions(serverStreamingExtBuilder.buildStubExts(service, options))
+
+                        MethodType.CLIENT_STREAMING -> if(options.supportCoroutines)
+                            addFunction(method.buildStubClientStreamingMethod())
+
+                        MethodType.BIDI_STREAMING -> if(options.supportCoroutines)
+                            addFunction(method.buildStubCoroutineBidiStreamingMethod())
+
+                        MethodType.UNKNOWN -> throw IllegalStateException("Unknown method type")
+                    }
                 }
             }
 
@@ -81,113 +99,6 @@ object GrpcStubExtsGenerator : Generator {
                 .takeIf { it.members.isNotEmpty() }
                 ?.toResponseFileProto()
         }
-
-        private fun ProtoService.buildDefaultStubExts(): List<FunSpec> =
-            methodDefinitions
-                .filter { it.isUnary }
-                .flatMap { it.buildUnaryDefaultOverloads() }
-
-        private fun ProtoService.buildStubCoroutineExts(): List<FunSpec> =
-            methodDefinitions.map { method ->
-                when (method.type) {
-                    MethodType.UNARY -> method.buildStubUnaryMethod()
-                    MethodType.CLIENT_STREAMING -> method.buildStubClientStreamingMethod()
-                    MethodType.SERVER_STREAMING -> method.buildStubServerStreamingMethod()
-                    MethodType.BIDI_STREAMING -> method.buildStubBidiStreamingMethod()
-                    MethodType.UNKNOWN -> throw IllegalStateException("Unknown method type")
-                }
-            }
-
-        private fun ProtoService.buildClientStubRpcRequestOverloads(): List<FunSpec> =
-            methodDefinitions.mapNotNull {
-                when {
-
-                    it.type == MethodType.UNARY && it.isNotEmptyInput ->
-                        it.buildUnaryCoroutineExtOverload()
-
-                    it.type == MethodType.SERVER_STREAMING ->
-                        it.buildStubServerStreamingMethodOverload()
-
-                    else -> null
-                }
-            }
-
-
-        private fun ProtoMethod.buildUnaryDefaultOverloads(): List<FunSpec> {
-
-            val funSpecs = mutableListOf<FunSpec>()
-
-            // Future Stub Ext
-            funSpecs += FunSpec.builder(functionName)
-                .addModifiers(KModifier.INLINE)
-                .addCode(requestClassName.requestValueBuilderCodeBlock)
-                .addStatement("return %N(request)", functionName)
-                .addParameter("block", requestClassName.builderLambdaTypeName)
-                .receiver(protoService.futureStubClassName)
-                .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
-                .build()
-
-            // Future Stub NoArg Ext
-            funSpecs += FunSpec.builder(functionName)
-                .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
-                .receiver(protoService.futureStubClassName)
-                .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
-                .build()
-
-            // Blocking Stub Ext
-            funSpecs += FunSpec.builder(functionName)
-                .addModifiers(KModifier.INLINE)
-                .addCode(requestClassName.requestValueBuilderCodeBlock)
-                .addStatement("return %N(request)", functionName)
-                .addParameter("block", requestClassName.builderLambdaTypeName)
-                .receiver(protoService.blockingStubClassName)
-                .returns(responseClassName)
-                .build()
-
-            // Blocking Stub NoArg Ext
-            funSpecs += FunSpec.builder(functionName)
-                .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
-                .receiver(protoService.blockingStubClassName)
-                .returns(responseClassName)
-                .build()
-
-            return funSpecs
-        }
-
-        private fun ProtoMethod.buildUnaryCoroutineExtOverload(): FunSpec =
-            FunSpec.builder(functionName)
-                .addModifiers(KModifier.SUSPEND)
-                .receiver(protoService.asyncStubClassName)
-                .addModifiers(KModifier.INLINE)
-                .addParameter("block", requestClassName.builderLambdaTypeName)
-                .returns(responseClassName)
-                .addCode(requestClassName.requestValueBuilderCodeBlock)
-                .addStatement("return %N(request)", functionName)
-                .build()
-
-        private fun ProtoMethod.buildStubServerStreamingMethodOverload(): FunSpec =
-            FunSpec.builder(functionName)
-                .receiver(protoService.asyncStubClassName)
-                .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-                .addModifiers(KModifier.INLINE)
-                .addParameter("block", requestClassName.builderLambdaTypeName)
-                .addCode(requestClassName.requestValueBuilderCodeBlock)
-                .addStatement("return %N(request)", functionName)
-                .build()
-
-        private fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
-            FunSpec.builder(functionName)
-                .addModifiers(KModifier.SUSPEND)
-                .returns(responseClassName)
-                .receiver(protoService.asyncStubClassName)
-                .addParameter(requestClassName.requestParamSpec)
-                .addStatement(
-                    "return %T(request, %T.%N())",
-                    CommonClassNames.ClientCalls.clientCallUnary,
-                    protoService.enclosingServiceClassName,
-                    methodDefinitionGetterName
-                )
-                .build()
 
         private fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
@@ -206,21 +117,7 @@ object GrpcStubExtsGenerator : Generator {
                 )
                 .build()
 
-
-        private fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
-            FunSpec.builder(functionName)
-                .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-                .receiver(protoService.asyncStubClassName)
-                .addParameter(requestClassName.requestParamSpec)
-                .addStatement(
-                    "return %T(request, %T.%N())",
-                    CommonClassNames.ClientCalls.clientCallServerStreaming,
-                    protoService.enclosingServiceClassName,
-                    methodDefinitionGetterName
-                )
-                .build()
-
-        private fun ProtoMethod.buildStubBidiStreamingMethod(): FunSpec =
+        private fun ProtoMethod.buildStubCoroutineBidiStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
                 .receiver(protoService.asyncStubClassName)
                 .returns(
@@ -237,5 +134,341 @@ object GrpcStubExtsGenerator : Generator {
                 )
                 .build()
 
+    }
+}
+
+class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
+
+    fun buildStubExts(protoService: ProtoService, options: GrpcStubExtsGenOptions): List<FunSpec> {
+        val funSpecs = mutableListOf<FunSpec>()
+
+        protoService.methodDefinitions
+            .filter { it.isServerStream }
+            .forEach { method ->
+
+                // Add method signature exts
+                if(method.methodSignatureFields.isNotEmpty()){
+                    funSpecs += buildAsyncMethodSigExt(method)
+                    funSpecs += buildBlockingMethodSigExt(method)
+                }
+
+                // Add lambda builder exts
+                funSpecs += buildAsyncLambdaBuilderExt(method)
+                funSpecs += buildBlockingLambdaBuilderExt(method)
+
+                // Add default arg exts
+                funSpecs += buildAsyncDefaultArgExt(method)
+                funSpecs += buildBlockingDefaultArgExt(method)
+
+                if(options.supportCoroutines)
+                    addCoroutineStubExts(funSpecs, method)
+            }
+
+        return funSpecs
+    }
+
+    private fun addCoroutineStubExts(funSpecs: MutableList<FunSpec>, method: ProtoMethod){
+        if(method.methodSignatureFields.isNotEmpty()) {
+            funSpecs += buildCoroutineMethodSigExt(method)
+        }
+
+        funSpecs += buildCoroutineExt(method)
+        funSpecs += buildCoroutineLambdaBuilderExt(method)
+    }
+
+    // Coroutine Extension
+
+    private fun buildCoroutineExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
+            .receiver(protoService.asyncStubClassName)
+            .addParameter(requestClassName.requestParamSpec)
+            .addStatement(
+                "return %T(request, %T.%N())",
+                CommonClassNames.ClientCalls.clientCallServerStreaming,
+                protoService.enclosingServiceClassName,
+                methodDefinitionGetterName
+            )
+            .build()
+    }
+
+    // Method Signature Extensions
+
+    private fun buildAsyncMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .returns(UNIT)
+            .addMethodSignatureParamerter(methodSignatureFields, context.schema)
+            .addResponseObserverParamerter(responseClassName)
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("%N(request, responseObserver)",functionName)
+            .build()
+    }
+
+    private fun buildCoroutineMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .addMethodSignatureParamerter(methodSignatureFields, context.schema)
+            .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("return %N(request)",functionName)
+            .build()
+    }
+
+    private fun buildBlockingMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.blockingStubClassName)
+            .addMethodSignatureParamerter(methodSignatureFields, context.schema)
+            .returns(Iterator::class.asClassName().parameterizedBy(responseClassName))
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("return %N(request)",functionName)
+            .build()
+    }
+
+    // Lambda Builder Extensions
+
+    private fun buildAsyncLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.INLINE)
+            .receiver(protoService.asyncStubClassName)
+            .addResponseObserverParamerter(responseClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .returns(UNIT)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addStatement("%N(request, responseObserver)", functionName)
+            .build()
+    }
+
+    private fun buildCoroutineLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
+            .addModifiers(KModifier.INLINE)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addStatement("return %N(request)", functionName)
+            .build()
+    }
+
+    private fun buildBlockingLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.INLINE)
+            .receiver(protoService.blockingStubClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .returns(Iterator::class.asClassName().parameterizedBy(responseClassName))
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addStatement("return %N(request)", functionName)
+            .build()
+    }
+
+    // Default Argument Extensions
+
+    private fun buildAsyncDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .addResponseObserverParamerter(responseClassName)
+            .returns(UNIT)
+            .addStatement("%N(%T.getDefaultInstance(),responseObserver)", functionName, requestClassName)
+            .build()
+    }
+
+    private fun buildBlockingDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.blockingStubClassName)
+            .returns(Iterator::class.asClassName().parameterizedBy(responseClassName))
+            .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
+            .build()
+    }
+
+}
+
+class UnaryStubExtsBuilder(val context: GeneratorContext){
+
+    fun buildStubExts(protoService: ProtoService, options: GrpcStubExtsGenOptions): List<FunSpec> {
+        val funSpecs = mutableListOf<FunSpec>()
+
+        protoService.methodDefinitions
+            .filter { it.isUnary }
+            .forEach { method ->
+
+                // Add method signature exts
+                if(method.methodSignatureFields.isNotEmpty()){
+                    funSpecs += buildAsyncMethodSigExt(method)
+                    funSpecs += buildFutureMethodSigExt(method)
+                    funSpecs += buildBlockingMethodSigExt(method)
+                }
+
+                // Add lambda builder exts
+                funSpecs += buildAsyncLambdaBuilderExt(method)
+                funSpecs += buildFutureLambdaBuilderExt(method)
+                funSpecs += buildBlockingLambdaBuilderExt(method)
+
+                // Add default arg exts
+                funSpecs += buildAsyncDefaultArgExt(method)
+                funSpecs += buildFutureDefaultArgExt(method)
+                funSpecs += buildBlockingDefaultArgExt(method)
+
+                if(options.supportCoroutines)
+                    addCoroutineStubExts(funSpecs, method)
+            }
+
+        return funSpecs
+    }
+
+    private fun addCoroutineStubExts(funSpecs: MutableList<FunSpec>, method: ProtoMethod){
+        if(method.methodSignatureFields.isNotEmpty()) {
+            funSpecs += buildCoroutineMethodSigExt(method)
+        }
+
+        funSpecs += buildCoroutineExt(method)
+        funSpecs += buildCoroutineLambdaBuilderExt(method)
+    }
+
+    // Coroutine Extension
+
+    private fun buildCoroutineExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND)
+            .receiver(protoService.asyncStubClassName)
+            .addParameter(requestClassName.requestParamSpec)
+            .returns(responseClassName)
+            .addStatement(
+                "return %T(request, %T.%N())",
+                CommonClassNames.ClientCalls.clientCallUnary,
+                protoService.enclosingServiceClassName,
+                methodDefinitionGetterName
+            )
+            .build()
+    }
+
+    // Method Signature Extensions
+
+    private fun buildAsyncMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .addMethodSignatureParamerter(methodSignatureFields, context.schema)
+            .addResponseObserverParamerter(responseClassName)
+            .returns(UNIT)
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("%N(request, responseObserver)",functionName)
+            .build()
+    }
+
+    private fun buildCoroutineMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.SUSPEND)
+            .receiver(protoService.asyncStubClassName)
+            .returns(responseClassName)
+            .addMethodSignatureParamerter(methodSignatureFields, context.schema)
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("return %N(request)",functionName)
+            .build()
+    }
+
+    private fun buildFutureMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.futureStubClassName)
+            .addMethodSignatureParamerter(methodSignatureFields, context.schema)
+            .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("return %N(request)",functionName)
+            .build()
+    }
+
+    private fun buildBlockingMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.blockingStubClassName)
+            .returns(responseClassName)
+            .addMethodSignatureParamerter(methodSignatureFields, context.schema)
+            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
+            .addStatement("return %N(request)",functionName)
+            .build()
+    }
+
+    // Lambda Builder Extensions
+
+    private fun buildAsyncLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .addModifiers(KModifier.INLINE)
+            .addResponseObserverParamerter(responseClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .returns(UNIT)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addStatement("%N(request, responseObserver)", functionName)
+            .build()
+    }
+
+    private fun buildCoroutineLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .addModifiers(KModifier.INLINE, KModifier.SUSPEND)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .returns(responseClassName)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addStatement("return %N(request)", functionName)
+            .build()
+    }
+
+    private fun buildFutureLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.INLINE)
+            .receiver(protoService.futureStubClassName)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addStatement("return %N(request)", functionName)
+            .build()
+    }
+
+    private fun buildBlockingLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addModifiers(KModifier.INLINE)
+            .addCode(requestClassName.requestValueBuilderCodeBlock)
+            .addParameter("block", requestClassName.builderLambdaTypeName)
+            .addStatement("return %N(request)", functionName)
+            .receiver(protoService.blockingStubClassName)
+            .returns(responseClassName)
+            .build()
+    }
+
+    // Default Argument Extensions
+
+    private fun buildAsyncDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .receiver(protoService.asyncStubClassName)
+            .addResponseObserverParamerter(responseClassName)
+            .addStatement("%N(%T.getDefaultInstance(),responseObserver)", functionName, requestClassName)
+            .returns(UNIT)
+            .build()
+    }
+
+    private fun buildFutureDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
+            .receiver(protoService.futureStubClassName)
+            .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
+            .build()
+    }
+
+    private fun buildBlockingDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
+        FunSpec.builder(functionName)
+            .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
+            .receiver(protoService.blockingStubClassName)
+            .returns(responseClassName)
+            .build()
+    }
+}
+
+private fun FunSpec.Builder.addResponseObserverParamerter(responseClassName: ClassName): FunSpec.Builder = apply {
+    addParameter("responseObserver", CommonClassNames.streamObserver.parameterizedBy(responseClassName))
+}
+
+private fun FunSpec.Builder.addMethodSignatureParamerter(
+    methodSignatureFields: List<DescriptorProtos.FieldDescriptorProto>,
+    schema: Schema
+): FunSpec.Builder = apply {
+    addForEach(methodSignatureFields){
+        addParameter(it.name.toUpperCamelCase().decapitalize(), it.getFieldClassName(schema))
     }
 }

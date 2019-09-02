@@ -598,7 +598,7 @@ object GrpcCoroutinesGenerator : Generator {
             .addModifiers(KModifier.SUSPEND)
             .returns(responseClassName)
             .addForEach(methodSignatureFields){
-                addParameter(upperCamelCase(it.name).decapitalize(), it.getFieldClassName(context.schema))
+                addParameter(it.name.toUpperCamelCase().decapitalize(), it.getFieldClassName(context.schema))
             }
             .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
             .addStatement("return %N(request)",functionName)
@@ -618,7 +618,7 @@ object GrpcCoroutinesGenerator : Generator {
             null else FunSpec.builder(functionName)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addForEach(methodSignatureFields){
-                addParameter(upperCamelCase(it.name).decapitalize(), it.getFieldClassName(context.schema))
+                addParameter(it.name.toUpperCamelCase().decapitalize(), it.getFieldClassName(context.schema))
             }
             .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
             .addStatement("return %N(request)",functionName)
