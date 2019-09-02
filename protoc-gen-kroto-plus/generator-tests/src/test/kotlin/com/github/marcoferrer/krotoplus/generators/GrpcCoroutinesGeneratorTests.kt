@@ -88,6 +88,19 @@ class GrpcCoroutinesGeneratorTests {
     }
 
     @Test
+    fun `Service name prop is generated`(){
+        assertEquals(GreeterGrpc.SERVICE_NAME, GreeterCoroutineGrpc.SERVICE_NAME)
+    }
+
+    @Test
+    fun `Method descriptors are generated`(){
+        assertEquals(GreeterGrpc.getSayHelloMethod(), GreeterCoroutineGrpc.sayHelloMethod)
+        assertEquals(GreeterGrpc.getSayHelloServerStreamingMethod(), GreeterCoroutineGrpc.sayHelloServerStreamingMethod)
+        assertEquals(GreeterGrpc.getSayHelloClientStreamingMethod(), GreeterCoroutineGrpc.sayHelloClientStreamingMethod)
+        assertEquals(GreeterGrpc.getSayHelloStreamingMethod(), GreeterCoroutineGrpc.sayHelloStreamingMethod)
+    }
+
+    @Test
     fun `Unary rpc methods are generated`() = runBlocking {
         val stub = GreeterCoroutineGrpc.newStub(grpcServerRule.channel)
         assertEquals(expectedMessage,stub.sayHello(HelloRequest.getDefaultInstance()).message)
