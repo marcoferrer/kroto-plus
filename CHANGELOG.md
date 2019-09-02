@@ -9,9 +9,6 @@ _\*\*-\*\*_
 * Fix: If no file filter is defined, fallback to `CodeGeneratorRequest.fileToGenerateList` [PR-70](https://github.com/marcoferrer/kroto-plus/pull/70)
 * Fix: File filter is no longer ignored in stub extension generator 
 
-#### Proto Builders (DSL)
-* Fix: Empty object generation when using maps and multiple files. [PR-51](https://github.com/marcoferrer/kroto-plus/pull/51) Thanks to @sauldhernandez
-
 
 ## Version 0.5.0-RC
 _2019-08-22_
