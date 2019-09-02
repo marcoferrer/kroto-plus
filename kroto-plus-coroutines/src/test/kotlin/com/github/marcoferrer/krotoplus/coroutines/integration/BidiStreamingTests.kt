@@ -117,7 +117,7 @@ class BidiStreamingTests {
                 val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
                 val reqChanSpy = spyk(requestChannel)
-                launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
+                val reqJob = launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
                     assertFailsWithStatus(Status.CANCELLED) {
                         repeat(6) {
                             reqChanSpy.send { name = "name $it" }
@@ -126,6 +126,7 @@ class BidiStreamingTests {
                 }
 
                 responseChannel.cancel()
+                reqJob.join()
 
                 coVerify(exactly = 2) { reqChanSpy.send(any()) }
                 assert(reqChanSpy.isClosedForSend) { "Request channel should be closed after response channel is closed" }
