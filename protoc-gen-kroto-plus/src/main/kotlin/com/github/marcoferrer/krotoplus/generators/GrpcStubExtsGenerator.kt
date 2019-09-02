@@ -78,10 +78,10 @@ object GrpcStubExtsGenerator : Generator {
                 methodDefinitions.forEach { method ->
                     when (method.type) {
                         MethodType.UNARY ->
-                            addFunctions(unaryExtBuilder.buildStubExts(service, options))
+                            addFunctions(unaryExtBuilder.buildStubExts(method, options))
 
                         MethodType.SERVER_STREAMING ->
-                            addFunctions(serverStreamingExtBuilder.buildStubExts(service, options))
+                            addFunctions(serverStreamingExtBuilder.buildStubExts(method, options))
 
                         MethodType.CLIENT_STREAMING -> if(options.supportCoroutines)
                             addFunction(method.buildStubClientStreamingMethod())
@@ -139,30 +139,25 @@ object GrpcStubExtsGenerator : Generator {
 
 class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
-    fun buildStubExts(protoService: ProtoService, options: GrpcStubExtsGenOptions): List<FunSpec> {
+    fun buildStubExts(method: ProtoMethod, options: GrpcStubExtsGenOptions): List<FunSpec> {
         val funSpecs = mutableListOf<FunSpec>()
 
-        protoService.methodDefinitions
-            .filter { it.isServerStream }
-            .forEach { method ->
+        // Add method signature exts
+        if(method.methodSignatureFields.isNotEmpty()){
+            funSpecs += buildAsyncMethodSigExt(method)
+            funSpecs += buildBlockingMethodSigExt(method)
+        }
 
-                // Add method signature exts
-                if(method.methodSignatureFields.isNotEmpty()){
-                    funSpecs += buildAsyncMethodSigExt(method)
-                    funSpecs += buildBlockingMethodSigExt(method)
-                }
+        // Add lambda builder exts
+        funSpecs += buildAsyncLambdaBuilderExt(method)
+        funSpecs += buildBlockingLambdaBuilderExt(method)
 
-                // Add lambda builder exts
-                funSpecs += buildAsyncLambdaBuilderExt(method)
-                funSpecs += buildBlockingLambdaBuilderExt(method)
+        // Add default arg exts
+        funSpecs += buildAsyncDefaultArgExt(method)
+        funSpecs += buildBlockingDefaultArgExt(method)
 
-                // Add default arg exts
-                funSpecs += buildAsyncDefaultArgExt(method)
-                funSpecs += buildBlockingDefaultArgExt(method)
-
-                if(options.supportCoroutines)
-                    addCoroutineStubExts(funSpecs, method)
-            }
+        if(options.supportCoroutines)
+            addCoroutineStubExts(funSpecs, method)
 
         return funSpecs
     }
@@ -284,33 +279,28 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
 class UnaryStubExtsBuilder(val context: GeneratorContext){
 
-    fun buildStubExts(protoService: ProtoService, options: GrpcStubExtsGenOptions): List<FunSpec> {
+    fun buildStubExts(method: ProtoMethod, options: GrpcStubExtsGenOptions): List<FunSpec> {
         val funSpecs = mutableListOf<FunSpec>()
 
-        protoService.methodDefinitions
-            .filter { it.isUnary }
-            .forEach { method ->
+        // Add method signature exts
+        if(method.methodSignatureFields.isNotEmpty()){
+            funSpecs += buildAsyncMethodSigExt(method)
+            funSpecs += buildFutureMethodSigExt(method)
+            funSpecs += buildBlockingMethodSigExt(method)
+        }
 
-                // Add method signature exts
-                if(method.methodSignatureFields.isNotEmpty()){
-                    funSpecs += buildAsyncMethodSigExt(method)
-                    funSpecs += buildFutureMethodSigExt(method)
-                    funSpecs += buildBlockingMethodSigExt(method)
-                }
+        // Add lambda builder exts
+        funSpecs += buildAsyncLambdaBuilderExt(method)
+        funSpecs += buildFutureLambdaBuilderExt(method)
+        funSpecs += buildBlockingLambdaBuilderExt(method)
 
-                // Add lambda builder exts
-                funSpecs += buildAsyncLambdaBuilderExt(method)
-                funSpecs += buildFutureLambdaBuilderExt(method)
-                funSpecs += buildBlockingLambdaBuilderExt(method)
+        // Add default arg exts
+        funSpecs += buildAsyncDefaultArgExt(method)
+        funSpecs += buildFutureDefaultArgExt(method)
+        funSpecs += buildBlockingDefaultArgExt(method)
 
-                // Add default arg exts
-                funSpecs += buildAsyncDefaultArgExt(method)
-                funSpecs += buildFutureDefaultArgExt(method)
-                funSpecs += buildBlockingDefaultArgExt(method)
-
-                if(options.supportCoroutines)
-                    addCoroutineStubExts(funSpecs, method)
-            }
+        if(options.supportCoroutines)
+            addCoroutineStubExts(funSpecs, method)
 
         return funSpecs
     }

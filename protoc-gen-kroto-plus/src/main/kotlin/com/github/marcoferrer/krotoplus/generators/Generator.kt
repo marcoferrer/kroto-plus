@@ -88,5 +88,12 @@ fun initializeContext(compilerConfig: CompilerConfig? = null) {
 
 
 private val OptionsExtRegistry = ExtensionRegistry.newInstance().also {
+    // Register extensions for reading method signature options
     ClientProto.registerAllExtensions(it)
+
+    // Register extensions used for ready http options.
+    // Currently there isnt a generator that leverages this option
+    // but there are existing community scripts that would benefit
+    // from this.
+    AnnotationsProto.registerAllExtensions(it)
 }

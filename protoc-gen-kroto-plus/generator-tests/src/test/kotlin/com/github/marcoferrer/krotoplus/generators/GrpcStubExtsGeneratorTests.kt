@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:UseExperimental(ExperimentalCoroutinesApi::class,ObsoleteCoroutinesApi::class)
-
 package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.coroutines.launchProducerJob
@@ -50,6 +48,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
+@UseExperimental(ExperimentalCoroutinesApi::class)
 class GrpcStubExtsGeneratorTests {
 
     @[Rule JvmField]
@@ -125,6 +124,7 @@ class GrpcStubExtsGeneratorTests {
     }
 }
 
+@UseExperimental(ExperimentalCoroutinesApi::class)
 class GrpcStubServerStreamingExtsGeneratorTests {
 
     @[Rule JvmField]
