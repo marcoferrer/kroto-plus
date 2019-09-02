@@ -26,6 +26,9 @@ class ProtoMethod(
     val protoService: ProtoService
 ) : Schema.DescriptorWrapper {
 
+    val name: String
+        get() = descriptorProto.name
+
     val functionName = descriptorProto.name.toUpperCamelCase().let{
         if(descriptorProto.name.startsWith("_"))
             "_$it" else it.decapitalize()

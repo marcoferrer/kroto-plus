@@ -26,10 +26,25 @@ val ClassName.requestParamSpec: ParameterSpec
         .build()
 
 val ClassName.requestValueBuilderCodeBlock: CodeBlock
-    inline get() = CodeBlock.builder()
-        .addStatement("val request = %T.newBuilder()", this)
+    inline get() = messageBuilderValueCodeBlock(
+        this,
+        "request",
+        "block"
+    )
+
+fun messageBuilderValueCodeBlock(
+    messageClassName: ClassName,
+    valueVarName: String,
+    builderLambdaVarName: String
+): CodeBlock=
+    CodeBlock.builder()
+        .addStatement(
+            "val %N = %T.newBuilder()",
+            valueVarName,
+            messageClassName
+        )
         .indent()
-        .addStatement(".apply(block)")
+        .addStatement(".apply(%N)", builderLambdaVarName)
         .addStatement(".build()")
         .unindent()
         .build()
