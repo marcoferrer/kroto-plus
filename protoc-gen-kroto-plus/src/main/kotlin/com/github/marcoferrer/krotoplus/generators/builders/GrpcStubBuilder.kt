@@ -194,9 +194,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
             null else FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND)
             .returns(responseClassName)
-            .addForEach(methodSignatureFields){
-                addParameter(it.name.toUpperCamelCase().decapitalize(), it.getFieldClassName(context.schema))
-            }
+            .addMethodSignatureParameter(methodSignatureFields,context.schema)
             .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
             .addStatement("return %N(request)",functionName)
             .build()
@@ -206,9 +204,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
         if(methodSignatureFields.isEmpty())
             null else FunSpec.builder(functionName)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-            .addForEach(methodSignatureFields){
-                addParameter(it.name.toUpperCamelCase().decapitalize(), it.getFieldClassName(context.schema))
-            }
+            .addMethodSignatureParameter(methodSignatureFields,context.schema)
             .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
             .addStatement("return %N(request)",functionName)
             .build()

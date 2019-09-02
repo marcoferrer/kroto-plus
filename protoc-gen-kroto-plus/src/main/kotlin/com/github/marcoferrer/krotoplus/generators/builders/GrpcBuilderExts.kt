@@ -52,11 +52,11 @@ internal val ProtoService.stubClassName: ClassName
 internal val ProtoMethod.idPropertyName: String
     get() = "METHODID_${name.toUpperSnakeCase()}"
 
-internal fun FunSpec.Builder.addResponseObserverParamerter(responseClassName: ClassName): FunSpec.Builder = apply {
+internal fun FunSpec.Builder.addResponseObserverParameter(responseClassName: ClassName): FunSpec.Builder = apply {
     addParameter("responseObserver", CommonClassNames.streamObserver.parameterizedBy(responseClassName))
 }
 
-internal fun FunSpec.Builder.addMethodSignatureParamerter(
+internal fun FunSpec.Builder.addMethodSignatureParameter(
     methodSignatureFields: List<DescriptorProtos.FieldDescriptorProto>,
     schema: Schema
 ): FunSpec.Builder = apply {

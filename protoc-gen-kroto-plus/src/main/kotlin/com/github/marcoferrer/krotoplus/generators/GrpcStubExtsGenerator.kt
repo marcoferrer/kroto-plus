@@ -20,17 +20,17 @@ import com.github.marcoferrer.krotoplus.config.GrpcStubExtsGenOptions
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
 import com.github.marcoferrer.krotoplus.generators.builders.ServerStreamingStubExtsBuilder
 import com.github.marcoferrer.krotoplus.generators.builders.UnaryStubExtsBuilder
-import com.github.marcoferrer.krotoplus.generators.builders.addResponseObserverParamerter
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
-import com.github.marcoferrer.krotoplus.proto.Schema
-import com.github.marcoferrer.krotoplus.proto.getFieldClassName
-import com.github.marcoferrer.krotoplus.utils.*
-import com.google.protobuf.DescriptorProtos
+import com.github.marcoferrer.krotoplus.utils.CommonClassNames
+import com.github.marcoferrer.krotoplus.utils.addFunctions
 import com.google.protobuf.compiler.PluginProtos
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import io.grpc.MethodDescriptor.*
+import com.squareup.kotlinpoet.asClassName
+import io.grpc.MethodDescriptor.MethodType
 
 
 object GrpcStubExtsGenerator : Generator {
