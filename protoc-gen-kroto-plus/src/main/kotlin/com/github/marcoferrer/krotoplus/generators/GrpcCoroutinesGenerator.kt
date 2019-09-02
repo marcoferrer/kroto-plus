@@ -16,15 +16,35 @@
 
 package com.github.marcoferrer.krotoplus.generators
 
-import com.github.marcoferrer.krotoplus.config.FileFilter
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
-import com.github.marcoferrer.krotoplus.proto.*
-import com.github.marcoferrer.krotoplus.utils.*
+import com.github.marcoferrer.krotoplus.proto.ProtoMessage
+import com.github.marcoferrer.krotoplus.proto.ProtoMethod
+import com.github.marcoferrer.krotoplus.proto.ProtoService
+import com.github.marcoferrer.krotoplus.proto.getFieldClassName
+import com.github.marcoferrer.krotoplus.proto.getGeneratedAnnotationSpec
+import com.github.marcoferrer.krotoplus.utils.CommonClassNames
+import com.github.marcoferrer.krotoplus.utils.addForEach
+import com.github.marcoferrer.krotoplus.utils.addFunctions
+import com.github.marcoferrer.krotoplus.utils.builderLambdaTypeName
+import com.github.marcoferrer.krotoplus.utils.requestParamSpec
+import com.github.marcoferrer.krotoplus.utils.requestValueBuilderCodeBlock
+import com.github.marcoferrer.krotoplus.utils.requestValueMethodSigCodeBlock
+import com.github.marcoferrer.krotoplus.utils.toUpperCamelCase
 import com.google.protobuf.compiler.PluginProtos
-import com.squareup.kotlinpoet.*
-import io.grpc.MethodDescriptor.*
-import java.lang.IllegalStateException
+import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.LambdaTypeName
+import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.UNIT
+import com.squareup.kotlinpoet.asClassName
+import io.grpc.MethodDescriptor.MethodType
 
 
 object GrpcCoroutinesGenerator : Generator {
@@ -118,7 +138,24 @@ object GrpcCoroutinesGenerator : Generator {
                     .initializer("%T.SERVICE_NAME", enclosingServiceClassName)
                     .build()
             )
+            .addProperties(buildMethodDefinitionProps())
             .build()
+
+    private fun ProtoService.buildMethodDefinitionProps(): List<PropertySpec> =
+        methodDefinitions.map { method ->
+            val propName = "${method.descriptorProto.name.toUpperCamelCase().decapitalize()}Method"
+            val propTypeName = CommonClassNames.grpcMethodDescriptor
+                .parameterizedBy(method.requestClassName, method.responseClassName)
+            val propGetter = FunSpec.getterBuilder()
+                .addStatement("return %T.%N()", enclosingServiceClassName, method.methodDefinitionGetterName)
+                .build()
+
+            PropertySpec.builder(propName, propTypeName)
+                .addAnnotation(JvmStatic::class.asClassName())
+                .addAnnotation(method.buildRpcMethodAnnotation())
+                .getter(propGetter)
+                .build()
+        }
 
     private fun ProtoService.buildServiceBaseImpl(): TypeSpec {
 
@@ -485,7 +522,6 @@ object GrpcCoroutinesGenerator : Generator {
 
     private fun ProtoMethod.buildStubBidiStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
-            .addAnnotation(buildRpcMethodAnnotation())
             .returns(
                 CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(
                     requestClassName,
@@ -567,11 +603,11 @@ object GrpcCoroutinesGenerator : Generator {
             .addMember("requestType = %T::class", requestClassName)
             .addMember("responseType = %T::class", responseClassName)
             .addMember("methodType = %T.%N", MethodType::class, type.name)
+            .useSiteTarget(AnnotationSpec.UseSiteTarget.GET)
             .build()
 
     private fun ProtoMethod.buildStubUnaryMethod(): FunSpec =
         FunSpec.builder(functionName)
-            .addAnnotation(buildRpcMethodAnnotation())
             .addModifiers(KModifier.SUSPEND)
             .returns(responseClassName)
             .addParameter(requestClassName.requestParamSpec)
@@ -626,7 +662,6 @@ object GrpcCoroutinesGenerator : Generator {
 
     private fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
-            .addAnnotation(buildRpcMethodAnnotation())
             .returns(
                 CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
                     requestClassName,
@@ -644,7 +679,6 @@ object GrpcCoroutinesGenerator : Generator {
 
     private fun ProtoMethod.buildStubServerStreamingMethod(): FunSpec =
         FunSpec.builder(functionName)
-            .addAnnotation(buildRpcMethodAnnotation())
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addParameter(requestClassName.requestParamSpec)
             .addStatement(

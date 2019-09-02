@@ -48,3 +48,9 @@ fun <T> FunSpec.Builder.addForEach(list: List<T>, block: FunSpec.Builder.(T) -> 
         block(item)
     }
 }
+
+fun <T> TypeSpec.Builder.addForEach(list: List<T>, block: TypeSpec.Builder.(T) -> Unit): TypeSpec.Builder = apply {
+    for(item in list){
+        block(item)
+    }
+}
