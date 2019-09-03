@@ -1,5 +1,5 @@
 ## Version 0.5.0
-_\*\*-\*\*_
+_2019-09-03_
 * New: Update to Kotlin `1.3.50` [PR-68](https://github.com/marcoferrer/kroto-plus/pull/68)
 * New: Update to Kotlin Coroutines `1.3.0`
 * New: Update CI to execute tests against `jdk10`,`jdk11`,`jdk12` [PR-74](https://github.com/marcoferrer/kroto-plus/pull/74)
