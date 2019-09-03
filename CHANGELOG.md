@@ -1,13 +1,23 @@
 ## Version 0.5.0
 _\*\*-\*\*_
-* New: Update to Kotlin `1.3.50`
+* New: Update to Kotlin `1.3.50` [PR-68](https://github.com/marcoferrer/kroto-plus/pull/68)
 * New: Update to Kotlin Coroutines `1.3.0`
-* New: Update CI to execute tests against `jdk10`,`jdk11`,`jdk12`
+* New: Update CI to execute tests against `jdk10`,`jdk11`,`jdk12` [PR-74](https://github.com/marcoferrer/kroto-plus/pull/74)
 * New: Update to project gradle to `5.6.2`
 
 #### Protoc Plugin
 * Fix: If no file filter is defined, fallback to `CodeGeneratorRequest.fileToGenerateList` [PR-70](https://github.com/marcoferrer/kroto-plus/pull/70)
-* Fix: File filter is no longer ignored in stub extension generator 
+
+#### Proto Builders (DSL)
+* Fix: File filter is no longer ignored in stub extension generator
+* New: Refactor stub ext generator and add support for method signature options [PR-75](https://github.com/marcoferrer/kroto-plus/pull/75)
+* New: Add missing stub ext overloads for async and blocking stubs  [PR-75](https://github.com/marcoferrer/kroto-plus/pull/75)
+* New: Add support for method signature options in coroutine stubs [PR-72](https://github.com/marcoferrer/kroto-plus/pull/72)
+
+#### Coroutines
+* Fix: Usage of `@RpcMethod` annotation now properly targets method descriptors in generated code 
+* New: Refactor gRPC coroutines generator for better maintainability [PR-76](https://github.com/marcoferrer/kroto-plus/pull/76)
+* New: Expose script cache directory configuration [PR-69](https://github.com/marcoferrer/kroto-plus/pull/69)
 
 
 ## Version 0.5.0-RC
