@@ -67,7 +67,7 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
     }
 
     val messageHandlerActor = actor<MessageHandler>(
-        capacity = Channel.UNLIMITED,
+        capacity = Channel.BUFFERED,
         context = Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
             streamObserver.completeSafely(e)
             targetChannel.close(e)
