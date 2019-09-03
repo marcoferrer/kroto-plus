@@ -1,5 +1,5 @@
 ![Kroto+](https://raw.githubusercontent.com/marcoferrer/kroto-plus/master/kp-logo.svg?sanitize=true)
-## Protoc plugin for bringing together Kotlin, Protobuf, Coroutines, and gRPC  
+## gRPC Kotlin Coroutines, Protobuf DSL, Scripting for Protoc   
 [![Build Status](https://travis-ci.org/marcoferrer/kroto-plus.svg?branch=master)](https://travis-ci.org/marcoferrer/kroto-plus)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![JCenter](https://api.bintray.com/packages/marcoferrer/kroto-plus/protoc-gen-kroto-plus/images/download.svg) ](https://bintray.com/marcoferrer/kroto-plus/protoc-gen-kroto-plus/_latestVersion)
@@ -18,10 +18,13 @@ cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
 
-## Version 0.5.0-RC
+## Version 0.5.0
 * [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
 * Most notable changes
+  * Support for [(google.api.method_signature)](https://github.com/googleapis/api-common-protos/blob/2769b82d4993ccbe66a3d886aa5466fdbd050ea2/google/api/client.proto#L79) method option in gRPC clients and stub extension code generators. More info available [here](#method-signature-options-support)
   * Bug fixes and performance improvements for streaming APIs in gRPC coroutines
+  * Improvements to stub extension generator output
+  * Tests are now executed against `JDK8`, `JDK10`, `JDK11`, `JDK12`
 
 * **In Progress:** Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 
@@ -55,12 +58,15 @@ This generator creates lambda based builders for message types
         range = StandProto.Attack.Range.CLOSE
     }
     
-    //Copy extensions are also generated
+    // Copy extensions are also generated
     val newAttack = attack.copy { damage = 200 }            
     
-    //As well as plus operator extensions 
-    val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }
-                
+    // orDefault() will return the messages default instance when null
+    val nullableAttack: Attack? = null
+    nullableAttack.orDefault()
+    
+    // As well as plus operator extensions 
+    val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }            
 ```
 
 The generated extensions allow composition of proto messages in a dsl style. Support for Kotlin's ```@DslMarker``` annotation is enabled using the configuration option ```useDslMarkers = true```. Using dsl markers relies on protoc insertions, so take care to ensure that the ___kroto-plus___ output directory is the same as the directory for generated ___java___ code  
@@ -84,6 +90,7 @@ This option requires the artifact ```kroto-plus-coroutines``` as a dependency.
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpccoroutinesgenoptions)
 
 [Client / Server Examples](https://github.com/marcoferrer/kroto-plus#examples)  
+[Method Signature Option Support](#method-signature-options-support)  
 
 * Design
   * **Back pressure** is supported via [Manual Flow Control](https://github.com/grpc/grpc-java/tree/master/examples/src/main/java/io/grpc/examples/manualflowcontrol)
@@ -253,7 +260,7 @@ override suspend fun sayHelloStreaming(
 ### gRPC Stub Extensions
 #### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#grpcstubextsgenoptions)
 
-This modules generates convenience extensions that overload the request message argument for rpc methods with a builder lambda block and a default value.
+This modules generates convenience extensions that overload the request message argument for rpc methods with a builder lambda block and a default value. It also supports generating overloads based off [(google.api.method_signature)](https://github.com/googleapis/api-common-protos/blob/2769b82d4993ccbe66a3d886aa5466fdbd050ea2/google/api/client.proto#L79) method options. More info available [here](#method-signature-options-support)
 
 ```kotlin
                
@@ -419,6 +426,41 @@ There are two categories of scripts available.
 
 #### Community Scripts
 Community contributions for scripts are welcomed and more information regarding guidelines will be published soon.  
+
+---
+
+#### Method Signature Options Support  
+Usage of [(google.api.method_signature)](https://github.com/googleapis/api-common-protos/blob/2769b82d4993ccbe66a3d886aa5466fdbd050ea2/google/api/client.proto#L79) method option is now supported.
+This allows users to customize the method parameters outputted in generated clients as well as stub extensions.
+To config your rpc methods, first add the google common proto dependency to your build
+```groovy
+dependencies{
+    compileOnly "com.google.api.grpc:proto-google-common-protos:1.16.0"
+}
+```
+
+Then add the following import to your proto definition.
+```proto
+import "google/api/client.proto";
+```    
+
+Now the method option should be available for usage in your method definition
+```proto
+// Sends a greeting
+rpc SayHello (HelloRequest) returns (HelloReply){
+    option (google.api.method_signature) = "name";
+};
+```
+
+This will result in the following method signature being outputed from gRPC and stub extension code generators.
+```kotlin
+ fun GreeterStub.sayHello(name: String): HelloReply{
+    val request = HelloRequest.newBuilder()
+        .setName(name)
+        .build()
+    return sayHello(request)
+ }
+```
 
 ---
 
