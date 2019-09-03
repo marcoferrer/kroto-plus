@@ -66,10 +66,7 @@ This generator creates lambda based builders for message types
     nullableAttack.orDefault()
     
     // As well as plus operator extensions 
-    val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }
-    
-    
-                
+    val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }            
 ```
 
 The generated extensions allow composition of proto messages in a dsl style. Support for Kotlin's ```@DslMarker``` annotation is enabled using the configuration option ```useDslMarkers = true```. Using dsl markers relies on protoc insertions, so take care to ensure that the ___kroto-plus___ output directory is the same as the directory for generated ___java___ code  
@@ -456,7 +453,7 @@ rpc SayHello (HelloRequest) returns (HelloReply){
 ```
 
 This will result in the following method signature being outputed from gRPC and stub extension code generators.
-```
+```kotlin
  fun GreeterStub.sayHello(name: String): HelloReply{
     val request = HelloRequest.newBuilder()
         .setName(name)
