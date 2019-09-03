@@ -17,8 +17,10 @@ _2019-09-03_
 #### Coroutines
 * Fix: Usage of `@RpcMethod` annotation now properly targets method descriptors in generated code 
 * New: Refactor gRPC coroutines generator for better maintainability [PR-76](https://github.com/marcoferrer/kroto-plus/pull/76)
-* New: Expose script cache directory configuration [PR-69](https://github.com/marcoferrer/kroto-plus/pull/69)
 
+#### Code Generation Scripts
+* New: Expose script cache directory configuration [PR-69](https://github.com/marcoferrer/kroto-plus/pull/69) Thanks to @AlexeySoshin
+* New: Register option extension for `(google.api.http)` so that its available during user script invocation
 
 ## Version 0.5.0-RC
 _2019-08-22_
