@@ -42,7 +42,7 @@ protobuf {
     //noinspection GroovyAssignabilityCheck
     plugins {
         kroto {
-            path = "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-jvm8.jar"
+            path = "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-${osdetector.classifier}.exe"
         }
     }
 
@@ -51,7 +51,7 @@ protobuf {
 
         all().each{ task ->
             task.inputs.files krotoConfig
-            task.dependsOn ':protoc-gen-kroto-plus:bootJar'
+            task.dependsOn ':protoc-gen-kroto-plus:buildCanteenArtifacts'
 
             task.plugins {
                 kroto {

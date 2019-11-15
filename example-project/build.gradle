@@ -89,7 +89,7 @@ protobuf {
     plugins {
         grpc { artifact = "io.grpc:protoc-gen-grpc-java:${versions.grpc}" }
         kroto {
-            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${versions.krotoplus}:jvm8@jar"
+            path = "${rootDir}/../protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${versions.krotoplus}-${osdetector.classifier}.exe"
         }
     }
 
