@@ -63,14 +63,13 @@ protobuf {
     //noinspection GroovyAssignabilityCheck
     plugins {
         coroutines {
-            path = "${rootProject.projectDir}/protoc-gen-grpc-coroutines/build/libs/protoc-gen-grpc-coroutines-${project.version}-jvm8.jar"
+            path = "${rootProject.projectDir}/protoc-gen-grpc-coroutines/build/libs/protoc-gen-grpc-coroutines-${project.version}-${osdetector.classifier}.exe"
         }
     }
 
     generateProtoTasks {
-
         all().each{ task ->
-            task.dependsOn ':protoc-gen-grpc-coroutines:bootJar'
+            task.dependsOn ':protoc-gen-grpc-coroutines:buildCanteenArtifacts'
             task.builtins {
                 remove java
             }

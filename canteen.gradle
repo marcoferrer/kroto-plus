@@ -1,0 +1,81 @@
+// The following dependency needs to exist on the 'buildscript' classpath
+// 'com.google.guava:guava:27.0.1-jre'
+// It is currently added via the buildSrc project
+import com.google.common.io.ByteStreams
+
+// Native artifact generation based off of
+// https://github.com/salesforce/grpc-java-contrib/tree/master/canteen
+
+def platforms = ["osx-x86_64", "linux-x86_64", "windows-x86_64"]
+
+Task bootJarTask = tasks.getByName("bootJar")
+File bootJarFile = bootJarTask.archiveFile.get().asFile
+
+platforms.each { platform ->
+
+    // Resolve the canteen bootstrap artifact
+    Configuration config = project.configurations.create("canteenBootstrapLocator_$platform") {
+        visible = false
+        transitive = false
+        extendsFrom = []
+    }
+    Map<String, String> notation = [
+            group: "com.salesforce.servicelibs",
+            name: "canteen-bootstrap",
+            version: "1.0.0",
+            classifier: platform,
+            ext: "exe",
+    ]
+    Dependency dep = project.dependencies.add(config.name, notation)
+    File bootstrapFile = config.fileCollection(dep).singleFile
+    File destinationArtifactFile = new File(bootJarTask.destinationDirectory.get().asFile,
+            bootJarFile.name.replace("jvm8.jar", platform + ".exe"))
+
+    // Create task to copy the original jar and embed the
+    // canteen bootstrap executable for the target platform
+    Task canteenTask = task("canteenArtifact_$platform"){
+        group = "canteen"
+        dependsOn("bootJar")
+        // Add files for UP-TO-DATE checks
+        inputs.files(bootJarFile)
+        outputs.files(destinationArtifactFile)
+        doLast {
+            // Build the bootstrap file
+            OutputStream targetStream = new FileOutputStream(destinationArtifactFile)
+            InputStream bootstrapStream = new FileInputStream(bootstrapFile)
+            ByteStreams.copy(bootstrapStream, targetStream);
+            InputStream sourceStream = new FileInputStream(bootJarFile)
+            ByteStreams.copy(sourceStream, targetStream);
+            targetStream.flush()
+            targetStream.close()
+            sourceStream.close()
+            bootstrapStream.close()
+            destinationArtifactFile.setExecutable(true);
+        }
+    }
+
+    artifacts {
+        archives(destinationArtifactFile) {
+            builtBy canteenTask
+            classifier platform
+        }
+    }
+
+    publishing {
+        publications {
+            mavenPublication(MavenPublication) {
+                artifact(destinationArtifactFile.absolutePath) {
+                    builtBy canteenTask
+                    classifier platform
+                }
+            }
+        }
+    }
+}
+
+task buildCanteenArtifacts{
+    group = "canteen"
+    platforms.each { platform ->
+        dependsOn("canteenArtifact_$platform")
+    }
+}
