@@ -69,6 +69,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildCoroutineExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .receiver(protoService.asyncStubClassName)
             .addParameter(requestClassName.requestParamSpec)
@@ -85,6 +86,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildAsyncMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .returns(UNIT)
             .addMethodSignatureParameter(methodSignatureFields, context.schema)
@@ -96,6 +98,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildCoroutineMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .addMethodSignatureParameter(methodSignatureFields, context.schema)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
@@ -106,6 +109,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildBlockingMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.blockingStubClassName)
             .addMethodSignatureParameter(methodSignatureFields, context.schema)
             .returns(Iterator::class.asClassName().parameterizedBy(responseClassName))
@@ -118,6 +122,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildAsyncLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.INLINE)
             .receiver(protoService.asyncStubClassName)
             .addResponseObserverParameter(responseClassName)
@@ -130,6 +135,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildCoroutineLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addModifiers(KModifier.INLINE)
@@ -141,6 +147,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildBlockingLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.INLINE)
             .receiver(protoService.blockingStubClassName)
             .addParameter("block", requestClassName.builderLambdaTypeName)
@@ -154,6 +161,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildAsyncDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .addResponseObserverParameter(responseClassName)
             .returns(UNIT)
@@ -163,6 +171,7 @@ class ServerStreamingStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildBlockingDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.blockingStubClassName)
             .returns(Iterator::class.asClassName().parameterizedBy(responseClassName))
             .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)

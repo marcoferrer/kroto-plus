@@ -19,10 +19,13 @@ package com.github.marcoferrer.krotoplus.proto
 import com.github.marcoferrer.krotoplus.utils.toUpperCamelCase
 import com.google.api.ClientProto
 import com.google.protobuf.DescriptorProtos
+import com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location
+import com.squareup.kotlinpoet.CodeBlock
 import io.grpc.MethodDescriptor
 
 class ProtoMethod(
     override val descriptorProto: DescriptorProtos.MethodDescriptorProto,
+    val sourceLocation: Location,
     val protoService: ProtoService
 ) : Schema.DescriptorWrapper {
 
@@ -33,6 +36,8 @@ class ProtoMethod(
         if(descriptorProto.name.startsWith("_"))
             "_$it" else it.decapitalize()
     }
+
+    val attachedComments: String = sourceLocation.buildAttachedComments()
 
     val methodDefinitionGetterName = "get${descriptorProto.name.toUpperCamelCase()}Method"
 
@@ -83,3 +88,14 @@ private fun ProtoMethod.getMethodSignatureFields(): List<DescriptorProtos.FieldD
                 .filter { it.name in signatureFields }
         }
         .orEmpty()
+
+
+/**
+ * Comment parsing is based on the following implementation
+ * https://github.com/salesforce/reactive-grpc/blob/ab8e86e1d951f3a7ab9802a31ab73cd5ba3b8e3b/common/reactive-grpc-gencommon/src/main/java/com/salesforce/reactivegrpc/gen/ReactiveGrpcGenerator.java#L133
+ */
+private const val METHOD_NUMBER_OF_PATHS = 4
+
+fun List<Location>.findByMethodIndex(methodIndex: Int): Location = find {
+    it.pathCount == METHOD_NUMBER_OF_PATHS && it.getPath(METHOD_NUMBER_OF_PATHS - 1) == methodIndex
+} ?: Location.getDefaultInstance()
