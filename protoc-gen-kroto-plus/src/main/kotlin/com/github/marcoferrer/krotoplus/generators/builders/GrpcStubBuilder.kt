@@ -19,14 +19,11 @@ package com.github.marcoferrer.krotoplus.generators.builders
 import com.github.marcoferrer.krotoplus.generators.GeneratorContext
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
-import com.github.marcoferrer.krotoplus.proto.getFieldClassName
 import com.github.marcoferrer.krotoplus.utils.CommonClassNames
-import com.github.marcoferrer.krotoplus.utils.addForEach
 import com.github.marcoferrer.krotoplus.utils.builderLambdaTypeName
 import com.github.marcoferrer.krotoplus.utils.requestParamSpec
 import com.github.marcoferrer.krotoplus.utils.requestValueBuilderCodeBlock
 import com.github.marcoferrer.krotoplus.utils.requestValueMethodSigCodeBlock
-import com.github.marcoferrer.krotoplus.utils.toUpperCamelCase
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
@@ -39,13 +36,13 @@ import io.grpc.MethodDescriptor
 
 class GrpcStubBuilder(val context: GeneratorContext){
 
-
     fun buildStub(protoService: ProtoService): TypeSpec = with(protoService) {
 
         val paramNameChannel = "channel"
         val paramNameCallOptions = "callOptions"
 
         TypeSpec.classBuilder(stubName)
+            .addKdoc(attachedComments)
             .superclass(CommonClassNames.grpcAbstractStub.parameterizedBy(stubClassName))
             .addSuperclassConstructorParameter(paramNameChannel)
             .addSuperclassConstructorParameter(paramNameCallOptions)
@@ -77,7 +74,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
             .build()
     }
 
-    fun TypeSpec.Builder.addRpcMethods(service: ProtoService): TypeSpec.Builder = apply {
+    private fun TypeSpec.Builder.addRpcMethods(service: ProtoService): TypeSpec.Builder = apply {
 
         for(method in service.methodDefinitions) when(method.type){
             MethodDescriptor.MethodType.UNARY -> {
@@ -102,11 +99,10 @@ class GrpcStubBuilder(val context: GeneratorContext){
         }
     }
 
-    // Default method
-
     private fun buildUnaryMethod(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
             .addModifiers(KModifier.SUSPEND)
+            .addKdoc(attachedComments)
             .returns(responseClassName)
             .addParameter(requestClassName.requestParamSpec)
             .addStatement(
@@ -120,6 +116,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
 
     private fun buildServerStreamingMethod(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addParameter(requestClassName.requestParamSpec)
             .addStatement(
@@ -133,6 +130,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
 
     private fun buildClientStreamingMethod(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .returns(
                 CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
                     requestClassName,
@@ -150,6 +148,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
 
     private fun buildBidiStreamingMethod(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .returns(
                 CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(
                     requestClassName,
@@ -169,6 +168,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
 
     private fun buildUnaryLambdaOverload(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND, KModifier.INLINE)
             .returns(responseClassName)
             .addParameter("block", requestClassName.builderLambdaTypeName)
@@ -179,6 +179,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
 
     private fun buildServerStreamingLambdaOverload(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.INLINE)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addParameter("block", requestClassName.builderLambdaTypeName)
@@ -192,6 +193,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
     private fun buildUnaryMethodSigOverload(protoMethod: ProtoMethod): FunSpec? = with(protoMethod){
         if(methodSignatureFields.isEmpty())
             null else FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND)
             .returns(responseClassName)
             .addMethodSignatureParameter(methodSignatureFields,context.schema)
@@ -203,6 +205,7 @@ class GrpcStubBuilder(val context: GeneratorContext){
     private fun buildServerStreamingMethodSigOverload(protoMethod: ProtoMethod): FunSpec? = with(protoMethod){
         if(methodSignatureFields.isEmpty())
             null else FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
             .addMethodSignatureParameter(methodSignatureFields,context.schema)
             .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))

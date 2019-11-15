@@ -105,6 +105,7 @@ object GrpcStubExtsGenerator : Generator {
 
         private fun ProtoMethod.buildStubClientStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
                 .receiver(protoService.asyncStubClassName)
                 .returns(
                     CommonClassNames.ClientChannels.clientStreamingCallChannel.parameterizedBy(
@@ -122,6 +123,7 @@ object GrpcStubExtsGenerator : Generator {
 
         private fun ProtoMethod.buildStubCoroutineBidiStreamingMethod(): FunSpec =
             FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
                 .receiver(protoService.asyncStubClassName)
                 .returns(
                     CommonClassNames.ClientChannels.clientBidiCallChannel.parameterizedBy(

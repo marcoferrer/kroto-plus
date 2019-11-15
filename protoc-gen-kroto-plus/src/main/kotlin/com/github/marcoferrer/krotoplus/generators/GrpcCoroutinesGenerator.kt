@@ -92,6 +92,7 @@ object GrpcCoroutinesGenerator : Generator {
 
     private fun ProtoService.buildOuterObject(): TypeSpec =
         TypeSpec.objectBuilder(outerObjectName)
+            .addKdoc(attachedComments)
             .addAnnotation(protoFile.getGeneratedAnnotationSpec())
             .addFunction(
                 FunSpec.builder("newStub")

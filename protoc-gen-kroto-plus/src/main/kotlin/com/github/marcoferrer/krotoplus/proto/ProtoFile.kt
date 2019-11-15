@@ -43,22 +43,25 @@ data class ProtoFile(
         ProtoEnum(enumType, this@ProtoFile)
     }
 
-    val services: List<ProtoService> = descriptorProto.serviceList.map { serviceDescriptor ->
-        ProtoService(serviceDescriptor, this@ProtoFile)
+    val services: List<ProtoService> = descriptorProto.serviceList.mapIndexed { serviceIndex, serviceDescriptor ->
+        val sourceLocation = descriptorProto.sourceCodeInfo.locationList.findByServiceIndex(serviceIndex)
+        ProtoService(serviceDescriptor, sourceLocation, this@ProtoFile)
     }
 }
 
-val DescriptorProtos.FileDescriptorProto.javaPackage: String
+data class ProtoComments(val leading: String, val trailing: String)
+
+private val DescriptorProtos.FileDescriptorProto.javaPackage: String
     get() = when {
         this.options.hasJavaPackage() -> this.options.javaPackage
         this.hasPackage() -> this.`package`
         else -> ""
     }
 
-val DescriptorProtos.FileDescriptorProto.protoPackage: String
+private val DescriptorProtos.FileDescriptorProto.protoPackage: String
     get() = if (this.hasPackage()) this.`package` else ""
 
-val DescriptorProtos.FileDescriptorProto.javaOuterClassname: String
+private val DescriptorProtos.FileDescriptorProto.javaOuterClassname: String
     get() = if (this.options.hasJavaOuterClassname())
         this.options.javaOuterClassname else this.name
         .substringAfterLast("/")
@@ -81,3 +84,10 @@ fun DescriptorProtos.FileDescriptorProto.getGeneratedAnnotationSpec() =
         .build()
 
 fun ProtoFile.getGeneratedAnnotationSpec() = descriptorProto.getGeneratedAnnotationSpec()
+
+fun DescriptorProtos.SourceCodeInfo.Location.buildAttachedComments(): String {
+    val attachedComments = if (leadingComments.isNotEmpty())
+        "$leadingComments\n$trailingComments" else trailingComments
+
+    return attachedComments.replace("*/", "&#42;&#47;").replace("*", "&#42;").trim()
+}

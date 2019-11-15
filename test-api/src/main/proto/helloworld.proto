@@ -9,19 +9,21 @@ option objc_class_prefix = "HLW";
 
 package helloworld;
 
-// The greeting service definition.
+// The greeting service definition.  "" */ fun `unsafe comment `() 123
 service Greeter {
 
-    // Sends a greeting
+    // Sends a greeting  "" */ fun `unsafe comment `() 123
     rpc SayHello (HelloRequest) returns (HelloReply){
         option (google.api.method_signature) = "name";
     };
 
-    // Streams a many greetings
+    // Streams many greetings  "" */ fun `unsafe comment `() 123
     rpc SayHelloStreaming (stream HelloRequest) returns (stream HelloReply);
 
+    // Sends many greetings  "" */ fun `unsafe comment `() 123
     rpc SayHelloClientStreaming (stream HelloRequest) returns (HelloReply);
 
+    // Receives many greetings  "" */ fun `unsafe comment `() 123
     rpc SayHelloServerStreaming (HelloRequest) returns (stream HelloReply){
         option (google.api.method_signature) = "name";
     };

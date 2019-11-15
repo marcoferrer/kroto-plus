@@ -71,6 +71,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildCoroutineExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND)
             .receiver(protoService.asyncStubClassName)
             .addParameter(requestClassName.requestParamSpec)
@@ -88,6 +89,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildAsyncMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .addMethodSignatureParameter(methodSignatureFields, context.schema)
             .addResponseObserverParameter(responseClassName)
@@ -99,6 +101,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildCoroutineMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND)
             .receiver(protoService.asyncStubClassName)
             .returns(responseClassName)
@@ -110,6 +113,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildFutureMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.futureStubClassName)
             .addMethodSignatureParameter(methodSignatureFields, context.schema)
             .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
@@ -120,6 +124,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildBlockingMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.blockingStubClassName)
             .returns(responseClassName)
             .addMethodSignatureParameter(methodSignatureFields, context.schema)
@@ -132,6 +137,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildAsyncLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .addModifiers(KModifier.INLINE)
             .addResponseObserverParameter(responseClassName)
@@ -144,6 +150,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildCoroutineLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .addModifiers(KModifier.INLINE, KModifier.SUSPEND)
             .addParameter("block", requestClassName.builderLambdaTypeName)
@@ -155,6 +162,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildFutureLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.INLINE)
             .receiver(protoService.futureStubClassName)
             .addParameter("block", requestClassName.builderLambdaTypeName)
@@ -166,6 +174,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildBlockingLambdaBuilderExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.INLINE)
             .addCode(requestClassName.requestValueBuilderCodeBlock)
             .addParameter("block", requestClassName.builderLambdaTypeName)
@@ -179,6 +188,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildAsyncDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .receiver(protoService.asyncStubClassName)
             .addResponseObserverParameter(responseClassName)
             .addStatement("%N(%T.getDefaultInstance(),responseObserver)", functionName, requestClassName)
@@ -188,6 +198,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildFutureDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
             .receiver(protoService.futureStubClassName)
             .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
@@ -196,6 +207,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     private fun buildBlockingDefaultArgExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addStatement("return %N(%T.getDefaultInstance())", functionName, requestClassName)
             .receiver(protoService.blockingStubClassName)
             .returns(responseClassName)

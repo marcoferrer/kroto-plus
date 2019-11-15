@@ -41,6 +41,7 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
         val delegateValName = "delegate"
 
         TypeSpec.classBuilder(baseImplName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.ABSTRACT)
             .addSuperinterface(CommonClassNames.bindableService)
             .addSuperinterface(CommonClassNames.serviceScope)
@@ -115,6 +116,7 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
 
     private fun buildUnaryBaseImpl(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter("request", requestClassName)
             .returns(responseClassName)
@@ -132,6 +134,7 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
 
     private fun buildServerStreamingBaseImpl(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter("request", requestClassName)
             .addParameter(
@@ -157,6 +160,7 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
 
     private fun buildClientStreamingBaseImpl(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter(
                 name = "requestChannel",
@@ -177,6 +181,7 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
 
     private fun buildBidiStreamingBaseImpl(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
         FunSpec.builder(functionName)
+            .addKdoc(attachedComments)
             .addModifiers(KModifier.SUSPEND, KModifier.OPEN)
             .addParameter(
                 name = "requestChannel",
