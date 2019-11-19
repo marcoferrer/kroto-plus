@@ -36,7 +36,7 @@ subprojects{ subproject ->
     apply plugin: 'kotlin'
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.5.0'
+    version = '0.6.0-SNAPSHOT'
 
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -53,7 +53,6 @@ subprojects{ subproject ->
         testImplementation "org.jetbrains.kotlin:kotlin-test"
         testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
     }
-
 
     tasks.withType(Test) {
         testLogging {
@@ -95,6 +94,27 @@ subprojects{ subproject ->
                     def startItem = '|  ', endItem = '  |'
                     def repeatLength = startItem.length() + output.length() + endItem.length()
                     println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+                }
+            }
+        }
+    }
+
+    subproject.ext{
+        localPluginPath = [
+                "kroto": "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-${osdetector.classifier}.exe",
+                "coroutines": "${rootProject.projectDir}/protoc-gen-grpc-coroutines/build/libs/protoc-gen-grpc-coroutines-${project.version}-${osdetector.classifier}.exe"
+        ]
+
+        configProtoTaskWithKroto = { task, krotoConfig ->
+            task.inputs.files krotoConfig
+            task.dependsOn ':protoc-gen-kroto-plus:buildCanteenArtifacts'
+            task.plugins {
+                kroto {
+                    outputSubDir = "java"
+                    // We want to relativize the configuration path
+                    // because absolute paths cause issues in windows
+                    // environments
+                    option "ConfigPath=${krotoConfig.absolutePath.replace(rootProject.projectDir.path, "").drop(1)}"
                 }
             }
         }

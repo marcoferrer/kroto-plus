@@ -31,6 +31,8 @@ bootJar {
     }
 }
 
+apply from: "${rootProject.projectDir}/canteen.gradle"
+
 jar.enabled = true
 
 artifacts {

@@ -35,36 +35,47 @@ data class GeneratorContext(
     val args: CompilerArgs = request.parseArgs(),
     val config: CompilerConfig = args.getCompilerConfig()
 ) {
-    val currentWorkingDir by lazy {
-        args.options[ARG_KEY_CONFIG_PATH]
-            ?.firstOrNull()
-            ?.let { path -> File(path).parentFile.takeIf { it.exists() } }
-            .sure {
-                "Unable to resolve current working directory. " +
-                        "protoc option '$ARG_KEY_CONFIG_PATH' is not configured"
-            }
+    val currentWorkingDir: File by lazy {
+        if(args.configPath.isNullOrEmpty()) File(USER_DIR) else {
+            val workingDir = args.getConfigFile().parentFile
+
+            workingDir
+                .takeIf { it.exists() }
+                .sure { "Unable to resolve current working directory. '$workingDir'" }
+        }
     }
 }
 
-fun CompilerArgs.getCompilerConfig(): CompilerConfig =
-    options[ARG_KEY_CONFIG_PATH]
-        ?.firstOrNull()
-        ?.let { path ->
-            val configFile = File(path)
-            configFile
-                .takeIf { it.exists() }
-                ?: error("Config file does not exist. '${configFile.absolutePath}'")
+fun CompilerArgs.getCompilerConfig(): CompilerConfig {
+    if(configPath.isNullOrEmpty())
+        return CompilerConfig.getDefaultInstance()
+
+    val configFile = getConfigFile()
+
+    return CompilerConfig.newBuilder().also { builder ->
+        when (configFile.extension.toLowerCase()) {
+            "json" -> JsonFormat.parser().merge(configFile.readText(), builder)
+            "asciipb" -> TextFormat.getParser().merge(configFile.readText(), builder)
+            "yaml", "yml" -> {
+                val jsonString = yamlToJson(configFile.readText())
+                JsonFormat.parser().merge(jsonString, builder)
+            }
         }
-        ?.let { configFile ->
-            CompilerConfig.newBuilder().also { builder ->
-                when (configFile.extension.toLowerCase()) {
-                    "json" -> JsonFormat.parser().merge(configFile.readText(), builder)
-                    "asciipb" -> TextFormat.getParser().merge(configFile.readText(), builder)
-                    "yaml", "yml" -> {
-                        val jsonString = yamlToJson(configFile.readText())
-                        JsonFormat.parser().merge(jsonString, builder)
-                    }
-                }
-            }.build()
-        }
-        ?: CompilerConfig.getDefaultInstance()
+    }.build()
+}
+
+private fun CompilerArgs.getConfigFile(): File {
+    val configPath = configPath ?: error("protoc option '$ARG_KEY_CONFIG_PATH' is not configured")
+
+    val configFile = File(USER_DIR).resolve(File(configPath))
+
+    return configFile
+        .takeIf { it.exists() }
+        ?: error("Config file does not exist. '${configFile.absolutePath}'")
+}
+
+private val CompilerArgs.configPath: String?
+    get() = options[ARG_KEY_CONFIG_PATH]?.firstOrNull()
+
+private val USER_DIR: String
+    get() = System.getProperty("user.dir")
