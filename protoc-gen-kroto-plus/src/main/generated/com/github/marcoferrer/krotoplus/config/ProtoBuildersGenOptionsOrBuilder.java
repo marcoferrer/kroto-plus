@@ -38,10 +38,11 @@ public interface ProtoBuildersGenOptionsOrBuilder extends
   /**
    * <pre>
    * By default the generated utility methods for building messages are
-   * wrapped in an object similiar to a proto outer class. For better
-   * ergonomics with code generated using 'java_multiple_files' the
+   * wrapped in an object similar to a proto outer class. For better
+   * ergonomics with code generated using 'java_multiple_files = false' the
    * builders can be unwrapped and generated at the root scope of
-   * the output file.
+   * the output file. This option is *not* compatible with  'java_multiple_files = true'
+   * and nested messages since the generated code would produce class name collisions
    * </pre>
    *
    * <code>bool unwrap_builders = 2;</code>

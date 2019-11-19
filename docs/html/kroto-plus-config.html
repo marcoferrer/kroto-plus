@@ -183,7 +183,7 @@
                 </li>
               
                 <li>
-                  <a href="#krotoplus.compiler.ExtenableMessagesGenOptions"><span class="badge">M</span>ExtenableMessagesGenOptions</a>
+                  <a href="#krotoplus.compiler.ExtendableMessagesGenOptions"><span class="badge">M</span>ExtendableMessagesGenOptions</a>
                 </li>
               
                 <li>
@@ -273,7 +273,7 @@
               
                 <tr>
                   <td>extendable_messages</td>
-                  <td><a href="#krotoplus.compiler.ExtenableMessagesGenOptions">ExtenableMessagesGenOptions</a></td>
+                  <td><a href="#krotoplus.compiler.ExtendableMessagesGenOptions">ExtendableMessagesGenOptions</a></td>
                   <td>repeated</td>
                   <td><p>Configuration entries for the &#39;Extendable Messages&#39; code generator. </p></td>
                 </tr>
@@ -301,11 +301,12 @@
               
             </tbody>
           </table>
-        
+
+          
 
         
       
-        <h3 id="krotoplus.compiler.ExtenableMessagesGenOptions">ExtenableMessagesGenOptions</h3>
+        <h3 id="krotoplus.compiler.ExtendableMessagesGenOptions">ExtendableMessagesGenOptions</h3>
         <p>Configuration used by the 'Extendable Messages' code generator.</p><p>Since this code generator relies on the protoc insertion point API,</p><p>its outputDir must match that of the protoc java plugin.</p>
 
         
@@ -360,7 +361,8 @@ ie. com.krotoplus.example.MyCompanionInterface&lt;{{message_type}}, {{message_ty
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -397,7 +399,8 @@ ie. google/* </p></td>
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -442,7 +445,8 @@ ie. &#39;sampleInsertionScript.kts&#39; </p></td>
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -466,7 +470,8 @@ The default filter will match true against all input files. </p></td>
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -498,7 +503,8 @@ This options generates code that relies on the artifact &#39;kroto-plus-coroutin
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -529,7 +535,8 @@ The default filter will match true against all input files. </p></td>
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -582,7 +589,8 @@ ie. &#39;sampleInsertionScript.kts&#39; </p></td>
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -636,7 +644,8 @@ Useful when registering mock services to a GrpcServerRule during unit tests. </p
               
             </tbody>
           </table>
-        
+
+          
 
         
       
@@ -663,10 +672,11 @@ The default filter will match true against all input files. </p></td>
                   <td><a href="#bool">bool</a></td>
                   <td></td>
                   <td><p>By default the generated utility methods for building messages are
-wrapped in an object similiar to a proto outer class. For better
-ergonomics with code generated using &#39;java_multiple_files&#39; the
+wrapped in an object similar to a proto outer class. For better
+ergonomics with code generated using &#39;java_multiple_files = false&#39; the
 builders can be unwrapped and generated at the root scope of
-the output file. </p></td>
+the output file. This option is *not* compatible with  &#39;java_multiple_files = true&#39;
+and nested messages since the generated code would produce class name collisions </p></td>
                 </tr>
               
                 <tr>
@@ -681,7 +691,8 @@ provides safer and predictable dsl usage. </p></td>
               
             </tbody>
           </table>
-        
+
+          
 
         
       

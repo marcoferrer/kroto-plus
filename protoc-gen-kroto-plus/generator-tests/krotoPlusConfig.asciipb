@@ -6,6 +6,11 @@ proto_builders {
     unwrap_builders: true
     use_dsl_markers: true
 }
+proto_builders {
+    filter { include_path: "google/rpc/*" }
+    unwrap_builders: true
+    use_dsl_markers: true
+}
 grpc_stub_exts {
     support_coroutines: true
 }

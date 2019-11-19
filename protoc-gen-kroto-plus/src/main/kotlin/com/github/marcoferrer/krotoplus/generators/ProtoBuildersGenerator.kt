@@ -76,12 +76,26 @@ object ProtoBuildersGenerator : Generator {
                     .build()
             )
 
+        val fileHasNestedMessages = protoFile.protoMessages.any { message ->
+            message.nestedMessageTypes.isNotEmpty() && message.nestedMessageTypes.any { !it.isMapEntry }
+        }
+        val willHaveNameCollision = options.unwrapBuilders && protoFile.javaMultipleFiles && fileHasNestedMessages
+
         val typeSpec = TypeSpec.objectBuilder(filename)
             .addAnnotation(protoFile.getGeneratedAnnotationSpec())
+            .apply {
+                if(willHaveNameCollision)
+                    addKdoc("Option 'unwrap_builders' ignored. \n" +
+                            "Not supported when combined with 'java_multiple_files = true' and nested messages\n" +
+                            "Fallback to using static import on object '$filename'\n")
+            }
             .buildFunSpecsForTypes(fileSpecBuilder, protoFile.protoMessages)
             .build()
 
-        if (options.unwrapBuilders) {
+        // This option is not compatible with proto file option
+        // 'java_multiple_file = true' and nested messages since
+        // the generated code would produce class name collisions.
+        if (options.unwrapBuilders && !willHaveNameCollision) {
             fileSpecBuilder.addFunctions(typeSpec.funSpecs)
             fileSpecBuilder.addTypes(typeSpec.typeSpecs)
         } else {
