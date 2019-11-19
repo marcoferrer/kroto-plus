@@ -63,7 +63,7 @@ protobuf {
     //noinspection GroovyAssignabilityCheck
     plugins {
         coroutines {
-            path = "${rootProject.projectDir}/protoc-gen-grpc-coroutines/build/libs/protoc-gen-grpc-coroutines-${project.version}-${osdetector.classifier}.exe"
+            path = localPluginPath.coroutines
         }
     }
 

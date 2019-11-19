@@ -54,7 +54,6 @@ subprojects{ subproject ->
         testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
     }
 
-
     tasks.withType(Test) {
         testLogging {
             // set options for log level LIFECYCLE
@@ -95,6 +94,27 @@ subprojects{ subproject ->
                     def startItem = '|  ', endItem = '  |'
                     def repeatLength = startItem.length() + output.length() + endItem.length()
                     println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+                }
+            }
+        }
+    }
+
+    subproject.ext{
+        localPluginPath = [
+                "kroto": "${rootProject.projectDir}/protoc-gen-kroto-plus/build/libs/protoc-gen-kroto-plus-${project.version}-${osdetector.classifier}.exe",
+                "coroutines": "${rootProject.projectDir}/protoc-gen-grpc-coroutines/build/libs/protoc-gen-grpc-coroutines-${project.version}-${osdetector.classifier}.exe"
+        ]
+
+        configProtoTaskWithKroto = { task, krotoConfig ->
+            task.inputs.files krotoConfig
+            task.dependsOn ':protoc-gen-kroto-plus:buildCanteenArtifacts'
+            task.plugins {
+                kroto {
+                    outputSubDir = "java"
+                    // We want to relativize the configuration path
+                    // because absolute paths cause issues in windows
+                    // environments
+                    option "ConfigPath=${krotoConfig.absolutePath.replace(rootProject.projectDir.path, "").drop(1)}"
                 }
             }
         }
