@@ -21,7 +21,7 @@ dependencies{
     testImplementation "io.grpc:grpc-stub:${Versions.grpc}"
     testImplementation "io.grpc:grpc-netty:${Versions.grpc}"
     testImplementation "io.grpc:grpc-testing:${Versions.grpc}"
-    
+
     testProtobuf project(':test-api')
     testImplementation project(':test-api:grpc')
     testImplementation project(':kroto-plus-message')

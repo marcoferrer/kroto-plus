@@ -117,6 +117,12 @@ class ProtoBuildersGeneratorTests {
     }
 
     @Test
+    fun `Test class name collisions are avoided`(){
+        ClassNameCollisionProtoBuilders.CollisionMessage {  }
+        ClassNameCollisionProtoBuilders.CollisionSiblingMessage {  }
+    }
+
+    @Test
     fun `Builders from malformed filenames`(){
         SomeProtoMessage1{
             field = "test"

@@ -5,7 +5,7 @@
 
 - [krotoplus/compiler/config.proto](#krotoplus/compiler/config.proto)
     - [CompilerConfig](#krotoplus.compiler.CompilerConfig)
-    - [ExtenableMessagesGenOptions](#krotoplus.compiler.ExtenableMessagesGenOptions)
+    - [ExtendableMessagesGenOptions](#krotoplus.compiler.ExtendableMessagesGenOptions)
     - [FileFilter](#krotoplus.compiler.FileFilter)
     - [GeneratorScriptsGenOptions](#krotoplus.compiler.GeneratorScriptsGenOptions)
     - [GrpcCoroutinesGenOptions](#krotoplus.compiler.GrpcCoroutinesGenOptions)
@@ -42,7 +42,7 @@ Message backing the root of a Kroto&#43; configuration file.
 | grpc_stub_exts | [GrpcStubExtsGenOptions](#krotoplus.compiler.GrpcStubExtsGenOptions) | repeated | Configuration entries for the &#39;gRPC Stub Extensions&#39; code generator. |
 | mock_services | [MockServicesGenOptions](#krotoplus.compiler.MockServicesGenOptions) | repeated | Configuration entries for the &#39;Mock Service&#39; code generator. |
 | proto_builders | [ProtoBuildersGenOptions](#krotoplus.compiler.ProtoBuildersGenOptions) | repeated | Configuration entries for the &#39;Proto Builders&#39; code generator. |
-| extendable_messages | [ExtenableMessagesGenOptions](#krotoplus.compiler.ExtenableMessagesGenOptions) | repeated | Configuration entries for the &#39;Extendable Messages&#39; code generator. |
+| extendable_messages | [ExtendableMessagesGenOptions](#krotoplus.compiler.ExtendableMessagesGenOptions) | repeated | Configuration entries for the &#39;Extendable Messages&#39; code generator. |
 | insertions | [InsertionsGenOptions](#krotoplus.compiler.InsertionsGenOptions) | repeated | Configuration entries for the &#39;Protoc Insertions&#39; code generator. |
 | generator_scripts | [GeneratorScriptsGenOptions](#krotoplus.compiler.GeneratorScriptsGenOptions) | repeated | Configuration entries for the &#39;Generator Scripts&#39; code generator. |
 | grpc_coroutines | [GrpcCoroutinesGenOptions](#krotoplus.compiler.GrpcCoroutinesGenOptions) | repeated | Configuration entries for the &#39;Grpc Coroutines&#39; code generator. |
@@ -52,9 +52,9 @@ Message backing the root of a Kroto&#43; configuration file.
 
 
 
-<a name="krotoplus.compiler.ExtenableMessagesGenOptions"></a>
+<a name="krotoplus.compiler.ExtendableMessagesGenOptions"></a>
 
-### ExtenableMessagesGenOptions
+### ExtendableMessagesGenOptions
 Configuration used by the &#39;Extendable Messages&#39; code generator.
 Since this code generator relies on the protoc insertion point API,
 its outputDir must match that of the protoc java plugin.
@@ -204,7 +204,7 @@ Configuration used by the &#39;Proto Builders&#39; code generator.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | filter | [FileFilter](#krotoplus.compiler.FileFilter) |  | Filter used for limiting the input files that are processed by the code generator The default filter will match true against all input files. |
-| unwrap_builders | [bool](#bool) |  | By default the generated utility methods for building messages are wrapped in an object similiar to a proto outer class. For better ergonomics with code generated using &#39;java_multiple_files&#39; the builders can be unwrapped and generated at the root scope of the output file. |
+| unwrap_builders | [bool](#bool) |  | By default the generated utility methods for building messages are wrapped in an object similar to a proto outer class. For better ergonomics with code generated using &#39;java_multiple_files = false&#39; the builders can be unwrapped and generated at the root scope of the output file. This option is *not* compatible with &#39;java_multiple_files = true&#39; and nested messages since the generated code would produce class name collisions |
 | use_dsl_markers | [bool](#bool) |  | Tag java builder classes with a kotlin interface annotated with @DslMarker. This requires the kroto-plus output directory to match the generated java classes directory. Using @DslMarker provides safer and predictable dsl usage. |
 
 
