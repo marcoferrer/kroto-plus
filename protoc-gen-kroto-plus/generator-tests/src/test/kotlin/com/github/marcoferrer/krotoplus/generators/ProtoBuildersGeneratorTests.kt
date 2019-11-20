@@ -16,7 +16,6 @@
 
 package com.github.marcoferrer.krotoplus.generators
 
-import com.google.rpc.ErrorDetailsProtoBuilders
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.examples.helloworld.HelloWorldProtoDslBuilder
@@ -119,10 +118,8 @@ class ProtoBuildersGeneratorTests {
 
     @Test
     fun `Test class name collisions are avoided`(){
-        ErrorDetailsProtoBuilders.BadRequest {  }
-        ErrorDetailsProtoBuilders.BadRequest.FieldViolation {  }
-        ErrorDetailsProtoBuilders.PreconditionFailure {  }
-        ErrorDetailsProtoBuilders.PreconditionFailure.Violation {  }
+        ClassNameCollisionProtoBuilders.CollisionMessage {  }
+        ClassNameCollisionProtoBuilders.CollisionSiblingMessage {  }
     }
 
     @Test
