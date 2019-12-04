@@ -21,6 +21,6 @@ jobs:
         - ./gradlew assemble
       script:
         - ./gradlew check
-        - cd example-project && ./gradlew test
+        - cd example-project && ./gradlew test && ./gradlew clean test -PuseKrotoConfigDsl=true
 after_success:
   - bash <(curl -s https://codecov.io/bash)
