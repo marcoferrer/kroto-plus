@@ -10,6 +10,8 @@
 
 ### Community Contributions are Welcomed
 
+> ℹ️ | **Docs are being expanded and moved to [Readme.io](https://kroto-plus.readme.io/docs)**
+
 ## Quick Start: gRPC Coroutines
 Run the following command to get started with a preconfigured template project. (_[kotlin-coroutines-gRPC-template](https://github.com/marcoferrer/kotlin-coroutines-gRPC-template)_)
 ```bash
@@ -35,7 +37,7 @@ cd kotlin-coroutines-gRPC-template && \
 ## Code Generators
 
 * There are several built in code generators that each accept unique configuration options.
-* **[Configuration Setup](https://github.com/marcoferrer/kroto-plus#configuring-generators)**
+* **[Configuration Setup](https://kroto-plus.readme.io/docs/configuration-file)**
   * **[Proto Builder Generator](https://github.com/marcoferrer/kroto-plus#proto-builder-generator-message-dsl)**
   * **[gRPC Coroutines Client & Server](https://github.com/marcoferrer/kroto-plus#grpc-coroutines-client--server)**
   * **[gRPC Stub Extensions](https://github.com/marcoferrer/kroto-plus#grpc-stub-extensions)**
@@ -49,39 +51,36 @@ cd kotlin-coroutines-gRPC-template && \
 ---
 
 ### Proto Builder Generator (Message DSL)
-#### [Configuration Options](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md#protobuildersgenoptions)
+#### [Setup & Documentation](https://kroto-plus.readme.io/docs/protobuf-message-dsl)
 This generator creates lambda based builders for message types
-```kotlin
-    val attack = Attack {
-        name = "ORA ORA ORA"
-        damage = 100
-        range = StandProto.Attack.Range.CLOSE
-    }
-    
-    // Copy extensions are also generated
-    val newAttack = attack.copy { damage = 200 }            
-    
-    // orDefault() will return the messages default instance when null
-    val nullableAttack: Attack? = null
-    nullableAttack.orDefault()
-    
-    // As well as plus operator extensions 
-    val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }            
-```
-
-The generated extensions allow composition of proto messages in a dsl style. Support for Kotlin's ```@DslMarker``` annotation is enabled using the configuration option ```useDslMarkers = true```. Using dsl markers relies on protoc insertions, so take care to ensure that the ___kroto-plus___ output directory is the same as the directory for generated ___java___ code  
 
 ```kotlin
-     Stand {
+     val starPlatinum = Stand {
         name = "Star Platinum"
         powerLevel = 500
         speed = 550
         attack {
             name = "ORA ORA ORA"
             damage = 100
-            range = StandProto.Attack.Range.CLOSE
+            range = Attack.Range.CLOSE
         }
     }
+    
+    val attack = Attack {
+        name = "ORA ORA ORA"
+        damage = 100
+        range = Attack.Range.CLOSE
+    }
+    
+    // Copy extensions
+    val newAttack = attack.copy { damage = 200 }            
+    
+    // orDefault() will return the messages default instance when null
+    val nullableAttack: Attack? = null
+    nullableAttack.orDefault()
+    
+    // Plus operator extensions 
+    val mergedAttack = attack + Attack { name = "Sunlight Yellow Overdrive" }            
 ```
 ---
 
@@ -600,133 +599,7 @@ Add generated sources to Kotlin plugin
 ```
 
 ## Configuring Generators
-#### All available generator options are documented in [kroto-plus-config.md](https://github.com/marcoferrer/kroto-plus/blob/master/docs/markdown/kroto-plus-config.md) and [config.proto](https://github.com/marcoferrer/kroto-plus/blob/master/protoc-gen-kroto-plus/src/main/proto/krotoplus/compiler/config.proto) 
-* Supported formats include [json](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.json),[yaml](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.yml)  and [asciipb](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.asciipb) (proto plain text).
-#### Asciipb (Proto Plain Text)
-```asciipb
-proto_builders {
-    filter { exclude_path: "google/*" }
-    unwrap_builders: true
-    use_dsl_markers: true
-}
-grpc_stub_exts {
-    support_coroutines: true
-}
-generator_scripts {
-    script_path: "helloThere.kts"
-    script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
-}
-insertions {
-    filter {
-        include_path: "jojo/bizarre/adventure/character/*"
-    }
-    entry { point: MESSAGE_IMPLEMENTS
-        script_path: "extendableMessages.kts"
-        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
-    }
-    entry { point: BUILDER_IMPLEMENTS
-        script_path: "extendableMessages.kts"
-        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
-    }
-    entry { point: CLASS_SCOPE
-        script_path: "extendableMessages.kts"
-        script_bundle: "kp-scripts/build/libs/kp-scripts.jar"
-    }
-    entry { point: OUTER_CLASS_SCOPE
-        script_path: "kp-scripts/src/main/kotlin/sampleInsertionScript.kts"
-    }
-}
-```
-#### YAML
-```yaml
-protoBuilders:
-- filter:
-    excludePath:
-    - google/*
-  unwrapBuilders: true
-  useDslMarkers: true
-grpcStubExts:
-- supportCoroutines: true
-grpcCoroutines: []
-extendableMessages:
-- filter:
-    excludePath:
-    - google/*
-mockServices:
-- implementAsObject: true
-  generateServiceList: true
-  serviceListPackage: com.my.package
-  serviceListName: MyMockServices
-generatorScripts:
-- scriptPath:
-  - helloThere.kts
-  scriptBundle: kp-scripts/build/libs/kp-scripts.jar
-insertions:
-- entry:
-  - point: MESSAGE_IMPLEMENTS
-    content:
-    - com.my.Interface<{{message_type}}>
-  - point: BUILDER_IMPLEMENTS
-    content:
-    - com.my.Interface<{{message_type}}>
-  - point: CLASS_SCOPE
-    scriptPath:
-    - kp-scripts/src/main/kotlin/extendableMessages.kts
-```
-
-#### JSON
-```json
-{
-    "protoBuilders": [
-        {
-            "filter": { "excludePath": ["google/*"] },
-            "unwrapBuilders": true,
-            "useDslMarkers": true
-        }
-    ],
-    "grpcStubExts": [
-        { "supportCoroutines": true }
-    ],
-    "extendableMessages": [
-        { "filter": { "excludePath": ["google/*"] } }
-    ],
-    "mockServices": [
-        {
-            "implementAsObject": true,
-            "generateServiceList": true,
-            "serviceListPackage": "com.my.package",
-            "serviceListName": "MyMockServices"
-        }
-    ],
-    "generatorScripts": [
-        {
-            "scriptPath": ["helloThere.kts"],
-            "scriptBundle": "kp-scripts/build/libs/kp-scripts.jar"
-        }
-    ],
-    "insertions": [
-        {
-            "entry": [
-                {
-                    "point": "MESSAGE_IMPLEMENTS",
-                    "content": ["com.my.Interface<{{message_type}}>"]
-                },
-                {
-                    "point": "BUILDER_IMPLEMENTS",
-                    "content": ["com.my.Interface<{{message_type}}>"]
-                },
-                {
-                    "point": "CLASS_SCOPE",
-                    "scriptPath": ["kp-scripts/src/main/kotlin/extendableMessages.kts"]
-                }
-            ]
-        }
-    ]
-}
-```
-
-## CLI Compiler (Deprecated)
-Information and samples for cli based versions of kroto plus (<=0.1.2) can be found [here](https://github.com/marcoferrer/kroto-plus/tree/v0.1.2) 
+* [Documentation & Usage Examples](https://kroto-plus.readme.io/docs/configuration-file)
 
 #### Credit
 This project relies on [Kotlin Poet](https://github.com/square/kotlinpoet) for building Kotlin sources. A big thanks to all of its contributors. 
