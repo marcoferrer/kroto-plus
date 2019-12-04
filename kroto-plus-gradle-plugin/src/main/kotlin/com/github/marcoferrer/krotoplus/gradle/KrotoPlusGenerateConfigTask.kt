@@ -28,12 +28,12 @@ import java.io.File
 
 open class KrotoPlusGenerateConfigTask : DefaultTask(){
 
+    private val configContainer: NamedDomainObjectContainer<CompilerConfigWrapper>
+        get() = project.krotoPlus.config
+
     @get:Input
     internal val configInputs: Map<String, String>
         get() = configContainer.asMap.mapValues { it.value.builder.toString() }
-
-    private val configContainer: NamedDomainObjectContainer<CompilerConfigWrapper>
-        get() = project.krotoPlus.config
 
     @get:OutputFiles
     val configOutputs: List<File>
