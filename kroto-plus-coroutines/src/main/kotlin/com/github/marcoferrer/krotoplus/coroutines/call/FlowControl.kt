@@ -20,6 +20,7 @@ import io.grpc.stub.CallStreamObserver
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ActorScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
@@ -73,17 +74,28 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
             targetChannel.close(e)
         }
     ) {
-
-        for (handler in channel) {
-            if (isCompleted.get()) break
-            handler(this)
+        try {
+            for (handler in channel) {
+                if (isCompleted.get()) break
+                handler(this)
+            }
+        }catch (e:Throwable){
+            if(!channel.isClosedForSend || !targetChannel.isClosedForSend){
+                throw e
+            }
         }
         if(!isCompleted.get()) {
             streamObserver.completeSafely()
         }
     }
 
-    targetChannel.invokeOnClose {
+    targetChannel.invokeOnClose { error ->
+        if(error != null &&
+            !coroutineContext[Job]!!.isCancelled &&
+            isCompleted.compareAndSet(false,true)
+        ){
+            streamObserver.completeSafely(error)
+        }
         messageHandlerActor.close()
     }
 

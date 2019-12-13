@@ -208,7 +208,7 @@ class ClientCallBidiStreamingTests {
             }
         }
 
-        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
+        verify(exactly = 1) { rpcSpy.call.cancel("Cancelled by client with StreamObserver.onError()", any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
