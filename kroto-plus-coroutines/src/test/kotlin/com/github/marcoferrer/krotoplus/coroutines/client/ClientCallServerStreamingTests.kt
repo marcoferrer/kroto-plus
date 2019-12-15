@@ -135,6 +135,39 @@ class ClientCallServerStreamingTests {
     }
 
     @Test
+    fun `Call is cancelled when response channel is prematurely canceled`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+
+        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
+            val actualRequest = firstArg<HelloRequest>()
+            with(secondArg<StreamObserver<HelloReply>>()) {
+                repeat(10) {
+                    onNext(
+                        HelloReply.newBuilder()
+                            .setMessage("Request#$it:${actualRequest.name}")
+                            .build()
+                    )
+                }
+                onCompleted()
+            }
+        }
+
+        val responseChannel = stub
+            .clientCallServerStreaming(expectedRequest, methodDescriptor)
+        val results = mutableListOf<String>()
+        runBlocking {
+            repeat(3) {
+                results.add(responseChannel.receive().message)
+            }
+            responseChannel.cancel()
+        }
+
+        assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
+        verify(exactly = 1) { rpcSpy.call.cancel("Client has cancelled call",any()) }
+    }
+
+    @Test
     fun `Call fails on server error`() {
         val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
         val stub = rpcSpy.stub

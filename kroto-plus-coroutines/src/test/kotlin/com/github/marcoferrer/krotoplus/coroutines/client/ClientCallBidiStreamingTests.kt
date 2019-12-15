@@ -441,4 +441,40 @@ class ClientCallBidiStreamingTests {
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
+
+    @Test
+    fun `Call is cancelled when response channel is prematurely canceled`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+
+        setupServerHandlerSuccess()
+        val (requestChannel, responseChannel) = stub
+            .clientCallBidiStreaming(methodDescriptor)
+
+        runBlocking(Dispatchers.Default) {
+            launch {
+                assertFailsWithStatus(Status.CANCELLED) {
+                    repeat(10) {
+                        requestChannel.send(
+                            HelloRequest.newBuilder()
+                                .setName(it.toString())
+                                .build()
+                        )
+                        delay(10)
+                    }
+                }
+                requestChannel.close()
+            }
+
+            repeat(3){
+                responseChannel.receive()
+            }
+            responseChannel.cancel()
+        }
+
+        verify(exactly = 1) { rpcSpy.call.cancel("Client has cancelled call",any()) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
+
 }
