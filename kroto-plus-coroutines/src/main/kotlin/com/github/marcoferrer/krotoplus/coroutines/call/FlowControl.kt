@@ -17,6 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.call
 
 import io.grpc.stub.CallStreamObserver
+import io.grpc.stub.ClientCallStreamObserver
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,14 +55,34 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
 
     val isCompleted = AtomicBoolean()
     val channelIterator = targetChannel.iterator()
-    val messageHandlerBlock: MessageHandler = handler@ {
-        while(
-            streamObserver.isReady &&
-            channelIterator.hasNext()
-        ){
-            streamObserver.onNext(channelIterator.next())
+    val messageHandlerBlock: MessageHandler = handler@{
+        try {
+            while (
+                streamObserver.isReady &&
+                channelIterator.hasNext()
+            ) {
+                streamObserver.onNext(channelIterator.next())
+            }
+        } catch (e: Throwable) {
+            // If the outbound channel is closed while we are suspended
+            // on `hasNext()`, then the close exception will be throw
+            // and need to be propagated to the call stream
+            if (targetChannel.isClosedForSend) {
+                // We cant convert our error before passing it to a 'client' stream observer
+                // because we will loose the cause when 'onError' cancels the underlying call.
+                // As for 'server' stream observers, we still need to convert the error before
+                // returning it to the client. Unfortunately checking the observer type is
+                // the only way we can do this in the current implementation.
+                streamObserver.completeSafely(e, convertError = streamObserver !is ClientCallStreamObserver)
+                isCompleted.set(true)
+            } else {
+                throw e
+            }
         }
-        if(targetChannel.isClosedForReceive && isCompleted.compareAndSet(false,true)){
+        if (targetChannel.isClosedForReceive &&
+            !coroutineContext[Job]!!.isCancelled &&
+            isCompleted.compareAndSet(false, true)
+        ) {
             streamObserver.onCompleted()
             channel.close()
         }
@@ -74,37 +95,26 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
             targetChannel.close(e)
         }
     ) {
-        try {
-            for (handler in channel) {
-                if (isCompleted.get()) break
-                handler(this)
-            }
-        }catch (e:Throwable){
-            if(!channel.isClosedForSend || !targetChannel.isClosedForSend){
-                throw e
-            }
+
+        for (handler in channel) {
+            if (isCompleted.get()) break
+            handler(this)
         }
-        if(!isCompleted.get()) {
+        if (!isCompleted.get()) {
             streamObserver.completeSafely()
         }
     }
 
-    targetChannel.invokeOnClose { error ->
-        if(error != null &&
-            !coroutineContext[Job]!!.isCancelled &&
-            isCompleted.compareAndSet(false,true)
-        ){
-            streamObserver.completeSafely(error)
-        }
+    targetChannel.invokeOnClose {
         messageHandlerActor.close()
     }
 
     streamObserver.setOnReadyHandler {
         try {
-            if(!messageHandlerActor.isClosedForSend){
+            if (!messageHandlerActor.isClosedForSend) {
                 messageHandlerActor.offer(messageHandlerBlock)
             }
-        }catch (e: Throwable){
+        } catch (e: Throwable) {
             // If offer throws an exception then it is
             // either already closed or there was a failure
             // which has already cleaned up call resources
