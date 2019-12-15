@@ -44,7 +44,7 @@ pluginBundle {
         krotoPlusPlugin {
             id = pluginId
             displayName = 'Kroto+ Config Plugin'
-            description = 'Protoc plugin for bringing together Kotlin, Protobuf, Coroutines, and gRPC'
+            description = 'gRPC Kotlin Coroutines, Protobuf DSL, Scripting for Protoc'
             tags = [ 'coroutines', 'kotlin', 'grpc', 'protobuf','protocol-buffers', 'code-generation' ]
         }
     }
