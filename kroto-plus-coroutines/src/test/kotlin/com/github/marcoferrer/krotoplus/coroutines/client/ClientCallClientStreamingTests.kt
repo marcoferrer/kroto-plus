@@ -17,9 +17,10 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.ClientCall
@@ -332,4 +333,39 @@ class ClientCallClientStreamingTests {
 
     }
 
+    @Test
+    fun `Call is cancelled when request channel closed with error`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
+        val expectedException = IllegalStateException("test")
+
+        setupServerHandlerSuccess()
+        val (requestChannel, response) = stub
+            .clientCallClientStreaming(methodDescriptor)
+
+        runBlocking(Dispatchers.Default) {
+            launch {
+                kotlin.runCatching {
+                    repeat(3) {
+                        requestChannel.send(
+                            HelloRequest.newBuilder()
+                                .setName(it.toString())
+                                .build()
+                        )
+                    }
+                    requestChannel.close(expectedException)
+                }
+            }
+
+            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+                response.await()
+            }
+        }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
+        assert(response.isCancelled) { "Response should not be cancelled" }
+    }
 }

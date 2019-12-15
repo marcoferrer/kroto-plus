@@ -20,6 +20,8 @@ import io.grpc.Status
 import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
 import io.mockk.MockKMatcherScope
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 
 fun MockKMatcherScope.matchStatus(status: Status, message: String? = null) =
@@ -33,3 +35,14 @@ fun MockKMatcherScope.matchStatus(status: Status, message: String? = null) =
 
         actualCode == status.code && matchesMessage
     }
+
+inline fun <reified T : Throwable> MockKMatcherScope.matchThrowable(expected: T) =
+    match<T> { actual ->
+        actual.message == expected.message
+    }
+
+inline fun <reified T : Throwable> assertExEquals(expected: T, actual: Throwable?){
+    assertNotNull(actual)
+    assertEquals(expected::class, actual::class)
+    assertEquals(expected.message, actual.message)
+}

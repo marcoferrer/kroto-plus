@@ -18,7 +18,6 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 
 import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
-import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
@@ -133,6 +132,39 @@ class ClientCallServerStreamingTests {
         }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
         verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
+    }
+
+    @Test
+    fun `Call is cancelled when response channel is prematurely canceled`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+
+        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
+            val actualRequest = firstArg<HelloRequest>()
+            with(secondArg<StreamObserver<HelloReply>>()) {
+                repeat(10) {
+                    onNext(
+                        HelloReply.newBuilder()
+                            .setMessage("Request#$it:${actualRequest.name}")
+                            .build()
+                    )
+                }
+                onCompleted()
+            }
+        }
+
+        val responseChannel = stub
+            .clientCallServerStreaming(expectedRequest, methodDescriptor)
+        val results = mutableListOf<String>()
+        runBlocking {
+            repeat(3) {
+                results.add(responseChannel.receive().message)
+            }
+            responseChannel.cancel()
+        }
+
+        assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
+        verify(exactly = 1) { rpcSpy.call.cancel("Client has cancelled call",any()) }
     }
 
     @Test

@@ -60,8 +60,10 @@ internal interface FlowControlledInboundStreamObserver<T> : StreamObserver<T>, C
                 }
             }
             else -> {
+                // We need to drop messages that were received
+                // after the inbound channel was  prematurely
+                // closed. Usually done to signal a cancellation
                 transientInboundMessageCount.decrementAndGet()
-                error("Received value but inbound channel is closed for send")
             }
         }
     }

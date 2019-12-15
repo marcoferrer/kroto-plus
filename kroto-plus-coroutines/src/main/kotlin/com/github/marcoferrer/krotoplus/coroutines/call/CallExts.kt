@@ -17,13 +17,13 @@
 package com.github.marcoferrer.krotoplus.coroutines.call
 
 import com.github.marcoferrer.krotoplus.coroutines.asContextElement
+import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
-import io.grpc.ClientCall
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -45,22 +45,24 @@ internal fun CoroutineScope.bindScopeCancellationToCall(call: ClientCall<*, *>) 
     val job = coroutineContext[Job]
         ?: error("Unable to bind cancellation to call because scope does not have a job: $this")
 
-    job.apply {
-        invokeOnCompletion {
-            if (isCancelled) {
-                call.cancel(it?.message, it?.cause ?: it)
-            }
+    job.invokeOnCompletion { error ->
+        if (job.isCancelled) {
+            call.cancel(error?.message, error)
         }
     }
 }
 
-internal fun StreamObserver<*>.completeSafely(error: Throwable? = null) {
+internal fun StreamObserver<*>.completeSafely(error: Throwable? = null, convertError: Boolean = true) {
     // If the call was cancelled already
     // the stream observer will throw
     kotlin.runCatching {
-        if (error != null)
-            onError(error.toRpcException()) else
+        if (error != null) {
+            if (convertError)
+                onError(error.toRpcException()) else
+                onError(error)
+        } else {
             onCompleted()
+        }
     }
 }
 
@@ -90,11 +92,17 @@ internal fun newRpcScope(
     coroutineContext: CoroutineContext,
     methodDescriptor: MethodDescriptor<*, *>,
     grpcContext: io.grpc.Context = io.grpc.Context.current()
-): CoroutineScope = CoroutineScope(
-    coroutineContext +
-            grpcContext.asContextElement() +
-            methodDescriptor.getCoroutineName()
-)
+): CoroutineScope{
+    val context = newRpcContext(coroutineContext, methodDescriptor, grpcContext)
+    return CoroutineScope(context)
+}
+
+internal fun newRpcContext(
+    coroutineContext: CoroutineContext,
+    methodDescriptor: MethodDescriptor<*, *>,
+    grpcContext: io.grpc.Context = io.grpc.Context.current()
+): CoroutineContext =
+    coroutineContext + grpcContext.asContextElement() + methodDescriptor.getCoroutineName()
 
 internal fun <T> CoroutineScope.newProducerScope(channel: SendChannel<T>): ProducerScope<T> =
     object : ProducerScope<T>,
