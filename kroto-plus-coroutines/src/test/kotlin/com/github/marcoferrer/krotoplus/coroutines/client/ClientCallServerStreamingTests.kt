@@ -18,7 +18,6 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 
 import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
-import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
