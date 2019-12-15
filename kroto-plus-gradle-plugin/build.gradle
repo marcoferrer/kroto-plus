@@ -6,6 +6,15 @@ apply from: "$rootDir/publishing.gradle"
 
 def pluginId = 'com.github.marcoferrer.kroto-plus'
 
+repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+    maven { url "https://repo.gradle.org/gradle/libs-releases-local/" }
+    google()
+    // Needed for resolving 'kotlinx-metadata-jvm'
+    // A transitive dependency of gradle Kotlin DSL
+    maven { url "https://kotlin.bintray.com/kotlinx/" }
+}
+
 gradlePlugin {
     plugins {
         krotoPlusPlugin {
@@ -17,6 +26,11 @@ gradlePlugin {
 
 dependencies{
     implementation "com.google.protobuf:protobuf-java:${Versions.protobuf}"
+    compileOnly gradleApi()
+    compileOnly "org.gradle:gradle-kotlin-dsl:1.0.4"
+    compileOnly "com.google.protobuf:protobuf-gradle-plugin:0.8.8"
+    compileOnly 'com.google.gradle:osdetector-gradle-plugin:1.6.2'
+    compileOnly project(":protoc-gen-kroto-plus")
     protobuf project(":protoc-gen-kroto-plus")
 }
 
@@ -30,7 +44,7 @@ pluginBundle {
         krotoPlusPlugin {
             id = pluginId
             displayName = 'Kroto+ Config Plugin'
-            description = 'Protoc plugin for bringing together Kotlin, Protobuf, Coroutines, and gRPC'
+            description = 'gRPC Kotlin Coroutines, Protobuf DSL, Scripting for Protoc'
             tags = [ 'coroutines', 'kotlin', 'grpc', 'protobuf','protocol-buffers', 'code-generation' ]
         }
     }
@@ -50,14 +64,10 @@ protobuf {
     generateProtoTasks {
         def krotoConfig = file("krotoPlusConfig.asciipb")
 
-        all().each { task ->
-            task.inputs.files krotoConfig
-            task.dependsOn ':protoc-gen-kroto-plus:buildCanteenArtifacts'
-            task.plugins {
-                kroto {
-                    outputSubDir = "java"
-                }
-            }
+        all().each{ task ->
+            task.dependsOn ':kroto-plus-gradle-plugin:gen-config-dsl:jar'
+            configProtoTaskWithKroto(task, krotoConfig)
         }
     }
+
 }

@@ -1,61 +1,47 @@
+/*
+ *  Copyright 2019 Kroto+ Contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.github.marcoferrer.krotoplus.gradle
 
-import groovy.lang.Closure
-import org.gradle.api.DefaultTask
+import com.google.protobuf.gradle.GenerateProtoTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.TaskAction
-import java.io.File
-import javax.inject.Inject
-
-private const val PROTOBUF_PLUGIN_ID = "com.google.protobuf"
 
 class KrotoPlusGradlePlugin : Plugin<Project> {
 
-    private lateinit var project: Project
-    private var wasApplied = false
-
     override fun apply(project: Project) {
-        this.project = project
         project.pluginManager.withPlugin(PROTOBUF_PLUGIN_ID) {
-            if (wasApplied) {
-//                project.logger.warn("The com.google.protobuf plugin was already applied to the project: ' + project.path
-//                        + ' and will not be applied again after plugin: ' + prerequisitePlugin.id)
-            } else {
-                wasApplied = true
-                doApply()
+            project.extensions.create(
+                "krotoPlus",
+                KrotoPlusPluginExtension::class.java,
+                project
+            )
+            val generateConfigTask = project.tasks.create(
+                KrotoPlusGenerateConfigTask.DEFAULT_TASK_NAME,
+                KrotoPlusGenerateConfigTask::class.java
+            )
+            project.afterEvaluate {
+                it.tasks.withType(GenerateProtoTask::class.java).forEach { task ->
+                    task.dependsOn(generateConfigTask)
+                }
             }
         }
     }
 
-    private fun doApply() {
-        project.extensions.create(
-            "krotoPlus",
-            KrotoPlusPluginExtension::class.java,
-            project.projectDir
-        )
-        val createConfigTask = project.tasks.create(
-            "generateKrotoPlusConfig",
-            GenerateKrotoPlusConfigTask::class.java
-        )
-        project.afterEvaluate {
-            it.tasks.getByName("generateProto").dependsOn.add(createConfigTask)
-        }
-    }
-}
-
-open class GenerateKrotoPlusConfigTask : DefaultTask() {
-
-    @TaskAction
-    open fun generate() {
-        val krotoPlusExt = project.extensions
-            .findByType(KrotoPlusPluginExtension::class.java)!!
-
-        krotoPlusExt.outputDir.mkdirs()
-        krotoPlusExt.configs.forEach { name, config ->
-            File(krotoPlusExt.outputDir, "$name.asciipb").apply { createNewFile() }
-                .writeText(config.toString())
-        }
+    companion object {
+        private const val PROTOBUF_PLUGIN_ID = "com.google.protobuf"
     }
 }

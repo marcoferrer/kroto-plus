@@ -95,15 +95,28 @@ object ScriptManager {
                 ?: throw IllegalArgumentException("Script: '$scriptPath' was not found in bundle '${bundle.absolutePath}'")
         }
 
-    internal fun getScript(scriptFile: File): RenderScript =
+    private fun getScript(scriptFile: File): RenderScript =
         scriptCache.getOrPut(scriptFile.absolutePath) {
             getOrLoadCompiledClasses(scriptFile).toRenderScript(scriptEngine)
         }
 
     internal fun getScript(scriptPath: String, bundlePath: String? = null): RenderScript =
-        if (bundlePath.orEmpty().isNotEmpty())
-            getScriptFromBundle(scriptPath, File(context.currentWorkingDir, bundlePath)) else
-            getScript(File(context.currentWorkingDir, scriptPath))
+        if (bundlePath.isNullOrBlank())
+            getScript(resolveFile(scriptPath)) else
+            getScriptFromBundle(scriptPath, resolveFile(bundlePath))
+
+    private fun resolveFile(path: String): File {
+        val possibleFiles = listOf(
+            // File locations relative to the configuration they're declared in
+            File(context.currentWorkingDir, path),
+            // Absolute file paths
+            File(path)
+        )
+
+        return possibleFiles.firstOrNull { it.exists() }
+            ?: error("Unable to resolve file for path '$path'. " +
+                    "Searched in: \n" + possibleFiles.joinToString(prefix = "'", separator = "',"))
+    }
 
     private val getFileContentToHash = { scriptFile: File ->
         val md = MessageDigest.getInstance("MD5")

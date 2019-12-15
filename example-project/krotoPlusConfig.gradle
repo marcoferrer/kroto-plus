@@ -1,0 +1,112 @@
+
+apply plugin: "com.github.marcoferrer.kroto-plus"
+
+krotoPlus {
+    config {
+        //noinspection GroovyAssignabilityCheck
+        main {
+            mockServices {
+                filter {
+                    addIncludePath("jojo/*")
+                }
+                implementAsObject = true
+                generateServiceList = true
+                serviceListPackage = "jojo.bizarre.adventure"
+                serviceListName = "MockJojoServices"
+            }
+
+            mockServices {
+                filter {
+                    addIncludePath("test/message/*")
+                }
+                implementAsObject = true
+                generateServiceList = true
+                serviceListPackage = "test.message"
+            }
+
+            protoBuilders {
+                filter {
+                    addExcludePath("google/*")
+                }
+                unwrapBuilders = true
+                useDslMarkers = true
+            }
+
+            grpcStubExts {
+                supportCoroutines = true
+            }
+            grpcCoroutines()
+            extendableMessages {
+                filter {
+                    addIncludePath("jojo/bizarre/adventure/stand/*")
+                }
+            }
+            generatorScripts {
+                addScriptPath("helloThere.kts")
+                scriptBundle = file("kp-scripts/build/libs/kp-scripts.jar")
+            }
+            generatorScripts {
+                addScriptPath("varArgExtensionGenerator.kts")
+                scriptBundle = file("kp-scripts/build/libs/kp-scripts.jar")
+            }
+            insertions {
+                filter {
+                    addIncludePath("jojo/bizarre/adventure/character/*")
+                }
+                entry {
+                    point = 'MESSAGE_IMPLEMENTS'
+                    addScriptPath "extendableMessages.kts"
+                    scriptBundle = file("kp-scripts/build/libs/kp-scripts.jar")
+                }
+                entry {
+                    point = 'BUILDER_IMPLEMENTS'
+                    addScriptPath "extendableMessages.kts"
+                    scriptBundle = file("kp-scripts/build/libs/kp-scripts.jar")
+                }
+                entry {
+                    point = 'CLASS_SCOPE'
+                    addScriptPath "extendableMessages.kts"
+                    scriptBundle = file("kp-scripts/build/libs/kp-scripts.jar")
+                }
+                entry {
+                    point = 'OUTER_CLASS_SCOPE'
+                    addScriptPath(file("kp-scripts/src/main/kotlin/sampleInsertionScript.kts").toString())
+                }
+            }
+        }
+    }
+
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}" }
+
+    generatedFilesBaseDir = "$buildDir/generated-sources"
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${versions.grpc}" }
+        kroto {
+            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${versions.krotoplus}"
+        }
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            // If we're using precompiled scripts for improved performance then we
+            // should depend on the jar task for our scripts
+            task.dependsOn ':kp-scripts:jar'
+
+            task.plugins {
+                grpc { outputSubDir = "java" }
+                kroto {
+                    // The extendable-messages generator needs the outputSubDir
+                    // to be the same as 'task.builtins.java.outputSubDir' since
+                    // it relies on the insertion_point api from protoc.
+                    outputSubDir = "java"
+                    option krotoPlus.config.main.asOption()
+                }
+            }
+        }
+    }
+}

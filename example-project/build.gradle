@@ -1,11 +1,11 @@
 buildscript {
     ext {
         versions = [
-                "protobuf":   '3.9.0',
-                "grpc":       '1.23.0',
-                "kotlin":     '1.3.50',
+                "protobuf"  : '3.9.0',
+                "grpc"      : '1.23.0',
+                "kotlin"    : '1.3.50',
                 "coroutines": '1.3.0',
-                "krotoplus":  '0.6.0-SNAPSHOT'
+                "krotoplus" : '0.6.0-SNAPSHOT'
         ]
     }
 
@@ -14,25 +14,30 @@ buildscript {
         mavenCentral()
         maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
     }
+
+    dependencies {
+        classpath "com.google.protobuf:protobuf-java:${versions.protobuf}"
+    }
 }
 
-plugins{
+plugins {
     id 'idea'
-    id 'com.google.protobuf' version '0.8.7'
+    id 'com.google.protobuf' version '0.8.8'
     id "org.jetbrains.kotlin.jvm" version "1.3.50"
+    id "com.github.marcoferrer.kroto-plus" version "0.6.0-SNAPSHOT"
 }
 
 group = 'com.github.marcoferrer.krotoplus'
 version = versions.krotoplus
 
 compileKotlin {
-    kotlinOptions{
+    kotlinOptions {
         jvmTarget = "1.8"
     }
 }
 
 compileTestKotlin {
-    kotlinOptions{
+    kotlinOptions {
         jvmTarget = "1.8"
         freeCompilerArgs += ["-Xuse-experimental=kotlin.Experimental"]
     }
@@ -62,8 +67,8 @@ dependencies {
     implementation "com.github.marcoferrer.krotoplus:kroto-plus-message:${versions.krotoplus}"
 
     implementation "io.grpc:grpc-protobuf:${versions.grpc}",
-                   "io.grpc:grpc-stub:${versions.grpc}",
-                   "io.grpc:grpc-netty:${versions.grpc}"
+            "io.grpc:grpc-stub:${versions.grpc}",
+            "io.grpc:grpc-netty:${versions.grpc}"
 
     testImplementation "io.grpc:grpc-testing:${versions.grpc}"
 
@@ -80,39 +85,46 @@ idea {
     }
 }
 
-protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}"}
 
-    generatedFilesBaseDir = "$buildDir/generated-sources"
+if (project.findProperty("useKrotoConfigDsl")?.toBoolean() ?: false) {
+    // Use experimental kroto plus gradle config
+    apply from: "krotoPlusConfig.gradle"
+} else {
 
-    //noinspection GroovyAssignabilityCheck
-    plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${versions.grpc}" }
-        kroto {
-            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${versions.krotoplus}"
+    protobuf {
+        protoc { artifact = "com.google.protobuf:protoc:${versions.protobuf}"}
+
+        generatedFilesBaseDir = "$buildDir/generated-sources"
+
+        //noinspection GroovyAssignabilityCheck
+        plugins {
+            grpc { artifact = "io.grpc:protoc-gen-grpc-java:${versions.grpc}" }
+            kroto {
+                artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${versions.krotoplus}"
+            }
         }
-    }
 
-    generateProtoTasks {
-        def krotoConfig = file("krotoPlusConfig.asciipb")
+        generateProtoTasks {
+            def krotoConfig = file("krotoPlusConfig.asciipb")
 
-        all().each{ task ->
-            // Adding the config file to the task inputs lets UP-TO-DATE checks
-            // include changes to configuration
-            task.inputs.files krotoConfig
-            
-            // If we're using precompiled scripts for improved performance then we
-            // should depend on the jar task for our scripts
-            task.dependsOn ':kp-scripts:jar'
+            all().each{ task ->
+                // Adding the config file to the task inputs lets UP-TO-DATE checks
+                // include changes to configuration
+                task.inputs.files krotoConfig
 
-            task.plugins {
-                grpc { outputSubDir = "java" }
-                kroto {
-                    // The extendable-messages generator needs the outputSubDir
-                    // to be the same as 'task.builtins.java.outputSubDir' since
-                    // it relies on the insertion_point api from protoc.
-                    outputSubDir = "java"
-                    option "ConfigPath=$krotoConfig"
+                // If we're using precompiled scripts for improved performance then we
+                // should depend on the jar task for our scripts
+                task.dependsOn ':kp-scripts:jar'
+
+                task.plugins {
+                    grpc { outputSubDir = "java" }
+                    kroto {
+                        // The extendable-messages generator needs the outputSubDir
+                        // to be the same as 'task.builtins.java.outputSubDir' since
+                        // it relies on the insertion_point api from protoc.
+                        outputSubDir = "java"
+                        option "ConfigPath=$krotoConfig"
+                    }
                 }
             }
         }
