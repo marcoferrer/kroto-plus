@@ -17,10 +17,14 @@
 package com.github.marcoferrer.krotoplus.coroutines.integration
 
 import com.github.marcoferrer.krotoplus.coroutines.client.clientCallClientStreaming
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.ClientCall
+import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
@@ -33,15 +37,21 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 
 class ClientStreamingBackPressureTests {
@@ -118,6 +128,89 @@ class ClientStreamingBackPressureTests {
         }
 
         verify(exactly = 4) { rpcSpy.call.sendMessage(any()) }
+    }
+
+    @Test
+    fun `Call completed successfully`() {
+        val deferredServerChannel = CompletableDeferred<ReceiveChannel<HelloRequest>>()
+        val serverJob = CompletableDeferred<Job>()
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
+                val job = coroutineContext[Job]!!
+                job.invokeOnCompletion { serverJob.complete(job) }
+                deferredServerChannel.complete(spyk(requestChannel))
+                val reqValues = requestChannel.consumeAsFlow().map { it.name }.toList()
+                return HelloReply.newBuilder()
+                    .setMessage(reqValues.joinToString())
+                    .build()
+            }
+        })
+
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+
+        val (requestChannel, response) = stub
+            .clientCallClientStreaming(methodDescriptor)
+
+        val responseValue = runBlocking(Dispatchers.Default) {
+            repeat(3) {
+                requestChannel.send(
+                    HelloRequest.newBuilder()
+                        .setName(it.toString())
+                        .build()
+                )
+            }
+            requestChannel.close()
+            response.await()
+        }
+
+        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assertEquals("0, 1, 2", responseValue.message)
+        assertFalse(runBlocking {serverJob.await() }.isCancelled,"Server job should not be cancelled")
+    }
+
+
+    @Test
+    fun `Call is cancelled when client closes request channel`() {
+        val deferredServerChannel = CompletableDeferred<ReceiveChannel<HelloRequest>>()
+        val serverJob = CompletableDeferred<Job>()
+        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
+                val job = coroutineContext[Job]!!
+                job.invokeOnCompletion { serverJob.complete(job) }
+                deferredServerChannel.complete(spyk(requestChannel))
+                delay(Long.MAX_VALUE)
+                return HelloReply.getDefaultInstance()
+            }
+        })
+
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
+        val expectedException = IllegalStateException("test")
+
+        val (requestChannel, response) = stub
+            .clientCallClientStreaming(methodDescriptor)
+
+        runBlocking(Dispatchers.Default) {
+            requestChannel.send(
+                HelloRequest.newBuilder()
+                    .setName(0.toString())
+                    .build()
+            )
+            requestChannel.close(expectedException)
+
+            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+                println(response.await())
+            }
+        }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
+        assert(response.isCancelled) { "Response should not be cancelled" }
+        assert(runBlocking {serverJob.await() }.isCancelled){ "Server job should be cancelled" }
     }
 
 }

@@ -334,7 +334,7 @@ class ClientCallClientStreamingTests {
     }
 
     @Test
-    fun `Call is cancelled when request channel closed with error`() {
+    fun `Call is cancelled when request channel closed with error concurrently`() {
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
         val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
@@ -363,7 +363,38 @@ class ClientCallClientStreamingTests {
             }
         }
 
-        verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
+        assert(response.isCancelled) { "Response should not be cancelled" }
+    }
+
+
+    @Test
+    fun `Call is cancelled when request channel closed with error sequentially`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
+        val expectedException = IllegalStateException("test")
+
+        setupServerHandlerSuccess()
+        val (requestChannel, response) = stub
+            .clientCallClientStreaming(methodDescriptor)
+
+        runBlocking(Dispatchers.Default) {
+            requestChannel.send(
+                HelloRequest.newBuilder()
+                    .setName(0.toString())
+                    .build()
+            )
+            requestChannel.close(expectedException)
+
+            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+                response.await()
+            }
+        }
+
+        verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
         assert(response.isCancelled) { "Response should not be cancelled" }

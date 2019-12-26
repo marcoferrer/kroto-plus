@@ -19,6 +19,7 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStreamObserver
 import com.github.marcoferrer.krotoplus.coroutines.call.MessageHandler
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
+import io.grpc.Status
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.CancellationException
@@ -96,6 +97,8 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
 
     override val isInboundCompleted = AtomicBoolean()
 
+    private var aborted: Boolean = false
+
     override val transientInboundMessageCount: AtomicInteger = AtomicInteger()
 
     override lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
@@ -109,8 +112,11 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
         inboundChannel.invokeOnClose {
             // If the client prematurely closes the response channel
             // we need to propagate this as a cancellation to the underlying call
-            if(!outboundChannel.isClosedForSend && coroutineContext[Job]?.isCancelled == false){
-                callStreamObserver.cancel("Client has cancelled call", it)
+            if(!outboundChannel.isClosedForSend && coroutineContext[Job]?.isCancelled == false && !aborted){
+                outboundChannel.close(Status.CANCELLED
+                    .withDescription("Client has cancelled call")
+                    .withCause(it)
+                    .asRuntimeException())
             }
         }
     }
@@ -118,6 +124,7 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
     override fun onNext(value: RespT): Unit = onNextWithBackPressure(value)
 
     override fun onError(t: Throwable) {
+        aborted = true
         outboundChannel.close(t)
         outboundChannel.cancel(CancellationException(t.message,t))
         inboundChannel.close(t)

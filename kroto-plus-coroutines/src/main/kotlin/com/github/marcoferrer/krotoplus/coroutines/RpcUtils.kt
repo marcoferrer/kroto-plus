@@ -22,11 +22,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * Launch a [Job] within a [ProducerScope] using the supplied channel as the Receiver.
@@ -55,3 +59,13 @@ public fun <T> CoroutineScope.launchProducerJob(
             }
         }
     }
+
+internal suspend fun Channel<*>.awaitCloseOrThrow(){
+    suspendCancellableCoroutine<Unit> { cont ->
+        invokeOnClose { error ->
+            if(error == null)
+                cont.resume(Unit) else
+                cont.resumeWithException(error)
+        }
+    }
+}
