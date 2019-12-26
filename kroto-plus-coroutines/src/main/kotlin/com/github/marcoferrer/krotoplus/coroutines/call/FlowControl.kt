@@ -16,16 +16,18 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.call
 
+import com.github.marcoferrer.krotoplus.coroutines.awaitCloseOrThrow
 import io.grpc.stub.CallStreamObserver
 import io.grpc.stub.ClientCallStreamObserver
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ActorScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -47,6 +49,26 @@ internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
 }
 
 internal typealias MessageHandler = suspend ActorScope<*>.() -> Unit
+
+internal inline fun <T> CoroutineScope.attachOutboundChannelCompletionHandler(
+    streamObserver: CallStreamObserver<T>,
+    targetChannel: Channel<T>,
+    crossinline onSuccess: () -> Unit = {},
+    crossinline onError: (Throwable) -> Unit = {}
+){
+    launch(start = CoroutineStart.UNDISPATCHED) {
+        val job = coroutineContext[Job]!!
+        try {
+            targetChannel.awaitCloseOrThrow()
+            onSuccess()
+        } catch (error: Throwable) {
+            if(!job.isCancelled){
+                streamObserver.completeSafely(error, convertError = streamObserver !is ClientCallStreamObserver)
+            }
+            onError(error)
+        }
+    }
+}
 
 internal fun <T> CoroutineScope.applyOutboundFlowControl(
     streamObserver: CallStreamObserver<T>,
@@ -75,8 +97,6 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
                 // the only way we can do this in the current implementation.
                 streamObserver.completeSafely(e, convertError = streamObserver !is ClientCallStreamObserver)
                 isCompleted.set(true)
-            } else {
-                throw e
             }
         }
         if (targetChannel.isClosedForReceive &&
@@ -90,23 +110,19 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
 
     val messageHandlerActor = actor<MessageHandler>(
         capacity = Channel.BUFFERED,
-        context = Dispatchers.Unconfined + CoroutineExceptionHandler { _, e ->
-            streamObserver.completeSafely(e)
-            targetChannel.close(e)
-        }
+        context = Dispatchers.Unconfined
     ) {
-
-        for (handler in channel) {
-            if (isCompleted.get()) break
-            handler(this)
+        try {
+            for (handler in channel) {
+                if (isCompleted.get()) break
+                handler(this)
+            }
+            if (!isCompleted.get()) {
+                streamObserver.completeSafely()
+            }
+        }catch (e: Throwable){
+            channel.cancel()
         }
-        if (!isCompleted.get()) {
-            streamObserver.completeSafely()
-        }
-    }
-
-    targetChannel.invokeOnClose {
-        messageHandlerActor.close()
     }
 
     streamObserver.setOnReadyHandler {

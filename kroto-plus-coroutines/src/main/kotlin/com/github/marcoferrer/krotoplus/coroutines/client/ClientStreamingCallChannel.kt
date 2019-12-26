@@ -18,6 +18,7 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.call.MessageHandler
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
+import com.github.marcoferrer.krotoplus.coroutines.call.attachOutboundChannelCompletionHandler
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.CancellationException
@@ -71,6 +72,11 @@ internal class ClientStreamingCallChannelImpl<ReqT,RespT>(
         callStreamObserver = requestStream
         outboundMessageHandler = applyOutboundFlowControl(requestStream, outboundChannel)
 
+        attachOutboundChannelCompletionHandler(
+            callStreamObserver, outboundChannel,
+            onSuccess = { outboundMessageHandler.close() },
+            onError = { error -> completableResponse.completeExceptionally(error) }
+        )
         completableResponse.invokeOnCompletion {
             // If the client prematurely cancels the response
             // we need to propagate this as a cancellation to the underlying call

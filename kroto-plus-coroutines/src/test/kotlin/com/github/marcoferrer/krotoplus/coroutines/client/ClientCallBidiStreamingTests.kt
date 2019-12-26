@@ -210,7 +210,6 @@ class ClientCallBidiStreamingTests {
             }
         }
 
-        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
@@ -401,7 +400,7 @@ class ClientCallBidiStreamingTests {
     }
 
     @Test
-    fun `Call is cancelled when request channel closed with error`() {
+    fun `Call is cancelled when request channel closed with error concurrently`() {
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
         val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
@@ -437,7 +436,43 @@ class ClientCallBidiStreamingTests {
         result.forEachIndexed { index, message ->
             assertEquals("Req:#$index/Resp:#$index",message)
         }
-        verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+    }
+
+    @Test
+    fun `Call is cancelled when request channel closed with error sequentially`() {
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub
+        val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
+        val expectedException = IllegalStateException("test")
+
+        setupServerHandlerSuccess()
+        val (requestChannel, responseChannel) = stub
+            .clientCallBidiStreaming(methodDescriptor)
+
+        val result = mutableListOf<String>()
+        runBlocking(Dispatchers.Default) {
+            requestChannel.send(
+                HelloRequest.newBuilder()
+                    .setName(0.toString())
+                    .build()
+            )
+            requestChannel.close(expectedException)
+
+            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+                responseChannel.consumeAsFlow()
+                    .collect { result.add(it.message) }
+            }
+        }
+
+
+        assertEquals(1, result.size)
+        result.forEachIndexed { index, message ->
+            assertEquals("Req:#$index/Resp:#$index",message)
+        }
+        verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
@@ -472,7 +507,7 @@ class ClientCallBidiStreamingTests {
             responseChannel.cancel()
         }
 
-        verify(exactly = 1) { rpcSpy.call.cancel("Client has cancelled call",any()) }
+        verify { rpcSpy.call.cancel("Cancelled by client with StreamObserver.onError()",any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
