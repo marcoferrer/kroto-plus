@@ -201,7 +201,7 @@ class ClientStreamingBackPressureTests {
             )
             requestChannel.close(expectedException)
 
-            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+            assertFailsWithStatus(Status.CANCELLED){
                 println(response.await())
             }
         }
