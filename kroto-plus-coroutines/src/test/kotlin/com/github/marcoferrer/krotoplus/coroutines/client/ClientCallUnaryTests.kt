@@ -173,7 +173,7 @@ class ClientCallUnaryTests {
             }
         }
 
-        verify { rpcSpy.call.cancel("Job was cancelled",any<CancellationException>()) }
+        verify { rpcSpy.call.cancel(any(),any<CancellationException>()) }
     }
 
     @Test
