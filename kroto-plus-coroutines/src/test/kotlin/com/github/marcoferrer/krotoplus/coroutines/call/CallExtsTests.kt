@@ -124,7 +124,7 @@ class BindScopeCancellationToCallTests {
             }
         }
 
-        verify(exactly = 1) { call.cancel("Job was cancelled",any<CancellationException>()) }
+        verify(exactly = 1) { call.cancel(any(),any<CancellationException>()) }
     }
 
     @Test
