@@ -19,6 +19,7 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 import com.github.marcoferrer.krotoplus.coroutines.call.FlowControlledInboundStreamObserver
 import com.github.marcoferrer.krotoplus.coroutines.call.MessageHandler
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
+import com.github.marcoferrer.krotoplus.coroutines.call.attachOutboundChannelCompletionHandler
 import io.grpc.Status
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
@@ -108,6 +109,12 @@ internal class ClientBidiCallChannelImpl<ReqT,RespT>(
     override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
         callStreamObserver = requestStream.apply { disableAutoInboundFlowControl() }
         outboundMessageHandler = applyOutboundFlowControl(requestStream,outboundChannel)
+
+        attachOutboundChannelCompletionHandler(
+            callStreamObserver, outboundChannel,
+            onSuccess = { outboundMessageHandler.close() },
+            onError = { error -> inboundChannel.close(error) }
+        )
 
         inboundChannel.invokeOnClose {
             // If the client prematurely closes the response channel

@@ -50,6 +50,26 @@ internal fun <T> CallStreamObserver<*>.applyInboundFlowControl(
 
 internal typealias MessageHandler = suspend ActorScope<*>.() -> Unit
 
+internal inline fun <T> CoroutineScope.attachOutboundChannelCompletionHandler(
+    streamObserver: CallStreamObserver<T>,
+    targetChannel: Channel<T>,
+    crossinline onSuccess: () -> Unit = {},
+    crossinline onError: (Throwable) -> Unit = {}
+){
+    launch(start = CoroutineStart.UNDISPATCHED) {
+        val job = coroutineContext[Job]!!
+        try {
+            targetChannel.awaitCloseOrThrow()
+            onSuccess()
+        } catch (error: Throwable) {
+            if(!job.isCancelled){
+                streamObserver.completeSafely(error, convertError = streamObserver !is ClientCallStreamObserver)
+            }
+            onError(error)
+        }
+    }
+}
+
 internal fun <T> CoroutineScope.applyOutboundFlowControl(
     streamObserver: CallStreamObserver<T>,
     targetChannel: Channel<T>
@@ -92,20 +112,6 @@ internal fun <T> CoroutineScope.applyOutboundFlowControl(
         capacity = Channel.BUFFERED,
         context = Dispatchers.Unconfined
     ) {
-
-        launch(start = CoroutineStart.UNDISPATCHED) {
-            val job = coroutineContext[Job]!!
-            try {
-                targetChannel.awaitCloseOrThrow()
-                channel.close()
-            } catch (error: Throwable) {
-                if(!job.isCancelled){
-                    streamObserver.completeSafely(error, convertError = streamObserver !is ClientCallStreamObserver)
-                    isCompleted.set(true)
-                }
-            }
-        }
-
         try {
             for (handler in channel) {
                 if (isCompleted.get()) break

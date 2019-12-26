@@ -18,6 +18,7 @@ package com.github.marcoferrer.krotoplus.coroutines.server
 
 import com.github.marcoferrer.krotoplus.coroutines.call.applyInboundFlowControl
 import com.github.marcoferrer.krotoplus.coroutines.call.applyOutboundFlowControl
+import com.github.marcoferrer.krotoplus.coroutines.call.attachOutboundChannelCompletionHandler
 import com.github.marcoferrer.krotoplus.coroutines.call.bindToClientCancellation
 import com.github.marcoferrer.krotoplus.coroutines.call.completeSafely
 import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
@@ -67,6 +68,12 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     with(newRpcScope(initialContext, methodDescriptor)) {
         bindToClientCancellation(serverCallObserver)
         val outboundMessageHandler = applyOutboundFlowControl(serverCallObserver,responseChannel)
+
+        attachOutboundChannelCompletionHandler(
+            serverCallObserver, responseChannel,
+            onSuccess = { outboundMessageHandler.close() }
+        )
+
         launch(start = CoroutineStart.ATOMIC) {
             try{
                 block(responseChannel)
@@ -163,6 +170,11 @@ public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
                     this@rpcScope.cancel()
                 }
             }
+        )
+
+        attachOutboundChannelCompletionHandler(
+            serverCallObserver, responseChannel,
+            onSuccess = { outboundMessageHandler.close() }
         )
 
         launch(start = CoroutineStart.ATOMIC) {
