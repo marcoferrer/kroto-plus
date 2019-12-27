@@ -96,12 +96,14 @@ service __MalformedService__ {
     rpc say_hello (L1Message1) returns (L1Message2){
         option (google.api.method_signature) = "field";
         option (google.api.method_signature) = "nested_message";
+        option (google.api.method_signature) = "field,nested_message";
     };
 
 
     rpc sayHelloServerStreaming (L1Message1) returns (stream L1Message2){
         option (google.api.method_signature) = "field";
         option (google.api.method_signature) = "nested_message";
+        option (google.api.method_signature) = "field,nested_message";
     };
 
     rpc sayHelloStreaming (stream L1Message1) returns (stream L1Message2);
