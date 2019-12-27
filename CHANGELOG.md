@@ -1,3 +1,23 @@
+## Version 0.6.0
+_2019-12-26_
+* New: Update to Kotlin `1.3.61` [PR-97](https://github.com/marcoferrer/kroto-plus/pull/97)
+* New: Update to Kotlin Coroutines `1.3.3`
+
+#### Protoc Plugin
+* New: Publish native executables for the following platforms `osx-x86_64`, `linux-x86_64`, `windows-x86_64` [PR-87](https://github.com/marcoferrer/kroto-plus/pull/87)
+
+#### Coroutines
+* New: Include proto documentation in generated sources [PR-86](https://github.com/marcoferrer/kroto-plus/pull/86) Thanks to @metarag
+* Fix: Closing outbound channels with an exception now propagates a cancellation to the underlying stream [GH-93](https://github.com/marcoferrer/kroto-plus/issues/93) Thanks to @jebbench
+* Fix: Update method signature support to adhere to spec [GH-92](https://github.com/marcoferrer/kroto-plus/issues/92)
+
+#### Proto Builders (DSL)
+* Fix: Prevent naming collisions in proto builders [PR-88](https://github.com/marcoferrer/kroto-plus/pull/88) Thanks to @keyserbrian1
+
+#### Gradle Plugin 
+* New: Introduce new experimental configuration DSL plugin [PR-14](https://github.com/marcoferrer/kroto-plus/pull/14) Thanks to @mattdkerr [Example](https://github.com/marcoferrer/kroto-plus/blob/master/example-project/krotoPlusConfig.gradle) 
+
+
 ## Version 0.5.0
 _2019-09-03_
 * New: Update to Kotlin `1.3.50` [PR-68](https://github.com/marcoferrer/kroto-plus/pull/68)
