@@ -80,13 +80,13 @@ class GrpcStubBuilder(val context: GeneratorContext){
             MethodDescriptor.MethodType.UNARY -> {
                 addFunction(buildUnaryMethod(method))
                 addFunction(buildUnaryLambdaOverload(method))
-                buildUnaryMethodSigOverload(method)?.let { addFunction(it) }
+                addFunctions(buildUnaryMethodSigOverload(method))
             }
 
             MethodDescriptor.MethodType.SERVER_STREAMING -> {
                 addFunction(buildServerStreamingMethod(method))
                 addFunction(buildServerStreamingLambdaOverload(method))
-                buildServerStreamingMethodSigOverload(method)?.let { addFunction(it) }
+                addFunctions(buildServerStreamingMethodSigOverload(method))
             }
 
             MethodDescriptor.MethodType.CLIENT_STREAMING ->
@@ -190,27 +190,29 @@ class GrpcStubBuilder(val context: GeneratorContext){
 
     // Method signature overloads
 
-    private fun buildUnaryMethodSigOverload(protoMethod: ProtoMethod): FunSpec? = with(protoMethod){
-        if(methodSignatureFields.isEmpty())
-            null else FunSpec.builder(functionName)
-            .addKdoc(attachedComments)
-            .addModifiers(KModifier.SUSPEND)
-            .returns(responseClassName)
-            .addMethodSignatureParameter(methodSignatureFields,context.schema)
-            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
-            .addStatement("return %N(request)",functionName)
-            .build()
+    private fun buildUnaryMethodSigOverload(protoMethod: ProtoMethod): List<FunSpec> = with(protoMethod){
+        methodSignatureVariants.map { variant ->
+            FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
+                .addModifiers(KModifier.SUSPEND)
+                .returns(responseClassName)
+                .addMethodSignatureParameter(variant,context.schema)
+                .addCode(requestClassName.requestValueMethodSigCodeBlock(variant))
+                .addStatement("return %N(request)",functionName)
+                .build()
+        }
     }
 
-    private fun buildServerStreamingMethodSigOverload(protoMethod: ProtoMethod): FunSpec? = with(protoMethod){
-        if(methodSignatureFields.isEmpty())
-            null else FunSpec.builder(functionName)
-            .addKdoc(attachedComments)
-            .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
-            .addMethodSignatureParameter(methodSignatureFields,context.schema)
-            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
-            .addStatement("return %N(request)",functionName)
-            .build()
+    private fun buildServerStreamingMethodSigOverload(protoMethod: ProtoMethod): List<FunSpec> = with(protoMethod){
+        methodSignatureVariants.map { variant ->
+            FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
+                .returns(CommonClassNames.receiveChannel.parameterizedBy(responseClassName))
+                .addMethodSignatureParameter(variant,context.schema)
+                .addCode(requestClassName.requestValueMethodSigCodeBlock(variant))
+                .addStatement("return %N(request)",functionName)
+                .build()
+        }
     }
 
     // Stub companion object

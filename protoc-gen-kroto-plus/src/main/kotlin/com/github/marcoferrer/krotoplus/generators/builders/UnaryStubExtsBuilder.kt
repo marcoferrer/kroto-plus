@@ -36,7 +36,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
         val funSpecs = mutableListOf<FunSpec>()
 
         // Add method signature exts
-        if(method.methodSignatureFields.isNotEmpty()){
+        if(method.methodSignatureVariants.isNotEmpty()){
             funSpecs += buildAsyncMethodSigExt(method)
             funSpecs += buildFutureMethodSigExt(method)
             funSpecs += buildBlockingMethodSigExt(method)
@@ -59,7 +59,7 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
     }
 
     private fun addCoroutineStubExts(funSpecs: MutableList<FunSpec>, method: ProtoMethod){
-        if(method.methodSignatureFields.isNotEmpty()) {
+        if(method.methodSignatureVariants.isNotEmpty()) {
             funSpecs += buildCoroutineMethodSigExt(method)
         }
 
@@ -87,50 +87,58 @@ class UnaryStubExtsBuilder(val context: GeneratorContext){
 
     // Method Signature Extensions
 
-    private fun buildAsyncMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addKdoc(attachedComments)
-            .receiver(protoService.asyncStubClassName)
-            .addMethodSignatureParameter(methodSignatureFields, context.schema)
-            .addResponseObserverParameter(responseClassName)
-            .returns(UNIT)
-            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
-            .addStatement("%N(request, responseObserver)",functionName)
-            .build()
+    private fun buildAsyncMethodSigExt(protoMethod: ProtoMethod): List<FunSpec> = with(protoMethod){
+        methodSignatureVariants.map { variant ->
+            FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
+                .receiver(protoService.asyncStubClassName)
+                .addMethodSignatureParameter(variant, context.schema)
+                .addResponseObserverParameter(responseClassName)
+                .returns(UNIT)
+                .addCode(requestClassName.requestValueMethodSigCodeBlock(variant))
+                .addStatement("%N(request, responseObserver)",functionName)
+                .build()
+        }
     }
 
-    private fun buildCoroutineMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addKdoc(attachedComments)
-            .addModifiers(KModifier.SUSPEND)
-            .receiver(protoService.asyncStubClassName)
-            .returns(responseClassName)
-            .addMethodSignatureParameter(methodSignatureFields, context.schema)
-            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
-            .addStatement("return %N(request)",functionName)
-            .build()
+    private fun buildCoroutineMethodSigExt(protoMethod: ProtoMethod): List<FunSpec> = with(protoMethod){
+        methodSignatureVariants.map { variant ->
+            FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
+                .addModifiers(KModifier.SUSPEND)
+                .receiver(protoService.asyncStubClassName)
+                .returns(responseClassName)
+                .addMethodSignatureParameter(variant, context.schema)
+                .addCode(requestClassName.requestValueMethodSigCodeBlock(variant))
+                .addStatement("return %N(request)",functionName)
+                .build()
+        }
     }
 
-    private fun buildFutureMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addKdoc(attachedComments)
-            .receiver(protoService.futureStubClassName)
-            .addMethodSignatureParameter(methodSignatureFields, context.schema)
-            .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
-            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
-            .addStatement("return %N(request)",functionName)
-            .build()
+    private fun buildFutureMethodSigExt(protoMethod: ProtoMethod): List<FunSpec> = with(protoMethod){
+        methodSignatureVariants.map { variant ->
+            FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
+                .receiver(protoService.futureStubClassName)
+                .addMethodSignatureParameter(variant, context.schema)
+                .returns(CommonClassNames.listenableFuture.parameterizedBy(responseClassName))
+                .addCode(requestClassName.requestValueMethodSigCodeBlock(variant))
+                .addStatement("return %N(request)",functionName)
+                .build()
+        }
     }
 
-    private fun buildBlockingMethodSigExt(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addKdoc(attachedComments)
-            .receiver(protoService.blockingStubClassName)
-            .returns(responseClassName)
-            .addMethodSignatureParameter(methodSignatureFields, context.schema)
-            .addCode(requestClassName.requestValueMethodSigCodeBlock(methodSignatureFields))
-            .addStatement("return %N(request)",functionName)
-            .build()
+    private fun buildBlockingMethodSigExt(protoMethod: ProtoMethod): List<FunSpec> = with(protoMethod){
+        methodSignatureVariants.map { variant ->
+            FunSpec.builder(functionName)
+                .addKdoc(attachedComments)
+                .receiver(protoService.blockingStubClassName)
+                .returns(responseClassName)
+                .addMethodSignatureParameter(variant, context.schema)
+                .addCode(requestClassName.requestValueMethodSigCodeBlock(variant))
+                .addStatement("return %N(request)", functionName)
+                .build()
+        }
     }
 
     // Lambda Builder Extensions

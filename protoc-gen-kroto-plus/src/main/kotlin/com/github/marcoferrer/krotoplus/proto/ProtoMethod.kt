@@ -74,11 +74,10 @@ class ProtoMethod(
             else -> throw IllegalStateException("Unknown method type")
         }
 
-    val methodSignatureFields: List<DescriptorProtos.FieldDescriptorProto> = getMethodSignatureFields()
-
+    val methodSignatureVariants: List<List<DescriptorProtos.FieldDescriptorProto>> = getMethodSignatureVariants()
 }
 
-private fun ProtoMethod.getMethodSignatureFields(): List<DescriptorProtos.FieldDescriptorProto> =
+private fun ProtoMethod.getMethodSignatureVariants(): List<List<DescriptorProtos.FieldDescriptorProto>> {
     descriptorProto.options
         .runCatching { getExtension(ClientProto.methodSignature) }
         .getOrNull()
@@ -89,6 +88,21 @@ private fun ProtoMethod.getMethodSignatureFields(): List<DescriptorProtos.FieldD
         }
         .orEmpty()
 
+    val methodSignatures = descriptorProto.options
+        .runCatching { getExtension(ClientProto.methodSignature) }
+        .getOrNull()
+        ?.takeUnless { it.isEmpty() }
+
+    val signatureVariants = methodSignatures?.map { delimitedFields ->
+        val signatureFields = delimitedFields.split(",")
+
+        // Get descriptors for fields defined
+        requestType.descriptorProto.fieldList
+            .filter { it.name in signatureFields }
+    }
+
+    return signatureVariants.orEmpty()
+}
 
 /**
  * Comment parsing is based on the following implementation
