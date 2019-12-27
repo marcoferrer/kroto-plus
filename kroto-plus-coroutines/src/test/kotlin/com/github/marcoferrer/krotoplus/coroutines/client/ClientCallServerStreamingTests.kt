@@ -19,12 +19,27 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.Channel
 import io.grpc.ClientCall
 import io.grpc.ClientInterceptor
+import io.grpc.ClientInterceptors
+import io.grpc.ForwardingClientCall
+import io.grpc.ForwardingClientCall.*
+import io.grpc.ForwardingClientCallListener
+import io.grpc.ForwardingClientCallListener.*
+import io.grpc.ForwardingServerCall
+import io.grpc.ForwardingServerCall.*
+import io.grpc.ForwardingServerCallListener
+import io.grpc.ForwardingServerCallListener.*
+import io.grpc.Metadata
 import io.grpc.MethodDescriptor
+import io.grpc.ServerCall
+import io.grpc.ServerCallHandler
+import io.grpc.ServerInterceptor
+import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
@@ -37,18 +52,30 @@ import io.mockk.just
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.consume
+import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.Phaser
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.fail
 
 
 class ClientCallServerStreamingTests {
@@ -66,31 +93,59 @@ class ClientCallServerStreamingTests {
     private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
     private val expectedRequest = HelloRequest.newBuilder().setName("success").build()
 
-    private val cancellingInterceptor = object : ClientInterceptor {
+    private fun newCancellingInterceptor(useNormalCancellation: Boolean) = object : ClientInterceptor {
         override fun <ReqT : Any?, RespT : Any?> interceptCall(
             method: MethodDescriptor<ReqT, RespT>,
             callOptions: CallOptions,
             next: Channel
         ): ClientCall<ReqT, RespT> {
-            val call = next.newCall(method, callOptions)
-            callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)[Job]?.cancel()
-            return call
+            val job = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)[Job]!!
+            if(useNormalCancellation)
+                job.cancel() else
+                job.cancel(CancellationException("interceptor-cancel"))
+            return next.newCall(method,callOptions)
         }
     }
 
-    inner class RpcSpy(val channel: Channel = grpcServerRule.channel){
-        val stub: GreeterGrpc.GreeterStub
-        lateinit var call: ClientCall<HelloRequest,HelloReply>
-
-        init {
-            val channelSpy = spyk(channel)
-            stub = GreeterGrpc.newStub(channelSpy)
-
-            every { channelSpy.newCall(methodDescriptor, any()) } answers {
-                spyk(channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
-                    this@RpcSpy.call = it
+    private val excessiveInboundMessageInterceptor = object : ClientInterceptor {
+        override fun <ReqT : Any?, RespT : Any?> interceptCall(
+            method: MethodDescriptor<ReqT, RespT>,
+            callOptions: CallOptions,
+            next: Channel
+        ): ClientCall<ReqT, RespT> =
+            object:SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method,callOptions)) {
+                override fun start(responseListener: Listener<RespT>?, headers: Metadata?) {
+                    super.start(object : SimpleForwardingClientCallListener<RespT>(responseListener){
+                        override fun onMessage(message: RespT) {
+                            repeat(3){ super.onMessage(message) }
+                        }
+                    }, headers)
                 }
             }
+    }
+
+    inner class RpcSpy(val channel: Channel = grpcServerRule.channel) : ClientInterceptor {
+
+        val call: ClientCall<HelloRequest,HelloReply>
+            get() = runBlocking { _call.await() }
+
+        private val _call = CompletableDeferred<ClientCall<HelloRequest,HelloReply>>()
+
+        val initialized = CompletableDeferred<Unit>()
+
+        val stub: GreeterGrpc.GreeterStub = GreeterGrpc
+            .newStub(channel).withInterceptors(this)
+
+        @Suppress("UNCHECKED_CAST")
+        override fun <ReqT : Any?, RespT : Any?> interceptCall(
+            method: MethodDescriptor<ReqT, RespT>,
+            callOptions: CallOptions,
+            next: Channel
+        ): ClientCall<ReqT, RespT> {
+            val spy = spyk(next.newCall(method,callOptions))
+            _call.complete(spy as ClientCall<HelloRequest, HelloReply>)
+            initialized.complete(Unit)
+            return spy
         }
     }
 
@@ -129,10 +184,41 @@ class ClientCallServerStreamingTests {
             repeat(3) {
                 assertEquals("Request#$it:${expectedRequest.name}", responseChannel.receive().message)
             }
+            delay(100)
         }
+
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
         verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
     }
+
+////    @Test
+//    fun flowwowowo(){
+//        val f = channelFlow<String>{
+//            launch {
+//                repeat(10){
+//                    send("A: $it")
+//                }
+//            }
+//            launch {
+//                repeat(10){
+//                    send("B: $it")
+//                }
+//            }
+//        }
+//
+//            .onEach {
+//                println("hellow: $it")
+//            }
+//            .buffer(kotlinx.coroutines.channels.Channel.UNLIMITED)
+//
+//        runBlocking(Dispatchers.Default) {
+//            f.collect {
+//                println("receive: $it")
+//                delay(1000)
+//            }
+//        }
+//
+//    }
 
     @Test
     fun `Call is cancelled when response channel is prematurely canceled`() {
@@ -161,10 +247,12 @@ class ClientCallServerStreamingTests {
                 results.add(responseChannel.receive().message)
             }
             responseChannel.cancel()
+
+            rpcSpy.initialized.await()
         }
 
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
-        verify(exactly = 1) { rpcSpy.call.cancel("Client has cancelled call",any()) }
+        verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
     }
 
     @Test
@@ -182,7 +270,6 @@ class ClientCallServerStreamingTests {
                             .build()
                     )
                 }
-
                 onError(Status.INVALID_ARGUMENT.asRuntimeException())
             }
         }
@@ -213,25 +300,30 @@ class ClientCallServerStreamingTests {
 
         val externalJob = Job()
         lateinit var responseChannel: ReceiveChannel<HelloReply>
-        assertFailsWithStatus(Status.CANCELLED, "CANCELLED: Job was cancelled") {
-            runBlocking {
-                launch(Dispatchers.Default) {
-                    launch(start = CoroutineStart.UNDISPATCHED) {
-                        responseChannel = stub
-                            .withCoroutineContext(externalJob)
-                            .clientCallServerStreaming(expectedRequest, methodDescriptor)
-
-                        responseChannel.receive()
-                    }
-                    launch {
-                        externalJob.cancel()
-                    }
+        lateinit var parentJob: Job
+        runBlocking {
+            launch(Dispatchers.Default) {
+                parentJob = launch(start = CoroutineStart.UNDISPATCHED) {
+                    responseChannel = stub
+                        .withCoroutineContext(externalJob)
+                        .clientCallServerStreaming(expectedRequest, methodDescriptor)
+                    responseChannel.receive()
+                    fail("Should not reach here")
                 }
-
+                launch {
+                    externalJob.cancel()
+                }
             }
         }
 
-        verify { rpcSpy.call.cancel("Job was cancelled", any<CancellationException>()) }
+        assert(parentJob.isCancelled){ "External job cancellation should propagate from receive channel" }
+        assertFailsWith(CancellationException::class) {
+            runBlocking {
+                responseChannel.receive()
+            }
+        }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
     }
 
@@ -240,26 +332,55 @@ class ClientCallServerStreamingTests {
     fun `Call is canceled when interceptor cancels scope normally`() {
 
         val rpcSpy = RpcSpy()
-        val stub = rpcSpy.stub.withInterceptors(cancellingInterceptor)
+        val stub = rpcSpy.stub.withInterceptors(newCancellingInterceptor(useNormalCancellation = true))
 
         setupServerHandlerNoop()
 
         lateinit var responseChannel: ReceiveChannel<HelloReply>
-        assertFailsWithStatus(Status.CANCELLED, "CANCELLED: Job was cancelled") {
-            runBlocking {
-                launch {
-                    responseChannel = stub.clientCallServerStreaming(expectedRequest, methodDescriptor)
+        runBlocking {
+            launch {
+                responseChannel = stub.clientCallServerStreaming(expectedRequest, methodDescriptor)
 
-                    responseChannel.receive()
-                }
+                responseChannel.receive()
             }
         }
 
-        verify { rpcSpy.call.cancel("Job was cancelled", any<CancellationException>()) }
+        assertFailsWith(CancellationException::class){
+            runBlocking { responseChannel.receive() }
+        }
+
+
+        verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
     }
 
     @Test
+    fun `Call is canceled when interceptor cancels scope exceptionally`() {
+
+        val rpcSpy = RpcSpy()
+        val stub = rpcSpy.stub.withInterceptors(newCancellingInterceptor(useNormalCancellation = false))
+
+        setupServerHandlerNoop()
+
+        lateinit var responseChannel: ReceiveChannel<HelloReply>
+        runBlocking {
+            launch {
+                responseChannel = stub.clientCallServerStreaming(expectedRequest, methodDescriptor)
+
+                responseChannel.receive()
+            }
+        }
+
+        assertFailsWith(CancellationException::class){
+            runBlocking { responseChannel.receive() }
+        }
+
+
+        verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
+        assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
+    }
+
+    @Test //THIS TEST IS CORRECT
     fun `Call withCoroutineContext is canceled when scope is canceled normally`() {
 
         val rpcSpy = RpcSpy()
@@ -277,11 +398,12 @@ class ClientCallServerStreamingTests {
 
                     responseChannel.receive()
                 }
+                delay(100)
                 cancel()
             }
         }
 
-        verify { rpcSpy.call.cancel(any(), any()) }
+        verify(exactly = 1){ rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
     }
 
@@ -304,6 +426,7 @@ class ClientCallServerStreamingTests {
 
                         responseChannel.receive()
                     }
+                    delay(100)
                     launch {
                         error("cancel")
                     }
@@ -311,8 +434,99 @@ class ClientCallServerStreamingTests {
             }
         }
 
-        verify { rpcSpy.call.cancel("Parent job is Cancelling", any()) }
+        assertFailsWith(CancellationException::class) {
+            runBlocking {
+                responseChannel.receive()
+            }
+        }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
+    }
+
+    @Test
+    fun `Call only requests messages after one is consumed`() {
+        val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
+        val stub = rpcSpy.stub
+
+        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
+            val actualRequest = firstArg<HelloRequest>()
+            with(secondArg<StreamObserver<HelloReply>>()) {
+                repeat(20) {
+                    onNext(
+                        HelloReply.newBuilder()
+                            .setMessage("Request#$it:${actualRequest.name}")
+                            .build()
+                    )
+                }
+                onCompleted()
+            }
+        }
+
+        val responseChannel = stub
+            .clientCallServerStreaming(expectedRequest, methodDescriptor)
+
+        val result = runBlocking(Dispatchers.Default) {
+            delay(100)
+            repeat(3) {
+                verify(exactly = it + 2) { rpcSpy.call.request(1) }
+                assertEquals("Request#$it:${expectedRequest.name}", responseChannel.receive().message)
+                delay(10)
+            }
+
+            // Consume remaining messages
+            responseChannel.toList()
+        }
+
+        assertEquals(17, result.size)
+        assert(responseChannel.isClosedForReceive) { "Response channel is closed after server error" }
+        verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
+    }
+
+    @Test
+    fun `Excessive messages are buffered without requesting new ones`() {
+
+        val rpcSpy = RpcSpy(ClientInterceptors.intercept(nonDirectGrpcServerRule.channel, excessiveInboundMessageInterceptor))
+        val stub = rpcSpy.stub
+
+
+        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
+            val actualRequest = firstArg<HelloRequest>()
+            with(secondArg<StreamObserver<HelloReply>>()) {
+                repeat(20) {
+                    onNext(
+                        HelloReply.newBuilder()
+                            .setMessage("Request#$it:${actualRequest.name}")
+                            .build()
+                    )
+                }
+                onCompleted()
+            }
+        }
+
+        val responseChannel = stub
+            .clientCallServerStreaming(expectedRequest, methodDescriptor)
+
+        val consumedMessages = mutableListOf<String>()
+        val result = runBlocking(Dispatchers.Default) {
+            delay(300)
+            repeat(4) {
+                verify(exactly = it + 2) { rpcSpy.call.request(1) }
+                consumedMessages += responseChannel.receive().message
+                delay(10)
+            }
+
+            // Consume remaining messages
+            responseChannel.toList()
+        }
+
+        assertEquals("Request#0:${expectedRequest.name}", consumedMessages[0])
+        assertEquals("Request#0:${expectedRequest.name}", consumedMessages[1])
+        assertEquals("Request#0:${expectedRequest.name}", consumedMessages[2])
+        assertEquals("Request#1:${expectedRequest.name}", consumedMessages[3])
+        assertEquals(56, result.size)
+        assert(responseChannel.isClosedForReceive) { "Response channel is closed after server error" }
+        verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
     }
 
 }

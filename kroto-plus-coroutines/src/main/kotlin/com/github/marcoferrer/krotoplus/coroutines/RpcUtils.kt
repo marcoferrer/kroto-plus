@@ -60,7 +60,7 @@ public fun <T> CoroutineScope.launchProducerJob(
         }
     }
 
-internal suspend fun Channel<*>.awaitCloseOrThrow(){
+internal suspend fun SendChannel<*>.awaitCloseOrThrow(){
     suspendCancellableCoroutine<Unit> { cont ->
         invokeOnClose { error ->
             if(error == null)

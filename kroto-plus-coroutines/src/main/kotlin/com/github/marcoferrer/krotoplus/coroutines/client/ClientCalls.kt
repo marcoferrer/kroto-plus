@@ -22,17 +22,33 @@ import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.MethodDescriptor
+import io.grpc.Status
 import io.grpc.stub.AbstractStub
+import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientCalls.asyncBidiStreamingCall
 import io.grpc.stub.ClientCalls.asyncClientStreamingCall
 import io.grpc.stub.ClientCalls.asyncServerStreamingCall
 import io.grpc.stub.ClientCalls.asyncUnaryCall
 import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
+internal const val MESSAGE_CLIENT_CANCELLED_CALL = "Client has cancelled the call"
 
 /**
  * Executes a unary rpc call using the [io.grpc.Channel] and [io.grpc.CallOptions] attached to the
@@ -101,22 +117,100 @@ public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallServerStreaming(
 public fun <ReqT, RespT> clientCallServerStreaming(
     request: ReqT,
     method: MethodDescriptor<ReqT, RespT>,
-    channel: io.grpc.Channel,
+    grpcChannel: io.grpc.Channel,
     callOptions: CallOptions = CallOptions.DEFAULT
 ): ReceiveChannel<RespT> {
 
-    val initialContext = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)
-    with(newRpcScope(initialContext, method)) {
-        val call = channel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
-        val responseObserverChannel = ClientResponseStreamChannel<ReqT, RespT>(coroutineContext)
-        asyncServerStreamingCall<ReqT, RespT>(
-            call,
-            request,
-            responseObserverChannel
-        )
-        bindScopeCancellationToCall(call)
-        return responseObserverChannel
+    val isAborted = AtomicBoolean()
+    val isCompleted = AtomicBoolean()
+    val rpcScope = newRpcScope(callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT), method)
+    val deferredCallStreamObserver = CompletableDeferred<ClientCallStreamObserver<ReqT>>()
+    val cbFlow = callbackFlow<RespT> flow@ {
+
+        val call = grpcChannel.newCall(method, callOptions.withCoroutineContext(coroutineContext))
+
+        val observer = object : ClientResponseObserver<ReqT, RespT> {
+
+            override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
+                deferredCallStreamObserver.complete(
+                    requestStream.apply { disableAutoInboundFlowControl() }
+                )
+            }
+
+            override fun onNext(value: RespT) {
+                this@flow.offer(value)
+            }
+
+            override fun onError(t: Throwable) {
+                isAborted.set(true)
+                this@flow.close(t)
+                this@flow.cancel(CancellationException(t.message,t))
+            }
+
+            override fun onCompleted() {
+                this@flow.close()
+            }
+        }
+
+        val cancellationDecoratedCall = call.beforeCancellation { message, cause ->
+            isAborted.set(true)
+
+            val cancellationStatus = Status.CANCELLED
+                .withDescription(message)
+                .withCause(cause)
+                .asRuntimeException()
+
+            // Close flow channel with our cancellation
+            // before the underlying call.
+            this@flow.close(CancellationException(message, cancellationStatus))
+        }
+
+        val job = coroutineContext[Job]!!
+
+        // setup test service that sends only 1 message and never completes similar to noop
+
+        // Start the RPC Call
+        asyncServerStreamingCall<ReqT, RespT>(cancellationDecoratedCall, request, observer)
+
+        // If our parent job is cancelled before we can
+        // start the call then we need to propagate the
+        // cancellation to the underlying call
+        job.invokeOnCompletion { error ->
+            if(job.isCancelled && !isAborted.get()){
+                cancellationDecoratedCall.cancel(MESSAGE_CLIENT_CANCELLED_CALL, error)
+            }
+        }
+
+        suspendCancellableCoroutine<Unit> { cont ->
+            // Here we need to handle not only parent job cancellation
+            // but calls to `channel.cancel(...)` as well.
+            cont.invokeOnCancellation { error ->
+                if (!isAborted.get()) {
+                    cancellationDecoratedCall.cancel(MESSAGE_CLIENT_CANCELLED_CALL, error)
+                }
+            }
+            invokeOnClose { error ->
+                if(error == null || error is CancellationException)
+                    cont.resume(Unit) else
+                    cont.resumeWithException(error)
+            }
+        }
     }
+
+    // Use buffer UNLIMITED so that we dont drop any inbound messages
+    return flow { emitAll(cbFlow.buffer(Channel.UNLIMITED)) }
+        .onEach {
+            if(!(isAborted.get() || isCompleted.get())){
+                deferredCallStreamObserver.await().request(1)
+            }
+        }
+        // We use buffer RENDEZVOUS on the outer flow so that our
+        // `onEach` operator is only invoked each time a message is
+        // collected instead of each time a message is received from
+        // from the underlying call.
+        .buffer(Channel.RENDEZVOUS)
+        .produceIn(rpcScope)
+
 }
 
 public fun <ReqT, RespT, T : AbstractStub<T>> T.clientCallBidiStreaming(
