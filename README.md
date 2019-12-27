@@ -492,7 +492,7 @@ protobuf {
 
     plugins {
         kroto {
-            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:$krotoPlusVersion:jvm8@jar"
+            artifact = "com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:$krotoPlusVersion"
         }
     }
 
@@ -568,7 +568,7 @@ protobuf {
             </goals>
             <configuration>
                 <pluginId>kroto-plus</pluginId>
-                <pluginArtifact>com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${krotoPlusVersion}:jar:jvm8</pluginArtifact>
+                <pluginArtifact>com.github.marcoferrer.krotoplus:protoc-gen-kroto-plus:${krotoPlusVersion}:exe:${os.detected.classifier}</pluginArtifact>
                 <pluginParameter>ConfigPath=${project.basedir}/krotoPlusConfig.asciipb</pluginParameter>
             </configuration>
         </execution>
