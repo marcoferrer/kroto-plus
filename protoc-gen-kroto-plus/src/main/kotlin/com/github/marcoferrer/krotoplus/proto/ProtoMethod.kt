@@ -78,27 +78,17 @@ class ProtoMethod(
 }
 
 private fun ProtoMethod.getMethodSignatureVariants(): List<List<DescriptorProtos.FieldDescriptorProto>> {
-    descriptorProto.options
-        .runCatching { getExtension(ClientProto.methodSignature) }
-        .getOrNull()
-        ?.takeUnless { it.isEmpty() }
-        ?.let { signatureFields ->
-            requestType.descriptorProto.fieldList
-                .filter { it.name in signatureFields }
-        }
-        .orEmpty()
 
-    val methodSignatures = descriptorProto.options
+    val methodSignaturesOptions = descriptorProto.options
         .runCatching { getExtension(ClientProto.methodSignature) }
         .getOrNull()
         ?.takeUnless { it.isEmpty() }
 
-    val signatureVariants = methodSignatures?.map { delimitedFields ->
-        val signatureFields = delimitedFields.split(",")
-
-        // Get descriptors for fields defined
+    val signatureVariants = methodSignaturesOptions?.map { variant ->
+        val variantFields = variant.split(",")
+        
         requestType.descriptorProto.fieldList
-            .filter { it.name in signatureFields }
+            .filter { it.name in variantFields }
     }
 
     return signatureVariants.orEmpty()
