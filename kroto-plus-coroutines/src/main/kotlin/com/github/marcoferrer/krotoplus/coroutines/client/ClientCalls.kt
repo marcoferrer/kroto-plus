@@ -167,8 +167,6 @@ public fun <ReqT, RespT> clientCallServerStreaming(
 
         val job = coroutineContext[Job]!!
 
-        // setup test service that sends only 1 message and never completes similar to noop
-
         // Start the RPC Call
         asyncServerStreamingCall<ReqT, RespT>(cancellationDecoratedCall, request, observer)
 

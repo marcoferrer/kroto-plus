@@ -23,7 +23,10 @@ import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
+import io.grpc.Channel
 import io.grpc.ClientCall
+import io.grpc.ClientInterceptor
+import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
@@ -60,20 +63,45 @@ class ClientStreamingBackPressureTests {
     var grpcServerRule = GrpcServerRule().directExecutor()
 
     private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
+//
+//    inner class RpcSpy{
+//        val stub: GreeterGrpc.GreeterStub
+//        lateinit var call: ClientCall<HelloRequest,HelloReply>
+//
+//        init {
+//            val channelSpy = spyk(grpcServerRule.channel)
+//            stub = GreeterGrpc.newStub(channelSpy)
+//
+//            every { channelSpy.newCall(methodDescriptor, any()) } answers {
+//                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
+//                    this@RpcSpy.call = it
+//                }
+//            }
+//        }
+//    }
 
-    inner class RpcSpy{
-        val stub: GreeterGrpc.GreeterStub
-        lateinit var call: ClientCall<HelloRequest,HelloReply>
+    inner class RpcSpy(val channel: Channel = grpcServerRule.channel) : ClientInterceptor {
 
-        init {
-            val channelSpy = spyk(grpcServerRule.channel)
-            stub = GreeterGrpc.newStub(channelSpy)
+        val call: ClientCall<HelloRequest,HelloReply>
+            get() = runBlocking { _call.await() }
 
-            every { channelSpy.newCall(methodDescriptor, any()) } answers {
-                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
-                    this@RpcSpy.call = it
-                }
-            }
+        private val _call = CompletableDeferred<ClientCall<HelloRequest,HelloReply>>()
+
+        val initialized = CompletableDeferred<Unit>()
+
+        val stub: GreeterGrpc.GreeterStub = GreeterGrpc
+            .newStub(channel).withInterceptors(this)
+
+        @Suppress("UNCHECKED_CAST")
+        override fun <ReqT : Any?, RespT : Any?> interceptCall(
+            method: MethodDescriptor<ReqT, RespT>,
+            callOptions: CallOptions,
+            next: Channel
+        ): ClientCall<ReqT, RespT> {
+            val spy = spyk(next.newCall(method,callOptions))
+            _call.complete(spy as ClientCall<HelloRequest, HelloReply>)
+            initialized.complete(Unit)
+            return spy
         }
     }
 

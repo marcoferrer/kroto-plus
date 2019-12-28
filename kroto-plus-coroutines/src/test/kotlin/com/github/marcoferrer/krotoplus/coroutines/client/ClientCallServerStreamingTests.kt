@@ -19,27 +19,16 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
-import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.Channel
 import io.grpc.ClientCall
 import io.grpc.ClientInterceptor
 import io.grpc.ClientInterceptors
-import io.grpc.ForwardingClientCall
-import io.grpc.ForwardingClientCall.*
-import io.grpc.ForwardingClientCallListener
-import io.grpc.ForwardingClientCallListener.*
-import io.grpc.ForwardingServerCall
-import io.grpc.ForwardingServerCall.*
-import io.grpc.ForwardingServerCallListener
-import io.grpc.ForwardingServerCallListener.*
+import io.grpc.ForwardingClientCall.SimpleForwardingClientCall
+import io.grpc.ForwardingClientCallListener.SimpleForwardingClientCallListener
 import io.grpc.Metadata
 import io.grpc.MethodDescriptor
-import io.grpc.ServerCall
-import io.grpc.ServerCallHandler
-import io.grpc.ServerInterceptor
-import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
@@ -58,15 +47,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.consume
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -260,6 +242,7 @@ class ClientCallServerStreamingTests {
         val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
         val stub = rpcSpy.stub
 
+        val phaser = Phaser(2)
         every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
             val actualRequest = firstArg<HelloRequest>()
             with(secondArg<StreamObserver<HelloReply>>()) {
@@ -270,6 +253,7 @@ class ClientCallServerStreamingTests {
                             .build()
                     )
                 }
+                phaser.arriveAndAwaitAdvance()
                 onError(Status.INVALID_ARGUMENT.asRuntimeException())
             }
         }
@@ -281,6 +265,7 @@ class ClientCallServerStreamingTests {
             repeat(2) {
                 assertEquals("Request#$it:${expectedRequest.name}", responseChannel.receive().message)
             }
+            phaser.arrive()
 
             assertFailsWithStatus(Status.INVALID_ARGUMENT) {
                 responseChannel.receive()
