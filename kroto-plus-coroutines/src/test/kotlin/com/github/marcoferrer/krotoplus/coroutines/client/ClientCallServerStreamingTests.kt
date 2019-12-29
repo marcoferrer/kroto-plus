@@ -17,8 +17,9 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
+import com.github.marcoferrer.krotoplus.coroutines.utils.RpcStateInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.newCancellingInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.Channel
@@ -29,15 +30,13 @@ import io.grpc.ForwardingClientCall.SimpleForwardingClientCall
 import io.grpc.ForwardingClientCallListener.SimpleForwardingClientCallListener
 import io.grpc.Metadata
 import io.grpc.MethodDescriptor
+import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.StreamObserver
 import io.grpc.testing.GrpcServerRule
-import io.mockk.Runs
-import io.mockk.every
-import io.mockk.just
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
@@ -45,12 +44,14 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Phaser
@@ -72,22 +73,8 @@ class ClientCallServerStreamingTests {
     // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
 
     private val methodDescriptor = GreeterGrpc.getSayHelloServerStreamingMethod()
-    private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
     private val expectedRequest = HelloRequest.newBuilder().setName("success").build()
-
-    private fun newCancellingInterceptor(useNormalCancellation: Boolean) = object : ClientInterceptor {
-        override fun <ReqT : Any?, RespT : Any?> interceptCall(
-            method: MethodDescriptor<ReqT, RespT>,
-            callOptions: CallOptions,
-            next: Channel
-        ): ClientCall<ReqT, RespT> {
-            val job = callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT)[Job]!!
-            if(useNormalCancellation)
-                job.cancel() else
-                job.cancel(CancellationException("interceptor-cancel"))
-            return next.newCall(method,callOptions)
-        }
-    }
+    private var stateInterceptor = RpcStateInterceptor()
 
     private val excessiveInboundMessageInterceptor = object : ClientInterceptor {
         override fun <ReqT : Any?, RespT : Any?> interceptCall(
@@ -95,11 +82,11 @@ class ClientCallServerStreamingTests {
             callOptions: CallOptions,
             next: Channel
         ): ClientCall<ReqT, RespT> =
-            object:SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method,callOptions)) {
+            object : SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
                 override fun start(responseListener: Listener<RespT>?, headers: Metadata?) {
-                    super.start(object : SimpleForwardingClientCallListener<RespT>(responseListener){
+                    super.start(object : SimpleForwardingClientCallListener<RespT>(responseListener) {
                         override fun onMessage(message: RespT) {
-                            repeat(3){ super.onMessage(message) }
+                            repeat(3) { super.onMessage(message) }
                         }
                     }, headers)
                 }
@@ -108,37 +95,43 @@ class ClientCallServerStreamingTests {
 
     inner class RpcSpy(val channel: Channel = grpcServerRule.channel) : ClientInterceptor {
 
-        val call: ClientCall<HelloRequest,HelloReply>
+        private val _call = CompletableDeferred<ClientCall<HelloRequest, HelloReply>>()
+        val call: ClientCall<HelloRequest, HelloReply>
             get() = runBlocking { _call.await() }
 
-        private val _call = CompletableDeferred<ClientCall<HelloRequest,HelloReply>>()
-
-        val initialized = CompletableDeferred<Unit>()
-
         val stub: GreeterGrpc.GreeterStub = GreeterGrpc
-            .newStub(channel).withInterceptors(this)
+            .newStub(channel).withInterceptors(this, stateInterceptor)
 
         @Suppress("UNCHECKED_CAST")
-        override fun <ReqT : Any?, RespT : Any?> interceptCall(
+        override fun <ReqT, RespT> interceptCall(
             method: MethodDescriptor<ReqT, RespT>,
             callOptions: CallOptions,
             next: Channel
         ): ClientCall<ReqT, RespT> {
-            val spy = spyk(next.newCall(method,callOptions))
+            val spy = spyk(next.newCall(method, callOptions))
             _call.complete(spy as ClientCall<HelloRequest, HelloReply>)
-            initialized.complete(Unit)
             return spy
         }
     }
 
-    private fun setupServerHandlerNoop(){
-        every { service.sayHelloServerStreaming(expectedRequest, any()) } just Runs
+    private fun setupServerHandlerNoop() = setupUpServerHandler { _, _ -> }
+
+    private fun setupUpServerHandler(
+        block: (request: HelloRequest, responseObserver: StreamObserver<HelloReply>) -> Unit
+    ) {
+        val serviceImpl = object : GreeterGrpc.GreeterImplBase() {
+            override fun sayHelloServerStreaming(request: HelloRequest, responseObserver: StreamObserver<HelloReply>) =
+                block(request, responseObserver)
+        }
+
+        val service = ServerInterceptors.intercept(serviceImpl, stateInterceptor)
+        nonDirectGrpcServerRule.serviceRegistry.addService(service)
+        grpcServerRule.serviceRegistry.addService(service)
     }
 
     @BeforeTest
     fun setupService() {
-        grpcServerRule.serviceRegistry.addService(service)
-        nonDirectGrpcServerRule.serviceRegistry.addService(service)
+        stateInterceptor = RpcStateInterceptor()
     }
 
     @Test
@@ -146,13 +139,12 @@ class ClientCallServerStreamingTests {
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
 
-        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
-            val actualRequest = firstArg<HelloRequest>()
-            with(secondArg<StreamObserver<HelloReply>>()) {
+        setupUpServerHandler { request, responseObserver ->
+            with(responseObserver) {
                 repeat(3) {
                     onNext(
                         HelloReply.newBuilder()
-                            .setMessage("Request#$it:${actualRequest.name}")
+                            .setMessage("Request#$it:${request.name}")
                             .build()
                     )
                 }
@@ -170,50 +162,20 @@ class ClientCallServerStreamingTests {
         }
 
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
-        verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
+        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
     }
-
-////    @Test
-//    fun flowwowowo(){
-//        val f = channelFlow<String>{
-//            launch {
-//                repeat(10){
-//                    send("A: $it")
-//                }
-//            }
-//            launch {
-//                repeat(10){
-//                    send("B: $it")
-//                }
-//            }
-//        }
-//
-//            .onEach {
-//                println("hellow: $it")
-//            }
-//            .buffer(kotlinx.coroutines.channels.Channel.UNLIMITED)
-//
-//        runBlocking(Dispatchers.Default) {
-//            f.collect {
-//                println("receive: $it")
-//                delay(1000)
-//            }
-//        }
-//
-//    }
 
     @Test
     fun `Call is cancelled when response channel is prematurely canceled`() {
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
 
-        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
-            val actualRequest = firstArg<HelloRequest>()
-            with(secondArg<StreamObserver<HelloReply>>()) {
+        setupUpServerHandler { request, responseObserver ->
+            with(responseObserver) {
                 repeat(10) {
                     onNext(
                         HelloReply.newBuilder()
-                            .setMessage("Request#$it:${actualRequest.name}")
+                            .setMessage("Request#$it:${request.name}")
                             .build()
                     )
                 }
@@ -224,18 +186,32 @@ class ClientCallServerStreamingTests {
         val responseChannel = stub
             .clientCallServerStreaming(expectedRequest, methodDescriptor)
         val results = mutableListOf<String>()
-        runBlocking {
+        runBlocking(Dispatchers.Default) {
             repeat(3) {
                 results.add(responseChannel.receive().message)
             }
             responseChannel.cancel()
-
-            rpcSpy.initialized.await()
         }
+
+        stateInterceptor.client.cancelled.awaitBlocking()
 
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
         verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
     }
+
+
+    fun CompletableDeferred<Unit>.awaitBlocking(timeout: Long = 20_000) =
+        runBlocking {
+            try {
+                withTimeout(timeout) { await() }
+            }catch (e: TimeoutCancellationException){
+                fail("""
+                    |
+                    |State was not reached after ${timeout}ms
+                    |$stateInterceptor
+                """.trimMargin())
+            }
+        }
 
     @Test
     fun `Call fails on server error`() {
@@ -243,13 +219,12 @@ class ClientCallServerStreamingTests {
         val stub = rpcSpy.stub
 
         val phaser = Phaser(2)
-        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
-            val actualRequest = firstArg<HelloRequest>()
-            with(secondArg<StreamObserver<HelloReply>>()) {
+        setupUpServerHandler { request, responseObserver ->
+            with(responseObserver) {
                 repeat(2) {
                     onNext(
                         HelloReply.newBuilder()
-                            .setMessage("Request#$it:${actualRequest.name}")
+                            .setMessage("Request#$it:${request.name}")
                             .build()
                     )
                 }
@@ -261,7 +236,7 @@ class ClientCallServerStreamingTests {
         val responseChannel = stub
             .clientCallServerStreaming(expectedRequest, methodDescriptor)
 
-        runBlocking {
+        runBlocking(Dispatchers.Default) {
             repeat(2) {
                 assertEquals("Request#$it:${expectedRequest.name}", responseChannel.receive().message)
             }
@@ -273,7 +248,7 @@ class ClientCallServerStreamingTests {
         }
 
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after server error" }
-        verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
+        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
     }
 
     @Test
@@ -301,7 +276,7 @@ class ClientCallServerStreamingTests {
             }
         }
 
-        assert(parentJob.isCancelled){ "External job cancellation should propagate from receive channel" }
+        assert(parentJob.isCancelled) { "External job cancellation should propagate from receive channel" }
         assertFailsWith(CancellationException::class) {
             runBlocking {
                 responseChannel.receive()
@@ -330,7 +305,7 @@ class ClientCallServerStreamingTests {
             }
         }
 
-        assertFailsWith(CancellationException::class){
+        assertFailsWith(CancellationException::class) {
             runBlocking { responseChannel.receive() }
         }
 
@@ -356,7 +331,7 @@ class ClientCallServerStreamingTests {
             }
         }
 
-        assertFailsWith(CancellationException::class){
+        assertFailsWith(CancellationException::class) {
             runBlocking { responseChannel.receive() }
         }
 
@@ -365,7 +340,7 @@ class ClientCallServerStreamingTests {
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
     }
 
-    @Test //THIS TEST IS CORRECT
+    @Test
     fun `Call withCoroutineContext is canceled when scope is canceled normally`() {
 
         val rpcSpy = RpcSpy()
@@ -388,7 +363,7 @@ class ClientCallServerStreamingTests {
             }
         }
 
-        verify(exactly = 1){ rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
+        verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
     }
 
@@ -434,13 +409,12 @@ class ClientCallServerStreamingTests {
         val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
         val stub = rpcSpy.stub
 
-        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
-            val actualRequest = firstArg<HelloRequest>()
-            with(secondArg<StreamObserver<HelloReply>>()) {
+        setupUpServerHandler { request, responseObserver ->
+            with(responseObserver) {
                 repeat(20) {
                     onNext(
                         HelloReply.newBuilder()
-                            .setMessage("Request#$it:${actualRequest.name}")
+                            .setMessage("Request#$it:${request.name}")
                             .build()
                     )
                 }
@@ -465,23 +439,24 @@ class ClientCallServerStreamingTests {
 
         assertEquals(17, result.size)
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after server error" }
-        verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
+        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
     }
 
     @Test
     fun `Excessive messages are buffered without requesting new ones`() {
 
-        val rpcSpy = RpcSpy(ClientInterceptors.intercept(nonDirectGrpcServerRule.channel, excessiveInboundMessageInterceptor))
+        val rpcSpy = RpcSpy(
+            ClientInterceptors.intercept(nonDirectGrpcServerRule.channel, excessiveInboundMessageInterceptor)
+        )
         val stub = rpcSpy.stub
 
 
-        every { service.sayHelloServerStreaming(expectedRequest, any()) } answers {
-            val actualRequest = firstArg<HelloRequest>()
-            with(secondArg<StreamObserver<HelloReply>>()) {
+        setupUpServerHandler { request, responseObserver ->
+            with(responseObserver) {
                 repeat(20) {
                     onNext(
                         HelloReply.newBuilder()
-                            .setMessage("Request#$it:${actualRequest.name}")
+                            .setMessage("Request#$it:${request.name}")
                             .build()
                     )
                 }
@@ -511,7 +486,7 @@ class ClientCallServerStreamingTests {
         assertEquals("Request#1:${expectedRequest.name}", consumedMessages[3])
         assertEquals(56, result.size)
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after server error" }
-        verify(exactly = 0) { rpcSpy.call.cancel(any(),any()) }
+        verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
     }
 
 }
