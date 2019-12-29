@@ -30,6 +30,10 @@ inline fun assertFailsWithStatus(
         block()
         fail("Block did not fail")
     }catch (e: StatusRuntimeException){
+//   TODO: Fix this in separate PR
+//    }catch (e: Throwable){
+//        assertEquals(StatusRuntimeException::class.java.canonicalName, e.javaClass.canonicalName)
+//        require(e is StatusRuntimeException)
         message?.let { assertEquals(it,e.message) }
         assertEquals(status.code, e.status.code)
     }

@@ -17,8 +17,9 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.RpcStateInterceptor
+import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.invoke
 import com.github.marcoferrer.krotoplus.coroutines.utils.newCancellingInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
@@ -36,7 +37,6 @@ import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.StreamObserver
-import io.grpc.testing.GrpcServerRule
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
@@ -44,37 +44,20 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Phaser
-import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
 
-class ClientCallServerStreamingTests {
-
-    @[Rule JvmField]
-    var grpcServerRule = GrpcServerRule().directExecutor()
-
-    @[Rule JvmField]
-    var nonDirectGrpcServerRule = GrpcServerRule()
-
-    // @[Rule JvmField]
-    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
-
-    private val methodDescriptor = GreeterGrpc.getSayHelloServerStreamingMethod()
-    private val expectedRequest = HelloRequest.newBuilder().setName("success").build()
-    private var stateInterceptor = RpcStateInterceptor()
+class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServerStreamingMethod()) {
 
     private val excessiveInboundMessageInterceptor = object : ClientInterceptor {
         override fun <ReqT : Any?, RespT : Any?> interceptCall(
@@ -100,7 +83,7 @@ class ClientCallServerStreamingTests {
             get() = runBlocking { _call.await() }
 
         val stub: GreeterGrpc.GreeterStub = GreeterGrpc
-            .newStub(channel).withInterceptors(this, stateInterceptor)
+            .newStub(channel).withInterceptors(this, callState)
 
         @Suppress("UNCHECKED_CAST")
         override fun <ReqT, RespT> interceptCall(
@@ -124,14 +107,9 @@ class ClientCallServerStreamingTests {
                 block(request, responseObserver)
         }
 
-        val service = ServerInterceptors.intercept(serviceImpl, stateInterceptor)
+        val service = ServerInterceptors.intercept(serviceImpl, callState)
         nonDirectGrpcServerRule.serviceRegistry.addService(service)
         grpcServerRule.serviceRegistry.addService(service)
-    }
-
-    @BeforeTest
-    fun setupService() {
-        stateInterceptor = RpcStateInterceptor()
     }
 
     @Test
@@ -186,32 +164,20 @@ class ClientCallServerStreamingTests {
         val responseChannel = stub
             .clientCallServerStreaming(expectedRequest, methodDescriptor)
         val results = mutableListOf<String>()
-        runBlocking(Dispatchers.Default) {
+        runTest {
             repeat(3) {
                 results.add(responseChannel.receive().message)
             }
             responseChannel.cancel()
         }
 
-        stateInterceptor.client.cancelled.awaitBlocking()
+        callState {
+            client.cancelled.assertBlocking{ "Client should be cancelled" }
+        }
 
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
         verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
     }
-
-
-    fun CompletableDeferred<Unit>.awaitBlocking(timeout: Long = 20_000) =
-        runBlocking {
-            try {
-                withTimeout(timeout) { await() }
-            }catch (e: TimeoutCancellationException){
-                fail("""
-                    |
-                    |State was not reached after ${timeout}ms
-                    |$stateInterceptor
-                """.trimMargin())
-            }
-        }
 
     @Test
     fun `Call fails on server error`() {
@@ -261,7 +227,8 @@ class ClientCallServerStreamingTests {
         val externalJob = Job()
         lateinit var responseChannel: ReceiveChannel<HelloReply>
         lateinit var parentJob: Job
-        runBlocking {
+
+        runTest {
             launch(Dispatchers.Default) {
                 parentJob = launch(start = CoroutineStart.UNDISPATCHED) {
                     responseChannel = stub
@@ -276,6 +243,15 @@ class ClientCallServerStreamingTests {
             }
         }
 
+
+        callState {
+            client {
+                closed.assertBlocking { "Client should be closed" }
+            }
+            server {
+                cancelled.assertBlocking { "Server should be cancelled" }
+            }
+        }
         assert(parentJob.isCancelled) { "External job cancellation should propagate from receive channel" }
         assertFailsWith(CancellationException::class) {
             runBlocking {

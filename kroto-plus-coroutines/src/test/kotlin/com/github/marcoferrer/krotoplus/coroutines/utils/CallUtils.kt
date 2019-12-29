@@ -34,8 +34,6 @@ import io.grpc.Status
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 
 object CancellingClientInterceptor : ClientInterceptor {
     override fun <ReqT : Any?, RespT : Any?> interceptCall(
@@ -58,12 +56,11 @@ object CancellingClientInterceptor : ClientInterceptor {
 
 
 class ClientState(
-
     val intercepted: CompletableDeferred<Unit> = CompletableDeferred(),
     val started: CompletableDeferred<Unit> = CompletableDeferred(),
     val closed: CompletableDeferred<Unit> = CompletableDeferred(),
     val cancelled: CompletableDeferred<Unit> = CompletableDeferred()
-){
+) : Invokable<ClientState> {
 
     override fun toString(): String {
         return "\tClientState(\n" +
@@ -82,7 +79,7 @@ class ServerState(
     val closed: CompletableDeferred<Unit> = CompletableDeferred(),
     val cancelled: CompletableDeferred<Unit> = CompletableDeferred(),
     val completed: CompletableDeferred<Unit> = CompletableDeferred()
-) {
+) : Invokable<ServerState> {
     override fun toString(): String {
         return "\tServerState(\n" +
                 "\t\tintercepted=${intercepted.stateToString()},\n" +
@@ -98,7 +95,8 @@ class ServerState(
 class RpcStateInterceptor(
     val client: ClientState = ClientState(),
     val server: ServerState = ServerState()
-) : ClientInterceptor by ClientStateInterceptor(client),
+) : Invokable<RpcStateInterceptor>,
+    ClientInterceptor by ClientStateInterceptor(client),
     ServerInterceptor by ServerStateInterceptor(server) {
 
     override fun toString(): String {
@@ -108,6 +106,13 @@ class RpcStateInterceptor(
                 ")"
     }
 }
+
+
+interface Invokable<T>
+
+inline operator fun <T: Invokable<T>> T.invoke(block: T.()->Unit) = block()
+
+
 
 fun CompletableDeferred<Unit>.stateToString(): String =
     "\tisCompleted:$isCompleted,\tisActive:$isActive,\tisCancelled:$isCancelled"
@@ -188,11 +193,6 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
 }
 
 private fun CompletableDeferred<Unit>.complete() = complete(Unit)
-
-fun CompletableDeferred<Unit>.awaitBlocking(timeout: Long = 20_000) =
-    runBlocking {
-        withTimeout(timeout){ await() }
-    }
 
 fun newCancellingInterceptor(useNormalCancellation: Boolean) = object : ClientInterceptor {
     override fun <ReqT : Any?, RespT : Any?> interceptCall(
