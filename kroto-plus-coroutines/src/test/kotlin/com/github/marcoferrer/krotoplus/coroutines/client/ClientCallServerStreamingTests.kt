@@ -57,7 +57,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
 
-class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServerStreamingMethod()) {
+class ClientCallServerStreamingTests :
+    RpcCallTest<HelloRequest, HelloReply>(GreeterGrpc.getSayHelloServerStreamingMethod()) {
 
     private val excessiveInboundMessageInterceptor = object : ClientInterceptor {
         override fun <ReqT : Any?, RespT : Any?> interceptCall(
@@ -74,27 +75,6 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
                     }, headers)
                 }
             }
-    }
-
-    inner class RpcSpy(val channel: Channel = grpcServerRule.channel) : ClientInterceptor {
-
-        private val _call = CompletableDeferred<ClientCall<HelloRequest, HelloReply>>()
-        val call: ClientCall<HelloRequest, HelloReply>
-            get() = runBlocking { _call.await() }
-
-        val stub: GreeterGrpc.GreeterStub = GreeterGrpc
-            .newStub(channel).withInterceptors(this, callState)
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <ReqT, RespT> interceptCall(
-            method: MethodDescriptor<ReqT, RespT>,
-            callOptions: CallOptions,
-            next: Channel
-        ): ClientCall<ReqT, RespT> {
-            val spy = spyk(next.newCall(method, callOptions))
-            _call.complete(spy as ClientCall<HelloRequest, HelloReply>)
-            return spy
-        }
     }
 
     private fun setupServerHandlerNoop() = setupUpServerHandler { _, _ -> }
@@ -182,7 +162,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
 
     @Test
     fun `Call fails on server error`() {
-        val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
+        val rpcSpy = RpcSpy(useDirectExecutor = false)
         val stub = rpcSpy.stub
 
         val phaser = Phaser(2)
@@ -384,7 +364,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
 
     @Test
     fun `Call only requests messages after one is consumed`() {
-        val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
+        val rpcSpy = RpcSpy(useDirectExecutor = false)
         val stub = rpcSpy.stub
 
         setupUpServerHandler { request, responseObserver ->
@@ -446,7 +426,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
             .clientCallServerStreaming(expectedRequest, methodDescriptor)
 
         val consumedMessages = mutableListOf<String>()
-        val result = runBlocking(Dispatchers.Default) {
+        val result = runTest {
             delay(300)
             repeat(4) {
                 verify(exactly = it + 2) { rpcSpy.call.request(1) }

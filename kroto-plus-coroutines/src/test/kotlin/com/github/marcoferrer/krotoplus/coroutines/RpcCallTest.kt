@@ -16,8 +16,13 @@
 
 package com.github.marcoferrer.krotoplus.coroutines
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.ClientCallSpyInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.RpcStateInterceptor
+import io.grpc.Channel
+import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
+import io.grpc.examples.helloworld.GreeterCoroutineGrpc
+import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.testing.GrpcServerRule
@@ -33,8 +38,8 @@ import kotlin.test.fail
 
 // Create StreamRecorder
 
-abstract class RpcCallTest(
-    val methodDescriptor: MethodDescriptor<HelloRequest, HelloReply>
+abstract class RpcCallTest<ReqT, RespT>(
+    val methodDescriptor: MethodDescriptor<ReqT, RespT>
 ) {
 
     @[Rule JvmField]
@@ -48,26 +53,49 @@ abstract class RpcCallTest(
 
     var callState = RpcStateInterceptor()
 
-    val expectedRequest = HelloRequest.newBuilder().setName("success").build()
+    val expectedRequest = HelloRequest.newBuilder().setName("success").build()!!
 
     @BeforeTest
     fun setupCall() {
         callState = RpcStateInterceptor()
     }
 
-    suspend fun RpcStateInterceptor.awaitCancellation(
-        timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT
-    ){
-        client.cancelled.assert(timeout){ "Client should be cancelled" }
-        server.cancelled.assert(timeout){ "Server should be cancelled" }
+    inner class RpcSpy(channel: Channel) {
+
+        constructor(useDirectExecutor: Boolean = true) : this(
+            if(useDirectExecutor) grpcServerRule.channel else nonDirectGrpcServerRule.channel
+        )
+
+        private val _call = CompletableDeferred<ClientCall<*, *>>()
+
+        val stub = GreeterGrpc.newStub(channel)
+            .withInterceptors(ClientCallSpyInterceptor(_call), callState)!!
+
+        val coStub = GreeterCoroutineGrpc.newStub(channel)
+            .withInterceptors(ClientCallSpyInterceptor(_call), callState)!!
+
+        val call: ClientCall<ReqT, RespT> by lazy {
+            @Suppress("UNCHECKED_CAST")
+            runBlocking { _call.await() as ClientCall<ReqT, RespT> }
+        }
+
     }
 
-    fun RpcStateInterceptor.blockUntilCancellation(
-        timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT
-    ) = runBlocking {
-        client.cancelled.assert(timeout){ "Client should be cancelled" }
-        server.cancelled.assert(timeout){ "Server should be cancelled" }
+    suspend fun RpcStateInterceptor.awaitCancellation(timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT){
+        client.cancelled.assert(timeout){ "Client call should be cancelled" }
+        server.cancelled.assert(timeout){ "Server call should be cancelled" }
     }
+
+    suspend fun RpcStateInterceptor.awaitClose(timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT){
+        client.closed.assert(timeout){ "Client call should be closed" }
+        server.closed.assert(timeout){ "Server call should be closed" }
+    }
+
+    fun RpcStateInterceptor.blockUntilCancellation(timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT) =
+        runBlocking { awaitCancellation(timeout) }
+
+    fun RpcStateInterceptor.blockUntilClosed(timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT) =
+        runBlocking { awaitClose(timeout) }
 
     suspend fun <T> withTimeoutOrDumpState(
         timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT,

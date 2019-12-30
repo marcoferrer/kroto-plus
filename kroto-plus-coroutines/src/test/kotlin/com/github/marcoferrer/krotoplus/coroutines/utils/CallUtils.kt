@@ -95,6 +95,21 @@ class ServerState(
     }
 }
 
+class ClientCallSpyInterceptor(
+    val call: CompletableDeferred<ClientCall<*, *>>
+) : ClientInterceptor {
+
+    override fun <ReqT, RespT> interceptCall(
+        method: MethodDescriptor<ReqT, RespT>,
+        callOptions: CallOptions,
+        next: Channel
+    ): ClientCall<ReqT, RespT> {
+        val spy = spyk(next.newCall(method,callOptions))
+        call.complete(spy)
+        return spy
+    }
+}
+
 class RpcStateInterceptor(
     val client: ClientState = ClientState(),
     val server: ServerState = ServerState()
@@ -152,7 +167,7 @@ class ClientStateInterceptor(val state: ClientState) : ClientInterceptor {
             }
 
             override fun cancel(message: String?, cause: Throwable?) {
-                println("Client: Call cancel($message, ${cause?.toDebugString()})")
+                println("Client: Call cancel(message=$message, cause=${cause?.toDebugString()})")
                 super.cancel(message, cause)
                 state.cancelled.complete()
             }
@@ -209,10 +224,10 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
 }
 
 private fun Throwable.toDebugString(): String =
-    "${this.javaClass.canonicalName}, ${this.message}"
+    "(${this.javaClass.canonicalName}, ${this.message})"
 
 private fun Status.toDebugString(): String =
-    "Status{code=$code, description=$description, cause=(${cause?.toDebugString()})}"
+    "Status{code=$code, description=$description, cause=${cause?.toDebugString()}}"
 
 
 private fun CompletableDeferred<Unit>.complete() = complete(Unit)

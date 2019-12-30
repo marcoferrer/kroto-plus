@@ -57,32 +57,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 
-class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClientStreamingMethod()){
-
-    inner class RpcSpy(val channel: Channel = grpcServerRule.channel) : ClientInterceptor {
-
-        val call: ClientCall<HelloRequest,HelloReply>
-            get() = runBlocking { _call.await() }
-
-        private val _call = CompletableDeferred<ClientCall<HelloRequest,HelloReply>>()
-
-        val initialized = CompletableDeferred<Unit>()
-
-        val stub: GreeterGrpc.GreeterStub = GreeterGrpc
-            .newStub(channel).withInterceptors(this, callState)
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <ReqT : Any?, RespT : Any?> interceptCall(
-            method: MethodDescriptor<ReqT, RespT>,
-            callOptions: CallOptions,
-            next: Channel
-        ): ClientCall<ReqT, RespT> {
-            val spy = spyk(next.newCall(method,callOptions))
-            _call.complete(spy as ClientCall<HelloRequest, HelloReply>)
-            initialized.complete(Unit)
-            return spy
-        }
-    }
+class ClientStreamingBackPressureTests :
+    RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutineGrpc.sayHelloClientStreamingMethod) {
 
     private fun setupUpServerHandler(
         block: suspend (requestChannel: ReceiveChannel<HelloRequest>) -> HelloReply
@@ -120,7 +96,7 @@ class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClie
         assertFails<CancellationException> {
             runBlocking {
 
-                val (clientRequestChannel, response) = stub
+                val (clientRequestChannel, _) = stub
                     .withCoroutineContext(coroutineContext + Dispatchers.Default)
                     .clientCallClientStreaming(methodDescriptor)
 
@@ -228,12 +204,7 @@ class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClie
 
         verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
-
-        val respException = response.getCompletionExceptionOrNull()
-        val respCause = respException?.cause
-        println("respExc: ${respException?.message}")
-        println("Respcause: ${respCause?.message}")
-        assertExEquals(expectedException, respCause)
+        assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
         assert(response.isCancelled) { "Response should not be cancelled" }
         assert(runBlocking {serverJob.await() }.isCancelled){ "Server job should be cancelled" }
     }
