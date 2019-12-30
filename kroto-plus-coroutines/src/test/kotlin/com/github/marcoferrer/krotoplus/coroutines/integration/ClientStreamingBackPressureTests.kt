@@ -20,7 +20,7 @@ import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.client.clientCallClientStreaming
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
 import com.github.marcoferrer.krotoplus.coroutines.utils.invoke
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
@@ -94,6 +94,7 @@ class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClie
 
         val service = ServerInterceptors.intercept(serviceImpl, callState)
         grpcServerRule.serviceRegistry.addService(service)
+        nonDirectGrpcServerRule.serviceRegistry.addService(service)
     }
 
     // TODO(marco)
@@ -199,7 +200,7 @@ class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClie
             HelloReply.getDefaultInstance()
         }
 
-        val rpcSpy = RpcSpy()
+        val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
         val stub = rpcSpy.stub
         val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
         val expectedException = IllegalStateException("test")
@@ -207,7 +208,7 @@ class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClie
         val (requestChannel, response) = stub
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runTest {
             requestChannel.send(
                 HelloRequest.newBuilder()
                     .setName(0.toString())
@@ -215,8 +216,8 @@ class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClie
             )
             requestChannel.close(expectedException)
 
-            assertFailsWithStatus(Status.CANCELLED){
-                println(response.await())
+            assertFailsWithStatus2(Status.CANCELLED){
+                response.await()
             }
         }
 
@@ -227,7 +228,12 @@ class ClientStreamingBackPressureTests : RpcCallTest(GreeterGrpc.getSayHelloClie
 
         verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
-        assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
+
+        val respException = response.getCompletionExceptionOrNull()
+        val respCause = respException?.cause
+        println("respExc: ${respException?.message}")
+        println("Respcause: ${respCause?.message}")
+        assertExEquals(expectedException, respCause)
         assert(response.isCancelled) { "Response should not be cancelled" }
         assert(runBlocking {serverJob.await() }.isCancelled){ "Server job should be cancelled" }
     }

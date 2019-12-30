@@ -62,6 +62,7 @@ subprojects{ subproject ->
     }
 
     tasks.withType(Test) {
+
         testLogging {
             // set options for log level LIFECYCLE
             events (

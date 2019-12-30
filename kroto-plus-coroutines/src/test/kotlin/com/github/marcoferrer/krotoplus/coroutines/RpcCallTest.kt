@@ -31,6 +31,8 @@ import org.junit.Rule
 import kotlin.test.BeforeTest
 import kotlin.test.fail
 
+// Create StreamRecorder
+
 abstract class RpcCallTest(
     val methodDescriptor: MethodDescriptor<HelloRequest, HelloReply>
 ) {
@@ -67,11 +69,11 @@ abstract class RpcCallTest(
         server.cancelled.assert(timeout){ "Server should be cancelled" }
     }
 
-    suspend fun withTimeoutOrDumpState(
+    suspend fun <T> withTimeoutOrDumpState(
         timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT,
         message: String,
-        block: suspend () -> Unit
-    ) = try {
+        block: suspend () -> T
+    ) : T = try {
         withTimeout(timeout) { block() }
     } catch (e: TimeoutCancellationException) {
         fail("""
@@ -94,10 +96,10 @@ abstract class RpcCallTest(
     ) = runBlocking { assert(timeout, message) }
 
 
-    inline fun runTest (
+    inline fun <T> runTest (
         timeout: Long = DEFAULT_STATE_ASSERT_TIMEOUT,
-        crossinline block: suspend CoroutineScope.() -> Unit
-    ) = runBlocking(Dispatchers.Default) {
+        crossinline block: suspend CoroutineScope.() -> T
+    ): T = runBlocking(Dispatchers.Default) {
         withTimeoutOrDumpState(timeout, "Rpc did not complete in time"){
             block()
         }

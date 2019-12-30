@@ -31,6 +31,7 @@ import io.grpc.ServerCall
 import io.grpc.ServerCallHandler
 import io.grpc.ServerInterceptor
 import io.grpc.Status
+import io.mockk.spyk
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
@@ -58,6 +59,7 @@ object CancellingClientInterceptor : ClientInterceptor {
 class ClientState(
     val intercepted: CompletableDeferred<Unit> = CompletableDeferred(),
     val started: CompletableDeferred<Unit> = CompletableDeferred(),
+    val halfClosed: CompletableDeferred<Unit> = CompletableDeferred(),
     val closed: CompletableDeferred<Unit> = CompletableDeferred(),
     val cancelled: CompletableDeferred<Unit> = CompletableDeferred()
 ) : Invokable<ClientState> {
@@ -66,6 +68,7 @@ class ClientState(
         return "\tClientState(\n" +
                 "\t\tintercepted=${intercepted.stateToString()}, \n" +
                 "\t\tstarted=${started.stateToString()},\n" +
+                "\t\thalfClosed=${halfClosed.stateToString()},\n" +
                 "\t\tclosed=${closed.stateToString()},\n" +
                 "\t\tcancelled=${cancelled.stateToString()}\n" +
                 "\t)"
@@ -113,7 +116,6 @@ interface Invokable<T>
 inline operator fun <T: Invokable<T>> T.invoke(block: T.()->Unit) = block()
 
 
-
 fun CompletableDeferred<Unit>.stateToString(): String =
     "\tisCompleted:$isCompleted,\tisActive:$isActive,\tisCancelled:$isCancelled"
 
@@ -130,9 +132,11 @@ class ClientStateInterceptor(val state: ClientState) : ClientInterceptor {
             }
 
             override fun start(responseListener: Listener<RespT>, headers: Metadata) {
+                println("Client: Call start()")
                 super.start(object : SimpleForwardingClientCallListener<RespT>(responseListener){
 
                     override fun onClose(status: Status?, trailers: Metadata?) {
+                        println("Client: Call Listener onClose(${status?.toDebugString()})")
                         super.onClose(status, trailers)
                         state.closed.complete()
                     }
@@ -141,11 +145,17 @@ class ClientStateInterceptor(val state: ClientState) : ClientInterceptor {
                 state.started.complete(Unit)
             }
 
+            override fun halfClose() {
+                println("Client: Call halfClose()")
+                super.halfClose()
+                state.halfClosed.complete()
+            }
+
             override fun cancel(message: String?, cause: Throwable?) {
+                println("Client: Call cancel($message, ${cause?.toDebugString()})")
                 super.cancel(message, cause)
                 state.cancelled.complete()
             }
-
         }
     }
 }
@@ -158,7 +168,9 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
     ): ServerCall.Listener<ReqT> {
 
         val interceptedCall = object : SimpleForwardingServerCall<ReqT, RespT>(call){
+
             override fun close(status: Status?, trailers: Metadata?) {
+                println("Server: Call Close, ${status?.toDebugString()}")
                 super.close(status, trailers)
                 state.closed.complete()
             }
@@ -170,27 +182,38 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
             }
 
             override fun onReady() {
+                println("Server: Call Listener onReady()")
                 super.onReady()
                 state.wasReady.complete()
             }
 
             override fun onHalfClose() {
+                println("Server: Call Listener onHalfClose()")
                 super.onHalfClose()
                 state.halfClosed.complete()
             }
 
             override fun onComplete() {
+                println("Server: Call Listener onComplete()")
                 super.onComplete()
                 state.completed.complete()
             }
 
             override fun onCancel() {
+                println("Server: Call Listener onCancel()")
                 super.onCancel()
                 state.cancelled.complete()
             }
         }
     }
 }
+
+private fun Throwable.toDebugString(): String =
+    "${this.javaClass.canonicalName}, ${this.message}"
+
+private fun Status.toDebugString(): String =
+    "Status{code=$code, description=$description, cause=(${cause?.toDebugString()})}"
+
 
 private fun CompletableDeferred<Unit>.complete() = complete(Unit)
 

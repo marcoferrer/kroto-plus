@@ -21,6 +21,23 @@ import io.grpc.StatusRuntimeException
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
+inline fun assertFailsWithStatus2(
+    status: Status,
+    message: String? = null,
+    block: () -> Unit
+){
+    try{
+        block()
+        fail("Block did not fail")
+    }catch (e: Throwable){
+        println("assertFailsWithStatus(${e.javaClass}, message: ${e.message})")
+        assertEquals(StatusRuntimeException::class.java.canonicalName, e.javaClass.canonicalName)
+        require(e is StatusRuntimeException)
+        message?.let { assertEquals(it,e.message) }
+        assertEquals(status.code, e.status.code)
+    }
+}
+
 inline fun assertFailsWithStatus(
     status: Status,
     message: String? = null,
@@ -34,6 +51,7 @@ inline fun assertFailsWithStatus(
 //    }catch (e: Throwable){
 //        assertEquals(StatusRuntimeException::class.java.canonicalName, e.javaClass.canonicalName)
 //        require(e is StatusRuntimeException)
+//        println("assertFailsWithStatus(${e.javaClass}, message: ${e.message})")
         message?.let { assertEquals(it,e.message) }
         assertEquals(status.code, e.status.code)
     }

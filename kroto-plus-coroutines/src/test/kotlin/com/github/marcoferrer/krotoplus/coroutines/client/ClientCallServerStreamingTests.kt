@@ -132,11 +132,12 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
 
         val responseChannel = stub
             .clientCallServerStreaming(expectedRequest, methodDescriptor)
-        runBlocking {
+
+        runTest {
             repeat(3) {
                 assertEquals("Request#$it:${expectedRequest.name}", responseChannel.receive().message)
             }
-            delay(100)
+            delay(300)
         }
 
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after successful call" }
@@ -238,11 +239,11 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
                     fail("Should not reach here")
                 }
                 launch {
+                    callState.client.started.assert { "Client should be started" }
                     externalJob.cancel()
                 }
             }
         }
-
 
         callState {
             client {
@@ -273,7 +274,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
         setupServerHandlerNoop()
 
         lateinit var responseChannel: ReceiveChannel<HelloReply>
-        runBlocking {
+        runTest {
             launch {
                 responseChannel = stub.clientCallServerStreaming(expectedRequest, methodDescriptor)
 
@@ -285,6 +286,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
             runBlocking { responseChannel.receive() }
         }
 
+        callState.client.cancelled.assertBlocking { "Client should be cancelled" }
 
         verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
@@ -299,7 +301,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
         setupServerHandlerNoop()
 
         lateinit var responseChannel: ReceiveChannel<HelloReply>
-        runBlocking {
+        runTest {
             launch {
                 responseChannel = stub.clientCallServerStreaming(expectedRequest, methodDescriptor)
 
@@ -311,7 +313,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
             runBlocking { responseChannel.receive() }
         }
 
-
+        callState.client.cancelled.assertBlocking { "Client should be cancelled" }
         verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, any<CancellationException>()) }
         assert(responseChannel.isClosedForReceive) { "Response channel is closed after cancellation" }
     }
@@ -325,7 +327,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
         setupServerHandlerNoop()
 
         lateinit var responseChannel: ReceiveChannel<HelloReply>
-        runBlocking {
+        runTest {
             launch(Dispatchers.Default) {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     responseChannel = stub
@@ -401,7 +403,7 @@ class ClientCallServerStreamingTests : RpcCallTest(GreeterGrpc.getSayHelloServer
         val responseChannel = stub
             .clientCallServerStreaming(expectedRequest, methodDescriptor)
 
-        val result = runBlocking(Dispatchers.Default) {
+        val result = runTest {
             delay(100)
             repeat(3) {
                 verify(exactly = it + 2) { rpcSpy.call.request(1) }
