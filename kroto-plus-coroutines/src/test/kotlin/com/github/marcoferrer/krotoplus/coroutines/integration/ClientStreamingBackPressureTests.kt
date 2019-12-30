@@ -16,21 +16,25 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.integration
 
+import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.client.clientCallClientStreaming
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.invoke
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
+import io.grpc.Channel
 import io.grpc.ClientCall
+import io.grpc.ClientInterceptor
+import io.grpc.MethodDescriptor
+import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
-import io.grpc.testing.GrpcServerRule
-import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
@@ -46,7 +50,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.coroutineContext
@@ -54,27 +57,20 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 
-class ClientStreamingBackPressureTests {
+class ClientStreamingBackPressureTests :
+    RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutineGrpc.sayHelloClientStreamingMethod) {
 
-    @[Rule JvmField]
-    var grpcServerRule = GrpcServerRule().directExecutor()
-
-    private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
-
-    inner class RpcSpy{
-        val stub: GreeterGrpc.GreeterStub
-        lateinit var call: ClientCall<HelloRequest,HelloReply>
-
-        init {
-            val channelSpy = spyk(grpcServerRule.channel)
-            stub = GreeterGrpc.newStub(channelSpy)
-
-            every { channelSpy.newCall(methodDescriptor, any()) } answers {
-                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
-                    this@RpcSpy.call = it
-                }
-            }
+    private fun setupUpServerHandler(
+        block: suspend (requestChannel: ReceiveChannel<HelloRequest>) -> HelloReply
+    ) {
+        val serviceImpl = object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply =
+                block(requestChannel)
         }
+
+        val service = ServerInterceptors.intercept(serviceImpl, callState)
+        grpcServerRule.serviceRegistry.addService(service)
+        nonDirectGrpcServerRule.serviceRegistry.addService(service)
     }
 
     // TODO(marco)
@@ -86,13 +82,12 @@ class ClientStreamingBackPressureTests {
     @Test
     fun `Client send suspends until server invokes receive`() {
         val deferredServerChannel = CompletableDeferred<ReceiveChannel<HelloRequest>>()
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
-            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
-                deferredServerChannel.complete(spyk(requestChannel))
-                delay(Long.MAX_VALUE)
-                return HelloReply.getDefaultInstance()
-            }
-        })
+
+        setupUpServerHandler { requestChannel ->
+            deferredServerChannel.complete(spyk(requestChannel))
+            delay(Long.MAX_VALUE)
+            HelloReply.getDefaultInstance()
+        }
 
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
@@ -101,7 +96,7 @@ class ClientStreamingBackPressureTests {
         assertFails<CancellationException> {
             runBlocking {
 
-                val (clientRequestChannel, response) = stub
+                val (clientRequestChannel, _) = stub
                     .withCoroutineContext(coroutineContext + Dispatchers.Default)
                     .clientCallClientStreaming(methodDescriptor)
 
@@ -134,17 +129,15 @@ class ClientStreamingBackPressureTests {
     fun `Call completed successfully`() {
         val deferredServerChannel = CompletableDeferred<ReceiveChannel<HelloRequest>>()
         val serverJob = CompletableDeferred<Job>()
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
-            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
-                val job = coroutineContext[Job]!!
-                job.invokeOnCompletion { serverJob.complete(job) }
-                deferredServerChannel.complete(spyk(requestChannel))
-                val reqValues = requestChannel.consumeAsFlow().map { it.name }.toList()
-                return HelloReply.newBuilder()
-                    .setMessage(reqValues.joinToString())
-                    .build()
-            }
-        })
+        setupUpServerHandler { requestChannel ->
+            val job = coroutineContext[Job]!!
+            job.invokeOnCompletion { serverJob.complete(job) }
+            deferredServerChannel.complete(spyk(requestChannel))
+            val reqValues = requestChannel.consumeAsFlow().map { it.name }.toList()
+            HelloReply.newBuilder()
+                .setMessage(reqValues.joinToString())
+                .build()
+        }
 
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
@@ -175,17 +168,15 @@ class ClientStreamingBackPressureTests {
     fun `Call is cancelled when client closes request channel`() {
         val deferredServerChannel = CompletableDeferred<ReceiveChannel<HelloRequest>>()
         val serverJob = CompletableDeferred<Job>()
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
-            override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
-                val job = coroutineContext[Job]!!
-                job.invokeOnCompletion { serverJob.complete(job) }
-                deferredServerChannel.complete(spyk(requestChannel))
-                delay(Long.MAX_VALUE)
-                return HelloReply.getDefaultInstance()
-            }
-        })
+        setupUpServerHandler { requestChannel ->
+            val job = coroutineContext[Job]!!
+            job.invokeOnCompletion { serverJob.complete(job) }
+            deferredServerChannel.complete(spyk(requestChannel))
+            delay(Long.MAX_VALUE)
+            HelloReply.getDefaultInstance()
+        }
 
-        val rpcSpy = RpcSpy()
+        val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
         val stub = rpcSpy.stub
         val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
         val expectedException = IllegalStateException("test")
@@ -193,7 +184,7 @@ class ClientStreamingBackPressureTests {
         val (requestChannel, response) = stub
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runTest {
             requestChannel.send(
                 HelloRequest.newBuilder()
                     .setName(0.toString())
@@ -201,9 +192,14 @@ class ClientStreamingBackPressureTests {
             )
             requestChannel.close(expectedException)
 
-            assertFailsWithStatus(Status.CANCELLED){
-                println(response.await())
+            assertFailsWithStatus2(Status.CANCELLED){
+                response.await()
             }
+        }
+
+        callState {
+            blockUntilCancellation()
+            client.closed.assertBlocking { "Client must be closed" }
         }
 
         verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }

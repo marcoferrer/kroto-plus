@@ -74,8 +74,7 @@ internal class ClientStreamingCallChannelImpl<ReqT,RespT>(
 
         attachOutboundChannelCompletionHandler(
             callStreamObserver, outboundChannel,
-            onSuccess = { outboundMessageHandler.close() },
-            onError = { error -> completableResponse.completeExceptionally(error) }
+            onSuccess = { outboundMessageHandler.close() }
         )
         completableResponse.invokeOnCompletion {
             // If the client prematurely cancels the response

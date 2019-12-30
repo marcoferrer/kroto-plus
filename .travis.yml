@@ -20,7 +20,7 @@ jobs:
       install:
         - ./gradlew assemble
       script:
-        - ./gradlew check
+        - ./gradlew -Dkotlinx.coroutines.debug=on check
         - cd example-project && ./gradlew test && ./gradlew clean test -PuseKrotoConfigDsl=true
 after_success:
   - bash <(curl -s https://codecov.io/bash)
