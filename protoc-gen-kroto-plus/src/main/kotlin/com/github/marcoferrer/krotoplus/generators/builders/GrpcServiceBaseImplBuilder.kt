@@ -204,11 +204,9 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
 
     private fun addMethodsToServiceCodeBlock(protoService: ProtoService): CodeBlock {
         val builder = CodeBlock.builder()
-            .addStatement("val builder = %T.builder(%T.getServiceDescriptor())",
-                CommonClassNames.grpcServerServiceDefinition,
-                protoService.enclosingServiceClassName
-            )
+            .addStatement("val builder = %T", CommonClassNames.grpcServerServiceDefinition)
             .indent()
+            .addStatement(".builder(%T.getServiceDescriptor())", protoService.enclosingServiceClassName)
 
         protoService.methodDefinitions.forEach { method ->
             val handlerClassName = when(method.type){
@@ -219,21 +217,18 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
                 MethodDescriptor.MethodType.UNKNOWN -> throw IllegalStateException("Unknown method type")
             }
 
-            builder.addStatement("""
-                |.addMethod(
-                |   ${method.methodDefinitionPropName},
-                |   %T(
-                |       ${method.methodDefinitionPropName},
-                |       MethodHandlers(this, %N)
-                |   )
-                |)
-            """.trimMargin(),
-                handlerClassName,
-                method.idPropertyName
-                )
+            builder
+                .addStatement(".addMethod(")
+                .indent()
+                .addStatement("${method.methodDefinitionPropName},")
+                .addStatement("%T(MethodHandlers(this, %N))",
+                    handlerClassName,
+                    method.idPropertyName)
+                .unindent()
+                .addStatement(")")
         }
 
-        return builder.addStatement("return builder.build()").unindent().build()
+        return builder.unindent().addStatement("return builder.build()").build()
     }
 
     object CallHandlerClassNames {
