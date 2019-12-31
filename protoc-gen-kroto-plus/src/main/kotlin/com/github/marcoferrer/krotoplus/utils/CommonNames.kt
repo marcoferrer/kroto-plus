@@ -53,13 +53,6 @@ object CommonClassNames{
     val grpcStubRpcMethod = ClassName("io.grpc.stub.annotations","RpcMethod")
     val grpcMethodDescriptor = ClassName("io.grpc","MethodDescriptor")
 
-    object GrpcServerCallHandler {
-        val unary = ClassName("io.grpc.stub","ServerCalls","UnaryMethod")
-        val serverStreaming = ClassName("io.grpc.stub","ServerCalls","ServerStreamingMethod")
-        val clientStreaming = ClassName("io.grpc.stub","ServerCalls","ClientStreamingMethod")
-        val bidiStreaming = ClassName("io.grpc.stub","ServerCalls","BidiStreamingMethod")
-    }
-
     val streamObserver: ClassName = ClassName("io.grpc.stub", "StreamObserver")
 
     val experimentalKrotoPlusCoroutinesApi = ClassName(krotoCoroutineLib, "ExperimentalKrotoPlusCoroutinesApi")

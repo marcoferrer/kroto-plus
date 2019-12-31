@@ -39,7 +39,11 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
+private const val DEPRECATION_MESSAGE =
+    "Delegate based server implementations are deprecated. " +
+    "This is resolved by re-generating source stubs with Kroto+ v0.7.0 and up"
 
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallUnary(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -58,6 +62,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallUnary(
     }
 }
 
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -92,6 +97,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
 }
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -141,6 +147,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
 
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -218,9 +225,38 @@ private fun MethodDescriptor<*, *>.getUnimplementedException(): StatusRuntimeExc
  * before invoking `onComplete` and closing the call stream.
  *
  */
-private fun CoroutineScope.bindScopeCompletionToObserver(streamObserver: StreamObserver<*>) {
+internal fun CoroutineScope.bindScopeCompletionToObserver(streamObserver: StreamObserver<*>) {
 
     coroutineContext[Job]?.invokeOnCompletion {
         streamObserver.completeSafely(it)
     }
+}
+
+
+/**
+ * Adaptor to a unary method.
+ */
+interface UnaryMethod<ReqT, RespT> {
+    suspend operator fun invoke(request: ReqT): RespT
+}
+
+/**
+ * Adaptor to a server streaming method.
+ */
+interface ServerStreamingMethod<ReqT, RespT> {
+    suspend operator fun invoke(request: ReqT, responseChannel: SendChannel<RespT>)
+}
+
+/**
+ * Adaptor to a client streaming method.
+ */
+interface ClientStreamingMethod<ReqT, RespT> {
+    suspend operator fun invoke(requestChannel: ReceiveChannel<ReqT>): RespT
+}
+
+/**
+ * Adaptor to a bidirectional streaming method.
+ */
+interface BidiStreamingMethod<ReqT, RespT> {
+    suspend operator fun invoke(requestChannel: ReceiveChannel<ReqT>, responseChannel: SendChannel<RespT>)
 }

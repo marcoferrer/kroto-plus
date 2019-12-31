@@ -44,7 +44,7 @@ data class ProtoService(
         descriptorProto.methodList.mapIndexed { methodIndex, methodDescriptor ->
             val sourceLocation = this@ProtoService.protoFile.descriptorProto.sourceCodeInfo.locationList
                 .findByMethodIndex(methodIndex)
-            ProtoMethod(methodDescriptor, sourceLocation, this@ProtoService)
+            ProtoMethod(methodDescriptor, methodIndex, sourceLocation, this@ProtoService)
         }
     }
 

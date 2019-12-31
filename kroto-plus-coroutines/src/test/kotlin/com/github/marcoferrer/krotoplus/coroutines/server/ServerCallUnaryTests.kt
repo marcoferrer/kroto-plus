@@ -156,6 +156,7 @@ class ServerCallUnaryTests {
 
         val call = newCall()
         call.cancel("test",null)
+
         assert(serverSpy.job!!.isCancelled){ "Server job must be cancelled" }
         verify(exactly = 1) {
             responseObserver.onError(matchStatus(Status.CANCELLED))
