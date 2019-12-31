@@ -39,8 +39,10 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
+internal const val MESSAGE_SERVER_CANCELLED_CALL = "Server has cancelled the call"
+
 private const val DEPRECATION_MESSAGE =
-    "Delegate based server implementations are deprecated. " +
+    "Delegate based server implementations are deprecated and replaced with ServerCallHandler instances. " +
     "This is resolved by re-generating source stubs with Kroto+ v0.7.0 and up"
 
 @Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
@@ -230,33 +232,4 @@ internal fun CoroutineScope.bindScopeCompletionToObserver(streamObserver: Stream
     coroutineContext[Job]?.invokeOnCompletion {
         streamObserver.completeSafely(it)
     }
-}
-
-
-/**
- * Adaptor to a unary method.
- */
-interface UnaryMethod<ReqT, RespT> {
-    suspend operator fun invoke(request: ReqT): RespT
-}
-
-/**
- * Adaptor to a server streaming method.
- */
-interface ServerStreamingMethod<ReqT, RespT> {
-    suspend operator fun invoke(request: ReqT, responseChannel: SendChannel<RespT>)
-}
-
-/**
- * Adaptor to a client streaming method.
- */
-interface ClientStreamingMethod<ReqT, RespT> {
-    suspend operator fun invoke(requestChannel: ReceiveChannel<ReqT>): RespT
-}
-
-/**
- * Adaptor to a bidirectional streaming method.
- */
-interface BidiStreamingMethod<ReqT, RespT> {
-    suspend operator fun invoke(requestChannel: ReceiveChannel<ReqT>, responseChannel: SendChannel<RespT>)
 }

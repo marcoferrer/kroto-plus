@@ -80,6 +80,16 @@ protobuf {
     }
 }
 
+    test {
+        jacoco {
+            // These deprecated extensions are no longer covered by tests since
+            // they're not referenced in generated sources anymore. They will be
+            // removed in the future but remain as to provide backwards compatibility
+            // with existing generated sources.
+            excludes += ['com/github/marcoferrer/krotoplus/coroutines/server/ServerCallsKt.class']
+        }
+    }
+
 jacoco {
     toolVersion = "0.8.5"
 }

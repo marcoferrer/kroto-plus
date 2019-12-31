@@ -42,8 +42,8 @@ object CancellingClientInterceptor : ClientInterceptor {
         callOptions: CallOptions?,
         next: Channel
     ): ClientCall<ReqT, RespT> {
-        val _call = next.newCall(method,callOptions)
-        return object : SimpleForwardingClientCall<ReqT,RespT>(_call){
+        val call = next.newCall(method,callOptions)
+        return object : SimpleForwardingClientCall<ReqT,RespT>(call){
             override fun halfClose() {
                 super.halfClose()
                 // Cancel call after we've verified
@@ -51,7 +51,6 @@ object CancellingClientInterceptor : ClientInterceptor {
                 cancel("test",null)
             }
         }
-
     }
 }
 
@@ -223,10 +222,10 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
     }
 }
 
-private fun Throwable.toDebugString(): String =
+fun Throwable.toDebugString(): String =
     "(${this.javaClass.canonicalName}, ${this.message})"
 
-private fun Status.toDebugString(): String =
+fun Status.toDebugString(): String =
     "Status{code=$code, description=$description, cause=${cause?.toDebugString()}}"
 
 

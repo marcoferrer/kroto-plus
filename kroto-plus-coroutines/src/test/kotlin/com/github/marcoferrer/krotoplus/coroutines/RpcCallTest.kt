@@ -18,12 +18,13 @@ package com.github.marcoferrer.krotoplus.coroutines
 
 import com.github.marcoferrer.krotoplus.coroutines.utils.ClientCallSpyInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.RpcStateInterceptor
+import io.grpc.BindableService
 import io.grpc.Channel
 import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
+import io.grpc.ServerInterceptors
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
-import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.testing.GrpcServerRule
 import kotlinx.coroutines.CompletableDeferred
@@ -58,6 +59,12 @@ abstract class RpcCallTest<ReqT, RespT>(
     @BeforeTest
     fun setupCall() {
         callState = RpcStateInterceptor()
+    }
+
+    fun registerService(service: BindableService){
+        val interceptedService = ServerInterceptors.intercept(service, callState)
+        nonDirectGrpcServerRule.serviceRegistry.addService(interceptedService)
+        grpcServerRule.serviceRegistry.addService(interceptedService)
     }
 
     inner class RpcSpy(channel: Channel) {
