@@ -17,20 +17,20 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
+import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
+import com.github.marcoferrer.krotoplus.coroutines.utils.toDebugString
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
-import io.grpc.CallOptions
-import io.grpc.ClientCall
+import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.StreamObserver
-import io.grpc.testing.GrpcServerRule
-import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
@@ -42,43 +42,19 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 
-class ClientCallClientStreamingTests {
+class ClientCallClientStreamingTests :
+    RpcCallTest<HelloRequest, HelloReply>(GreeterGrpc.getSayHelloClientStreamingMethod()) {
 
-    @[Rule JvmField]
-    var grpcServerRule = GrpcServerRule().directExecutor()
-
-    // @[Rule JvmField]
-    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
-
-    private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
     private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
 
-    inner class RpcSpy{
-        val stub: GreeterGrpc.GreeterStub
-        lateinit var call: ClientCall<HelloRequest,HelloReply>
-
-        init {
-            val channelSpy = spyk(grpcServerRule.channel)
-            stub = GreeterGrpc.newStub(channelSpy)
-
-            every { channelSpy.newCall(methodDescriptor, any()) } answers {
-                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
-                    this@RpcSpy.call = it
-                }
-            }
-        }
-    }
-
     private fun setupServerHandlerError(){
-        every { service.sayHelloClientStreaming(any()) } answers {
-            val responseObserver = firstArg<StreamObserver<HelloReply>>()
+        setupServerHandler { responseObserver ->
             object : StreamObserver<HelloRequest>{
                 var reqQty = 0
                 var responseString = ""
@@ -100,16 +76,19 @@ class ClientCallClientStreamingTests {
     }
 
     private fun setupServerHandlerSuccess(){
-        every { service.sayHelloClientStreaming(any()) } answers {
-            val responseObserver = firstArg<StreamObserver<HelloReply>>()
+        setupServerHandler { responseObserver ->
             object : StreamObserver<HelloRequest>{
                 var reqQty = 0
                 var responseString = ""
                 override fun onNext(value: HelloRequest) {
+                    println("Server: onNext(${value.name})")
                     responseString += "Req:#${value.name}/Resp:#${reqQty++}|"
                 }
-                override fun onError(t: Throwable?) {}
+                override fun onError(t: Throwable) {
+                    println("Server: onError(${t.toDebugString()})")
+                }
                 override fun onCompleted() {
+                    println("Server: onCompleted()")
                     responseObserver.onNext(HelloReply.newBuilder()
                         .setMessage(responseString)
                         .build())
@@ -119,8 +98,18 @@ class ClientCallClientStreamingTests {
         }
     }
 
+    private inline fun setupServerHandler(
+        crossinline block: (responseObserver: StreamObserver<HelloReply>) -> StreamObserver<HelloRequest>
+    ){
+        registerService(object : GreeterGrpc.GreeterImplBase(){
+            override fun sayHelloClientStreaming(
+                responseObserver: StreamObserver<HelloReply>
+            ): StreamObserver<HelloRequest> = block(responseObserver)
+        })
+    }
+
     private fun setupServerHandlerNoop(){
-        every { service.sayHelloClientStreaming(any()) } answers {
+        setupServerHandler {
             object : StreamObserver<HelloRequest>{
                 override fun onNext(value: HelloRequest) {}
                 override fun onError(t: Throwable?) {}
@@ -131,7 +120,8 @@ class ClientCallClientStreamingTests {
 
     @BeforeTest
     fun setupService() {
-        grpcServerRule.serviceRegistry.addService(service)
+        grpcServerRule.serviceRegistry.addService(
+            ServerInterceptors.intercept(service, callState))
     }
 
     @Test
@@ -142,7 +132,7 @@ class ClientCallClientStreamingTests {
         setupServerHandlerSuccess()
 
         lateinit var requestChannel: SendChannel<HelloRequest>
-        runBlocking {
+        runTest {
             val (sendChannel, response) = stub
                 .withCoroutineContext()
                 .clientCallClientStreaming(methodDescriptor)
@@ -159,6 +149,8 @@ class ClientCallClientStreamingTests {
             launch{
                 assertEquals("Req:#0/Resp:#0|Req:#1/Resp:#1|Req:#2/Resp:#2|", response.await().message)
             }
+
+            callState.client.closed.assert{ "Client call should be closed" }
         }
 
         verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
@@ -344,21 +336,19 @@ class ClientCallClientStreamingTests {
         val (requestChannel, response) = stub
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runTest {
             launch {
-                kotlin.runCatching {
-                    repeat(3) {
-                        requestChannel.send(
-                            HelloRequest.newBuilder()
-                                .setName(it.toString())
-                                .build()
-                        )
-                    }
-                    requestChannel.close(expectedException)
+                repeat(3) {
+                    requestChannel.send(
+                        HelloRequest.newBuilder()
+                            .setName(it.toString())
+                            .build()
+                    )
                 }
+                requestChannel.close(expectedException)
             }
 
-            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+            assertFailsWithStatus2(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
                 response.await()
             }
         }

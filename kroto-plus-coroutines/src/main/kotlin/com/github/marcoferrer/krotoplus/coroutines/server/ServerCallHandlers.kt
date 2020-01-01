@@ -32,10 +32,13 @@ import io.grpc.stub.ServerCalls
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -232,15 +235,15 @@ internal class ServerStreamingServerCallHandler<ReqT, RespT>(
                 cancellationHandler.onMethodHandlerStart()
                 methodHandler(request, channel)
                 channel.close()
-            }.buffer(Channel.RENDEZVOUS).onEach { message ->
-                if(readyObserver.isReady()){
-                    serverCallObserver.onNext(message)
-                }
-            }
+            }.buffer(Channel.RENDEZVOUS)
 
             rpcScope.launch(start = CoroutineStart.ATOMIC) {
                 try {
-                    responseFlow.collect()
+                    readyObserver.awaitReady()
+                    responseFlow.collect { message ->
+                        serverCallObserver.onNext(message)
+                        readyObserver.awaitReady()
+                    }
                     serverCallObserver.onCompleted()
                 }catch (e: Throwable){
                     serverCallObserver.completeSafely(e)

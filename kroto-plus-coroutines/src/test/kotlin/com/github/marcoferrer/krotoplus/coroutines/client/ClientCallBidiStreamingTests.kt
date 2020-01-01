@@ -17,21 +17,19 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
+import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithCancellation
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
-import io.grpc.CallOptions
-import io.grpc.ClientCall
 import io.grpc.Status
-import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.StreamObserver
-import io.grpc.testing.GrpcServerRule
-import io.mockk.every
-import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
@@ -42,56 +40,34 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.coroutines.CoroutineContext
-import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 
-class ClientCallBidiStreamingTests {
+class ClientCallBidiStreamingTests :
+    RpcCallTest<HelloRequest, HelloReply>(GreeterGrpc.getSayHelloStreamingMethod()) {
 
-    @[Rule JvmField]
-    var grpcServerRule = GrpcServerRule().directExecutor()
+    val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
 
-    @[Rule JvmField]
-    var nonDirectGrpcServerRule = GrpcServerRule()
-
-    // @[Rule JvmField]
-    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
-
-
-    private val methodDescriptor = GreeterGrpc.getSayHelloStreamingMethod()
-    private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
-
-    inner class RpcSpy{
-        val stub: GreeterGrpc.GreeterStub
-        lateinit var call: ClientCall<HelloRequest,HelloReply>
-
-        init {
-            val channelSpy = spyk(grpcServerRule.channel)
-            stub = GreeterGrpc.newStub(channelSpy)
-
-            every { channelSpy.newCall(methodDescriptor, any()) } answers {
-                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
-                    this@RpcSpy.call = it
-                }
-            }
-        }
+    private fun setupServerHandler(
+        block: (StreamObserver<HelloReply>) -> StreamObserver<HelloRequest>
+    ){
+        registerService(object : GreeterGrpc.GreeterImplBase(){
+            override fun sayHelloStreaming(responseObserver: StreamObserver<HelloReply>)
+                    : StreamObserver<HelloRequest> = block(responseObserver)
+        })
     }
 
     private fun setupServerHandlerError(){
-        every { service.sayHelloStreaming(any()) } answers {
-            val responseObserver = firstArg<StreamObserver<HelloReply>>()
+        setupServerHandler { responseObserver ->
             object : StreamObserver<HelloRequest>{
+
                 var reqQty = 0
                 override fun onNext(value: HelloRequest) {
                     if(reqQty >= 3){
@@ -111,8 +87,7 @@ class ClientCallBidiStreamingTests {
     }
 
     private fun setupServerHandlerSuccess(){
-        every { service.sayHelloStreaming(any()) } answers {
-            val responseObserver = firstArg<StreamObserver<HelloReply>>()
+        setupServerHandler { responseObserver ->
             object : StreamObserver<HelloRequest>{
                 var reqQty = 0
                 override fun onNext(value: HelloRequest) {
@@ -129,18 +104,13 @@ class ClientCallBidiStreamingTests {
     }
 
     private fun setupServerHandlerNoop(){
-        every { service.sayHelloStreaming(any()) } answers {
+        setupServerHandler { responseObserver ->
             object : StreamObserver<HelloRequest>{
                 override fun onNext(value: HelloRequest) {}
                 override fun onError(t: Throwable?) {}
                 override fun onCompleted() {}
             }
         }
-    }
-
-    @BeforeTest
-    fun setupService() {
-        grpcServerRule.serviceRegistry.addService(service)
     }
 
     @Test
@@ -152,7 +122,7 @@ class ClientCallBidiStreamingTests {
         val (requestChannel, responseChannel) = stub
             .clientCallBidiStreaming(methodDescriptor)
 
-        val result = runBlocking(Dispatchers.Default) {
+        val result = runTest {
             launch {
                 repeat(3){
                     requestChannel.send(
@@ -184,7 +154,7 @@ class ClientCallBidiStreamingTests {
         val (requestChannel, responseChannel) = stub
             .clientCallBidiStreaming(methodDescriptor)
 
-        runBlocking {
+        runTest {
             launch {
                 with(requestChannel){
                     repeat(4) {
@@ -192,7 +162,7 @@ class ClientCallBidiStreamingTests {
                             .setName(it.toString())
                             .build())
                     }
-                    assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+                    assertFailsWithStatus2(Status.INVALID_ARGUMENT) {
                         send(HelloRequest.newBuilder()
                             .setName("fails")
                             .build()
@@ -201,10 +171,10 @@ class ClientCallBidiStreamingTests {
                 }
             }
             launch {
-                repeat(2) {
+                repeat(3) {
                     assertEquals("Req:#$it/Resp:#$it", responseChannel.receive().message)
                 }
-                assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+                assertFailsWithStatus2(Status.INVALID_ARGUMENT) {
                     responseChannel.receive().message
                 }
             }
@@ -226,15 +196,15 @@ class ClientCallBidiStreamingTests {
             .clientCallBidiStreaming(methodDescriptor)
 
 
-        runBlocking {
-            launch(Dispatchers.Default) {
+        runTest {
+            launch {
                 val job = launch(start = CoroutineStart.ATOMIC) {
                     launch(start = CoroutineStart.UNDISPATCHED){
-                        assertFailsWithStatus(Status.CANCELLED) {
+                        assertFailsWithCancellation {
                             responseChannel.receive()
                         }
                     }
-                    assertFailsWithStatus(Status.CANCELLED) {
+                    assertFailsWithCancellation {
                         repeat(3) {
                             requestChannel.send(
                                 HelloRequest.newBuilder()
@@ -266,7 +236,7 @@ class ClientCallBidiStreamingTests {
         lateinit var requestChannel: SendChannel<HelloRequest>
         lateinit var responseChannel: ReceiveChannel<HelloReply>
         assertFails<CancellationException> {
-            runBlocking {
+            runTest {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     val callChannel = stub
                         .withCoroutineContext()
@@ -278,7 +248,7 @@ class ClientCallBidiStreamingTests {
                     val job = launch {
                         callChannel.responseChannel.receive().message
                     }
-                    assertFailsWithStatus(Status.CANCELLED) {
+                    assertFailsWithCancellation {
                         repeat(3) {
                             requestChannel.send(
                                 HelloRequest.newBuilder()
@@ -288,7 +258,7 @@ class ClientCallBidiStreamingTests {
                             delay(5)
                         }
                     }
-                    assertFailsWithStatus(Status.CANCELLED) {
+                    assertFailsWithCancellation {
                         job.join()
                     }
                 }
@@ -296,7 +266,13 @@ class ClientCallBidiStreamingTests {
             }
         }
 
-        verify { rpcSpy.call.cancel(any(), any()) }
+        runTest {
+            assertFailsWithCancellation {
+                responseChannel.receive()
+            }
+        }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
@@ -320,7 +296,7 @@ class ClientCallBidiStreamingTests {
 
                 launch(Dispatchers.Default) {
                     launch(start = CoroutineStart.UNDISPATCHED) {
-                        assertFailsWithStatus(Status.CANCELLED) {
+                        assertFailsWithStatus2(Status.CANCELLED) {
                             repeat(3) {
                                 requestChannel.send(
                                     HelloRequest.newBuilder()
@@ -334,76 +310,22 @@ class ClientCallBidiStreamingTests {
                     launch {
                         error("cancel")
                     }
-                    assertFailsWithStatus(Status.CANCELLED) {
+                    assertFailsWithStatus2(Status.CANCELLED) {
                         callChannel.responseChannel.receive().message
                     }
                 }
             }
         }
 
-        verify { rpcSpy.call.cancel(any(), any()) }
+        verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
-    }
-
-    @Test
-    fun `High volume call succeeds`() {
-        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Default
-            override suspend fun sayHelloStreaming(
-                requestChannel: ReceiveChannel<HelloRequest>,
-                responseChannel: SendChannel<HelloReply>
-            ) {
-                requestChannel.consumeAsFlow().collectIndexed { index, value ->
-                    if (index % 1000 == 0) {
-//                          println("Server received $index")
-                    }
-
-                    responseChannel.send(HelloReply.newBuilder().setMessage(value.name).build())
-                }
-                responseChannel.close()
-            }
-        })
-        val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
-
-        val (requestChannel, responseChannel) = stub
-            .clientCallBidiStreaming(methodDescriptor)
-
-        val numMessages = 100000
-        val receivedCount = AtomicInteger()
-        runBlocking(Dispatchers.Default) {
-            val req = HelloRequest.newBuilder()
-                .setName("test").build()
-
-            launch {
-                repeat(numMessages) {
-//                     if (it % 1000 == 0) println("Client sent $it")
-                    requestChannel.send(req)
-                }
-                requestChannel.close()
-            }
-
-            launch {
-                repeat(numMessages) {
-//                     if (it % 1000 == 0) println("Client received $it")
-                    responseChannel.receive()
-                    receivedCount.incrementAndGet()
-                }
-            }
-        }
-        // Sleep so that we can ensure the response channel
-        // has had enough time to close before being asserted on
-        Thread.sleep(50)
-        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
-        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
-        assertEquals(numMessages, receivedCount.get(), "Must response count must equal request count")
     }
 
     @Test
     fun `Call is cancelled when request channel closed with error concurrently`() {
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
-        val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
         val expectedException = IllegalStateException("test")
 
         setupServerHandlerSuccess()
@@ -411,21 +333,24 @@ class ClientCallBidiStreamingTests {
             .clientCallBidiStreaming(methodDescriptor)
 
         val result = mutableListOf<String>()
-        runBlocking(Dispatchers.Default) {
+        runTest {
             launch {
-                kotlin.runCatching {
-                    repeat(3) {
-                        requestChannel.send(
-                            HelloRequest.newBuilder()
-                                .setName(it.toString())
-                                .build()
-                        )
-                    }
-                    requestChannel.close(expectedException)
+                repeat(3) {
+                    requestChannel.send(
+                        HelloRequest.newBuilder()
+                            .setName(it.toString())
+                            .build()
+                    )
                 }
+                requestChannel.close(expectedException)
             }
 
-            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+            //TODO: Cleanup
+//            cause = Status.CANCELLED
+//                .withDescription("Cancelled by client with StreamObserver.onError()")
+//                .withCause(expectedException)
+//                .asRuntimeException()
+            assertFailsWithStatus2(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
                 responseChannel.consumeAsFlow()
                     .map { it.message }
                     .collect { result.add(it) }
@@ -436,7 +361,7 @@ class ClientCallBidiStreamingTests {
         result.forEachIndexed { index, message ->
             assertEquals("Req:#$index/Resp:#$index",message)
         }
-        verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
@@ -445,7 +370,6 @@ class ClientCallBidiStreamingTests {
     fun `Call is cancelled when request channel closed with error sequentially`() {
         val rpcSpy = RpcSpy()
         val stub = rpcSpy.stub
-        val expectedCancelMessage = "Cancelled by client with StreamObserver.onError()"
         val expectedException = IllegalStateException("test")
 
         setupServerHandlerSuccess()
@@ -453,15 +377,21 @@ class ClientCallBidiStreamingTests {
             .clientCallBidiStreaming(methodDescriptor)
 
         val result = mutableListOf<String>()
-        runBlocking(Dispatchers.Default) {
+        runTest {
             requestChannel.send(
                 HelloRequest.newBuilder()
                     .setName(0.toString())
                     .build()
             )
+            result.add(responseChannel.receive().message)
             requestChannel.close(expectedException)
 
-            assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
+            //TODO clean up
+//            cause = Status.CANCELLED
+//                .withDescription("Cancelled by client with StreamObserver.onError()")
+//                .withCause(expectedException)
+//                .asRuntimeException()
+            assertFailsWithStatus2(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
                 responseChannel.consumeAsFlow()
                     .collect { result.add(it.message) }
             }
@@ -472,7 +402,7 @@ class ClientCallBidiStreamingTests {
         result.forEachIndexed { index, message ->
             assertEquals("Req:#$index/Resp:#$index",message)
         }
-        verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
+        verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
@@ -486,9 +416,9 @@ class ClientCallBidiStreamingTests {
         val (requestChannel, responseChannel) = stub
             .clientCallBidiStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runTest {
             launch {
-                assertFailsWithStatus(Status.CANCELLED) {
+                assertFailsWithStatus2(Status.CANCELLED) {
                     repeat(10) {
                         requestChannel.send(
                             HelloRequest.newBuilder()
@@ -507,7 +437,8 @@ class ClientCallBidiStreamingTests {
             responseChannel.cancel()
         }
 
-        verify { rpcSpy.call.cancel("Cancelled by client with StreamObserver.onError()",any()) }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL,matchStatus(Status.CANCELLED)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }

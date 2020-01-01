@@ -16,7 +16,9 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.call
 
+import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
 import com.github.marcoferrer.krotoplus.coroutines.asContextElement
+import io.grpc.CallOptions
 import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
 import io.grpc.Status
@@ -87,6 +89,16 @@ internal fun Throwable.toRpcException(): Throwable =
 
 internal fun MethodDescriptor<*, *>.getCoroutineName(): CoroutineName =
     CoroutineName(fullMethodName)
+
+internal fun newRpcScope(
+    callOptions: CallOptions,
+    methodDescriptor: MethodDescriptor<*, *>,
+    grpcContext: io.grpc.Context = io.grpc.Context.current()
+): CoroutineScope = newRpcScope(
+    callOptions.getOption(CALL_OPTION_COROUTINE_CONTEXT),
+    methodDescriptor,
+    grpcContext
+)
 
 internal fun newRpcScope(
     coroutineContext: CoroutineContext,

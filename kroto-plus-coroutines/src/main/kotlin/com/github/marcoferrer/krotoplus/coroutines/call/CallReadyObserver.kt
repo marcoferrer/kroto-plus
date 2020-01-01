@@ -22,17 +22,47 @@ import kotlinx.coroutines.channels.Channel
 internal fun CallStreamObserver<*>.newCallReadyObserver(): CallReadyObserver =
     CallReadyObserver(this)
 
+//Usage of this observer is what increases the buffer by 1 since we have to check this
+// after we have already polled from the channel
 internal class CallReadyObserver(
     callStreamObserver: CallStreamObserver<*>
 ) : Runnable {
 
-    private val notificationChannel = Channel<Any>()
+    private val notificationChannel = Channel<READY_TOKEN>(Channel.BUFFERED)
+
+    private var hasRan = false
 
     private val callStreamObserver: CallStreamObserver<*> = callStreamObserver
         .apply { setOnReadyHandler(this@CallReadyObserver) }
 
-    suspend fun isReady(): Boolean =
-        callStreamObserver.isReady || notificationChannel.receive() === READY_TOKEN
+    suspend fun isReady(): Boolean {
+        // Suspend until the call is ready.
+        // If the call is cancelled before then, an exception
+        // will be thrown.
+        awaitReady()
+        return true
+    }
+
+    suspend fun awaitReady() {
+        // If our handler hasnt run yet we will want to
+        // suspend immediately since its early enough that
+        // calls to `callStreamObserver.isReady` will throw
+        // and NPE
+        if(!hasRan)
+            notificationChannel.receive()
+        // By the time the on ready handler is invoked, calls
+        // to `callStreamObserver.isReady` could return false
+        // Here we will continue to poll notifications until
+        // the call is ready. For more details reference the
+        // documentation for `setOnReadyHandler.setOnReadyHandler()`
+        while(!callStreamObserver.isReady){
+            notificationChannel.receive()
+        }
+    }
+
+    fun cancel(t: Throwable? = null){
+        notificationChannel.close(t)
+    }
 
     private fun signalReady() = notificationChannel.offer(READY_TOKEN)
 
@@ -40,6 +70,9 @@ internal class CallReadyObserver(
         message = "This method should not be called directly",
         level = DeprecationLevel.HIDDEN)
     override fun run() {
+        if(!hasRan) {
+            hasRan = true
+        }
         signalReady()
     }
 

@@ -18,8 +18,26 @@ package com.github.marcoferrer.krotoplus.coroutines.utils
 
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import kotlinx.coroutines.CancellationException
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.test.fail
+
+inline fun assertFailsWithCancellation(cause: Throwable? = null, block: () -> Unit){
+    try{
+        block()
+        fail("Cancellation exception was not thrown")
+    }catch (e: Throwable){
+        e.printStackTrace()
+        assertTrue(
+            e is CancellationException,
+            "Expected: CancellationException, Actual: ${e.javaClass.canonicalName}"
+        )
+        cause?.let { assertExEquals(it, e.cause) }
+        cause?.cause?.let { assertExEquals(it, e.cause?.cause) }
+    }
+}
 
 inline fun assertFailsWithStatus2(
     status: Status,
@@ -30,9 +48,10 @@ inline fun assertFailsWithStatus2(
         block()
         fail("Block did not fail")
     }catch (e: Throwable){
-        println("assertFailsWithStatus(${e.javaClass}, message: ${e.message})")
-        assertEquals(StatusRuntimeException::class.java.canonicalName, e.javaClass.canonicalName)
-        require(e is StatusRuntimeException)
+        assertTrue(
+            e is StatusRuntimeException,
+            "Expected: StatusRuntimeException, Actual: ${e.javaClass.canonicalName}"
+        )
         message?.let { assertEquals(it,e.message) }
         assertEquals(status.code, e.status.code)
     }

@@ -16,6 +16,7 @@
 
 package com.github.marcoferrer.krotoplus.coroutines
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.CALL_TRACE_ENABLED
 import com.github.marcoferrer.krotoplus.coroutines.utils.ClientCallSpyInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.RpcStateInterceptor
 import io.grpc.BindableService
@@ -59,6 +60,7 @@ abstract class RpcCallTest<ReqT, RespT>(
     @BeforeTest
     fun setupCall() {
         callState = RpcStateInterceptor()
+        CALL_TRACE_ENABLED = true
     }
 
     fun registerService(service: BindableService){
