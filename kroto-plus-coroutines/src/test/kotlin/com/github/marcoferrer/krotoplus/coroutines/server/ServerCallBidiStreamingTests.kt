@@ -319,7 +319,7 @@ class ServerCallBidiStreamingTests :
         requestObserver.sendRequests(3)
 
         callState.blockUntilClosed()
-        
+
         verify(exactly = 1) { responseObserver.onError(matchStatus(Status.UNKNOWN)) }
         verify(exactly = 0) { responseObserver.onNext(any()) }
         verify(exactly = 0) { responseObserver.onCompleted() }

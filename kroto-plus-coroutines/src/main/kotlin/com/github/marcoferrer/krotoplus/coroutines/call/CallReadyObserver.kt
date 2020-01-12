@@ -26,7 +26,7 @@ internal class CallReadyObserver(
     callStreamObserver: CallStreamObserver<*>
 ) : Runnable {
 
-    private val notificationChannel = Channel<READY_TOKEN>(Channel.BUFFERED)
+    private val notificationChannel = Channel<READY_TOKEN>(Channel.UNLIMITED)
 
     private var hasRan = false
 
@@ -71,7 +71,9 @@ internal class CallReadyObserver(
         if(!hasRan) {
             hasRan = true
         }
-        signalReady()
+        if(callStreamObserver.isReady) {
+            signalReady()
+        }
     }
 
     companion object{
