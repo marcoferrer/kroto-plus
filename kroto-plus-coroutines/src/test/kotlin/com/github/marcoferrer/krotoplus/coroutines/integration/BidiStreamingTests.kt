@@ -160,14 +160,15 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
 
         val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
-        val numMessages = 100000
+        val numMessages = 500000
         val receivedCount = AtomicInteger()
-        runTest {
+        runTest(timeout = 60_000) {
             val req = HelloRequest.newBuilder()
                 .setName("test").build()
 
             launch {
                 repeat(numMessages) {
+//                    if(it % 10_000 == 0) println("Sent: $it")
                     requestChannel.send(req)
                 }
                 requestChannel.close()
@@ -175,12 +176,13 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
 
             launch {
                 repeat(numMessages) {
+//                    if(it % 10_000 == 0) println("Received: $it")
                     responseChannel.receive()
                     receivedCount.incrementAndGet()
                 }
             }
 
-            callState.awaitClose()
+            callState.awaitClose(timeout = 60_000)
         }
 
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
