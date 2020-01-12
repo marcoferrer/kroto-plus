@@ -185,18 +185,22 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
         }
 
         responseChannel = flow<RespT> {
+            var error: Throwable? = null
             try {
                 emitAll(inboundChannel)
             }catch (e: Throwable){
-                if(coroutineContext[Job]!!.isCancelled && isActive){
+                error = e
+                throw e
+            } finally {
+                if(error != null && coroutineContext[Job]!!.isCancelled && isActive){
                     val status = Status.CANCELLED
                         .withDescription(MESSAGE_CLIENT_CANCELLED_CALL)
-                        .withCause(e)
+                        .withCause(error)
                         .asRuntimeException()
-                    callStreamObserver.cancel(MESSAGE_CLIENT_CANCELLED_CALL, status)
                     requestChannel.close(status)
+                    callStreamObserver.cancel(MESSAGE_CLIENT_CANCELLED_CALL, status)
                 }
-                throw e
+
             }
         }.onEach { if (isActive) callStreamObserver.request(1) }
         // We use buffer RENDEZVOUS on the outer flow so that our
@@ -211,12 +215,14 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
         if(isAborted.compareAndSet(false, true)) {
             if(cause is CancellationException) {
                 inboundChannel.cancel(cause)
+                readyObserver.cancel(cause)
             } else {
                 val ex = Status.CANCELLED
                     .withDescription(message)
                     .withCause(cause)
                     .asRuntimeException()
                 inboundChannel.close(ex)
+                readyObserver.cancel(cause)
             }
         }
     }
