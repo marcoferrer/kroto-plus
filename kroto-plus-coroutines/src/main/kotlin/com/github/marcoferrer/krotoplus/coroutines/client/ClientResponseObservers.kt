@@ -146,10 +146,7 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
         callStreamObserver = requestStream.apply { disableAutoInboundFlowControl() }
         readyObserver = callStreamObserver.newCallReadyObserver()
 
-        requestChannel = rpcScope.actor(
-            capacity = Channel.RENDEZVOUS,
-            context = Dispatchers.Unconfined
-        ) {
+        requestChannel = rpcScope.actor(capacity = Channel.RENDEZVOUS) {
 
             var error: Throwable? = null
             try {
