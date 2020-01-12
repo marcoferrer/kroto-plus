@@ -65,13 +65,16 @@ internal class ServerStreamingResponseObserver<ReqT, RespT>: StatefulClientRespo
     }
 
     fun beforeCallCancellation(message: String?, cause: Throwable?){
-        if(!isAborted.getAndSet(true)) {
-            val cancellationStatus = Status.CANCELLED
-                .withDescription(message)
-                .withCause(cause)
-                .asRuntimeException()
-
-            responseProducerScope.close(CancellationException(message, cancellationStatus))
+        if(isAborted.compareAndSet(false, true)) {
+            if(cause is CancellationException){
+                responseProducerScope.cancel(cause)
+            }else {
+                val ex = Status.CANCELLED
+                    .withDescription(message)
+                    .withCause(cause)
+                    .asRuntimeException()
+                responseProducerScope.close(ex)
+            }
         }
     }
 
@@ -104,6 +107,21 @@ internal class ClientStreamingResponseObserver<ReqT, RespT>(
         readyObserver = callStreamObserver.newCallReadyObserver()
     }
 
+    fun beforeCallCancellation(message: String?, cause: Throwable?){
+        if(isAborted.compareAndSet(false, true)) {
+            if(cause is CancellationException) {
+                response.cancel(cause)
+            }else {
+                val ex = Status.CANCELLED
+                    .withDescription(message)
+                    .withCause(cause)
+                    .asRuntimeException()
+
+                response.completeExceptionally(ex)
+            }
+        }
+    }
+
     suspend fun awaitReady(){
         readyObserver.awaitReady()
     }
@@ -116,7 +134,6 @@ internal class ClientStreamingResponseObserver<ReqT, RespT>(
         isAborted.set(true)
         response.completeExceptionally(t)
         requestChannel.close(t)
-        rpcScope.cancel(CancellationException(t.message, t))
         readyObserver.cancel(t)
     }
 
@@ -191,14 +208,16 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
     }
 
     fun beforeCallCancellation(message: String?, cause: Throwable?){
-        if(!isAborted.getAndSet(true)) {
-            val cancelWith = if(cause is CancellationException) cause else {
-                Status.CANCELLED
+        if(isAborted.compareAndSet(false, true)) {
+            if(cause is CancellationException) {
+                inboundChannel.cancel(cause)
+            } else {
+                val ex = Status.CANCELLED
                     .withDescription(message)
                     .withCause(cause)
                     .asRuntimeException()
+                inboundChannel.close(ex)
             }
-            inboundChannel.close(cancelWith)
         }
     }
 

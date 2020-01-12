@@ -206,10 +206,7 @@ class ClientStreamingBackPressureTests :
 
         verify(exactly = 1) { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
-        assertExEquals(
-            expectedException,
-            response.getCompletionExceptionOrNull()?.cause ?:response.getCompletionExceptionOrNull()
-        )
+        assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
         assert(response.isCancelled) { "Response should not be cancelled" }
         assert(runBlocking {serverJob.await() }.isCancelled){ "Server job should be cancelled" }
     }

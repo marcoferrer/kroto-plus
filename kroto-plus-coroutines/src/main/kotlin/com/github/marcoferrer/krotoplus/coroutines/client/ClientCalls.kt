@@ -229,6 +229,9 @@ public fun <ReqT, RespT> clientCallClientStreaming(
 
         val call = channel
             .newCall(method, callOptions.withCoroutineContext(coroutineContext))
+            .beforeCancellation { message, cause ->
+                responseObserver.beforeCallCancellation(message, cause)
+            }
 
         val requestObserver = asyncClientStreamingCall<ReqT, RespT>(call, responseObserver)
 

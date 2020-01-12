@@ -243,7 +243,8 @@ class ServerCallServerStreamingTests :
     fun `Server method is at least invoked before being cancelled`(){
         val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
-        setupServerHandler { _, responseChannel ->
+        val serverJob = Job()
+        setupServerHandler(serverJob) { _, responseChannel ->
             val respChan = spyk(responseChannel)
             deferredCtx.complete(coroutineContext.apply {
                 get(Job)!!.invokeOnCompletion {
@@ -268,9 +269,10 @@ class ServerCallServerStreamingTests :
             while(iter.hasNext()){}
         }
 
-        callState.blockUntilClosed()
+        callState.blockUntilCancellation()
 
         runBlocking {
+            serverJob.join()
             val respChannel = deferredRespChannel.await()
             assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
             coVerify(exactly = 0) { respChannel.send(any()) }
