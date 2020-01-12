@@ -35,7 +35,7 @@ internal class DeferredCancellationHandler (val scope: CoroutineScope) : Runnabl
 
     override fun run() {
         if(handlerStarted.get()){
-            cancelScope()
+            cancel()
         }
         wasCancelled.set(true)
     }
@@ -43,14 +43,19 @@ internal class DeferredCancellationHandler (val scope: CoroutineScope) : Runnabl
     fun onMethodHandlerStart(){
         handlerStarted.set(true)
         if(wasCancelled.get()){
-            cancelScope()
+            cancel()
         }
     }
 
-    private fun cancelScope(){
+    private fun cancel(){
+        scope.cancel(newCancellationException())
+    }
+
+    private fun newCancellationException(): CancellationException {
         val status = Status.CANCELLED
             .withDescription(MESSAGE_SERVER_CANCELLED_CALL)
             .asRuntimeException()
-        scope.cancel(CancellationException(status.message, status))
+
+        return CancellationException(status.message, status)
     }
 }

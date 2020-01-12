@@ -17,27 +17,24 @@
 package com.github.marcoferrer.krotoplus.coroutines.server
 
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
+import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
-import io.grpc.CallOptions
-import io.grpc.ClientCall
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
-import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
-import io.grpc.testing.GrpcServerRule
 import io.mockk.coVerify
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -50,40 +47,22 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.yield
-import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
 
-class ServerCallBidiStreamingTests {
+class ServerCallBidiStreamingTests :
+    RpcCallTest<HelloRequest, HelloReply>(GreeterGrpc.getSayHelloStreamingMethod()){
 
-    @[Rule JvmField]
-    var grpcServerRule = GrpcServerRule().directExecutor()
-
-    @[Rule JvmField]
-    var nonDirectGrpcServerRule = GrpcServerRule()
-
-
-    // @[Rule JvmField]
-    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
-
-    private val methodDescriptor = GreeterGrpc.getSayHelloStreamingMethod()
-    private val expectedResponse = HelloReply.newBuilder().setMessage("reply").build()
     private val responseObserver = spyk<StreamObserver<HelloReply>>(object : StreamObserver<HelloReply> {
         override fun onNext(value: HelloReply?) {}
         override fun onError(t: Throwable?) {}
         override fun onCompleted() {}
     })
-
-    private fun newCall(): Pair<ClientCall<HelloRequest, HelloReply>, StreamObserver<HelloRequest>> {
-        val call = grpcServerRule.channel
-            .newCall(methodDescriptor, CallOptions.DEFAULT)
-
-        return call to ClientCalls.asyncBidiStreamingCall<HelloRequest, HelloReply>(call, responseObserver)
-    }
 
     private fun StreamObserver<HelloRequest>.sendRequests(qty: Int) {
         repeat(qty) {
@@ -96,7 +75,7 @@ class ServerCallBidiStreamingTests {
     fun `Server responds successfully on rendezvous requests`() {
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -113,6 +92,7 @@ class ServerCallBidiStreamingTests {
         })
 
         val requestObserver = GreeterGrpc.newStub(grpcServerRule.channel)
+            .withInterceptors(callState)
             .sayHelloStreaming(responseObserver)
 
         requestObserver.sendRequests(3)
@@ -131,7 +111,7 @@ class ServerCallBidiStreamingTests {
     fun `Server responds successfully on uneven requests to response`() {
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -156,6 +136,7 @@ class ServerCallBidiStreamingTests {
         })
 
         val requestObserver = GreeterGrpc.newStub(grpcServerRule.channel)
+            .withInterceptors(callState)
             .sayHelloStreaming(responseObserver)
 
         requestObserver.sendRequests(9)
@@ -175,7 +156,7 @@ class ServerCallBidiStreamingTests {
     fun `Server responds with error when exception thrown`() {
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -190,6 +171,7 @@ class ServerCallBidiStreamingTests {
         })
 
         val requestObserver = GreeterGrpc.newStub(grpcServerRule.channel)
+            .withInterceptors(callState)
             .sayHelloStreaming(responseObserver)
 
         requestObserver.sendRequests(3)
@@ -204,7 +186,7 @@ class ServerCallBidiStreamingTests {
     fun `Server responds with error when response channel closed`() {
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -219,9 +201,13 @@ class ServerCallBidiStreamingTests {
         })
 
         val requestObserver = GreeterGrpc.newStub(grpcServerRule.channel)
+            .withInterceptors(callState)
             .sayHelloStreaming(responseObserver)
 
-        requestObserver.sendRequests(3)
+        requestObserver.sendRequests(4)
+
+        callState.blockUntilClosed()
+
         verify(exactly = 1) { responseObserver.onError(matchStatus(Status.INVALID_ARGUMENT)) }
         verify(exactly = 0) { responseObserver.onNext(any()) }
         verify(exactly = 0) { responseObserver.onCompleted() }
@@ -233,7 +219,7 @@ class ServerCallBidiStreamingTests {
     fun `Server responds with completion even when no responses are sent`() {
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -249,6 +235,7 @@ class ServerCallBidiStreamingTests {
         })
 
         val requestObserver = GreeterGrpc.newStub(grpcServerRule.channel)
+            .withInterceptors(callState)
             .sayHelloStreaming(responseObserver)
 
         requestObserver.sendRequests(3)
@@ -263,7 +250,7 @@ class ServerCallBidiStreamingTests {
     fun `Server responds with cancellation when scope cancelled normally`(){
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override val initialContext: CoroutineContext = Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -285,9 +272,13 @@ class ServerCallBidiStreamingTests {
         })
 
         val requestObserver = GreeterGrpc.newStub(grpcServerRule.channel)
+            .withInterceptors(callState)
             .sayHelloStreaming(responseObserver)
 
         requestObserver.sendRequests(3)
+
+        callState.blockUntilClosed()
+        callState.server.completed.assertBlocking { "Server must complete" }
         verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
         verify(exactly = 0) { responseObserver.onNext(any()) }
         verify(exactly = 0) { responseObserver.onCompleted() }
@@ -299,8 +290,8 @@ class ServerCallBidiStreamingTests {
     fun `Server responds with error when scope cancelled exceptionally`(){
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase(){
+            override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
                 responseChannel: SendChannel<HelloReply>
@@ -322,6 +313,7 @@ class ServerCallBidiStreamingTests {
         })
 
         val requestObserver = GreeterGrpc.newStub(grpcServerRule.channel)
+            .withInterceptors(callState)
             .sayHelloStreaming(responseObserver)
 
         requestObserver.sendRequests(3)
@@ -335,11 +327,12 @@ class ServerCallBidiStreamingTests {
     @Test
     fun `Server is cancelled when client sends cancellation`() {
 
+        val serverJob = Job()
         lateinit var serverSpy: ServerSpy
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = serverJob + Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
                 responseChannel: SendChannel<HelloReply>
@@ -347,16 +340,20 @@ class ServerCallBidiStreamingTests {
                 reqChannel = requestChannel
                 respChannel = responseChannel
                 serverSpy = serverRpcSpy(coroutineContext)
-                delay(300000L)
+                suspendCancellableCoroutine<Unit> {  }
             }
         })
 
-        val (call, requestObserver) = newCall()
+        val rpcSpy = RpcSpy()
+        val requestObserver = rpcSpy.stub.sayHelloStreaming(responseObserver)
         requestObserver.sendRequests(3)
-        call.cancel("test",null)
+        rpcSpy.call.cancel("test",null)
+
+        runBlocking { serverJob.join() }
+        callState.blockUntilClosed()
         assert(serverSpy.job?.isCancelled == true)
-        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED")) }
-        assertEquals("Job was cancelled",serverSpy.error?.message)
+        verify(exactly = 1) { responseObserver.onError(matchStatus(Status.CANCELLED)) }
+        assertEquals("CANCELLED: $MESSAGE_SERVER_CANCELLED_CALL",serverSpy.error?.message)
         assert(reqChannel.isClosedForReceive) { "Request channel should be closed" }
         assert(respChannel.isClosedForSend) { "Response channel should be closed" }
     }
@@ -364,12 +361,13 @@ class ServerCallBidiStreamingTests {
     @Test
     fun `Server is cancelled when client sends error`() {
 
+        val serverJob = Job()
         lateinit var serverSpy: ServerSpy
         lateinit var reqChannel: ReceiveChannel<HelloRequest>
         lateinit var respChannel: SendChannel<HelloReply>
         var requestCount = 0
-        grpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
-            override val initialContext: CoroutineContext = Dispatchers.Unconfined
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = serverJob + Dispatchers.Unconfined
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
                 responseChannel: SendChannel<HelloReply>
@@ -380,24 +378,27 @@ class ServerCallBidiStreamingTests {
                 reqChannel.consumeEach {
                     requestCount++
                 }
-
-                delay(300000L)
+                suspendCancellableCoroutine<Unit> {  }
             }
         })
 
-        val (_, requestObserver) = newCall()
+        val rpcSpy = RpcSpy()
+        val requestObserver = rpcSpy.stub.sayHelloStreaming(responseObserver)
         requestObserver.apply {
             onNext(HelloRequest.getDefaultInstance())
             onNext(HelloRequest.getDefaultInstance())
             onError(Status.DATA_LOSS.asRuntimeException())
         }
+
+        runBlocking { serverJob.join() }
+
         assert(serverSpy.job?.isCancelled == true){ "Server job should be cancelled" }
         assertEquals(2,requestCount, "Server should receive two requests")
-        assertEquals("Job was cancelled",serverSpy.error?.message)
+        assertEquals("CANCELLED: $MESSAGE_SERVER_CANCELLED_CALL",serverSpy.error?.message)
         assert(reqChannel.isClosedForReceive) { "Request channel should be closed" }
         assert(respChannel.isClosedForSend) { "Response channel should be closed" }
         verify(exactly = 1) {
-            responseObserver.onError(matchStatus(Status.CANCELLED,"CANCELLED"))
+            responseObserver.onError(matchStatus(Status.CANCELLED))
         }
     }
 
@@ -405,8 +406,9 @@ class ServerCallBidiStreamingTests {
     fun `Server method is at least invoked before being cancelled`(){
         val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
         val deferredCtx = CompletableDeferred<CoroutineContext>()
+        val rpcSpy = RpcSpy()
 
-        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -430,36 +432,32 @@ class ServerCallBidiStreamingTests {
             }
         })
 
-        runBlocking {
-            val respObserver = spyk(object: StreamObserver<HelloReply>{
-                val completed = AtomicBoolean()
-                override fun onNext(value: HelloReply?) {}
-                override fun onError(t: Throwable?) { completed.set(true) }
-                override fun onCompleted() { completed.set(true) }
-            })
+        val respObserver = spyk(object: StreamObserver<HelloReply>{
+            val completed = AtomicBoolean()
+            override fun onNext(value: HelloReply?) {}
+            override fun onError(t: Throwable?) { completed.set(true) }
+            override fun onCompleted() { completed.set(true) }
+        })
 
-            val stub = GreeterGrpc.newStub(nonDirectGrpcServerRule.channel)
-                .withInterceptors(CancellingClientInterceptor)
-                .withCoroutineContext()
-
+        runTest {
             // Start the call
-            val reqObserver = stub.sayHelloStreaming(respObserver)
+            val reqObserver = rpcSpy.stub
+                .withCoroutineContext()
+                .sayHelloStreaming(respObserver)
 
-            // Wait for the server method to be invoked
-            val serverCtx = deferredCtx.await()
-
-            // At this point the server method is suspended. We can send the first message.
             reqObserver.onNext(HelloRequest.getDefaultInstance())
-
-            // Once we call `onCompleted` the server scope will be canceled
-            // because of the CancellingClientInterceptor
             reqObserver.onCompleted()
 
-            // We wait for the server scope to complete before proceeding with assertions
-            serverCtx[Job]!!.join()
+            callState.server.intercepted.assert { "Server must be intercepted" }
 
+            rpcSpy.call.cancel("test",null)
+
+            callState.server.closed.assert { "Server must complete" }
+        }
+
+        runBlocking {
+            val serverCtx = deferredCtx.await()
             val respChannel = deferredRespChannel.await()
-            while(!respObserver.completed.get()){}
 
             assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
             verify(exactly = 1) { respObserver.onError(matchStatus(Status.CANCELLED)) }

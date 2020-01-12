@@ -46,8 +46,9 @@ inline fun assertFailsWithStatus2(
 ){
     try{
         block()
-        fail("Block did not fail")
+        fail("Expected StatusRuntimeException: $status, but none was thrown")
     }catch (e: Throwable){
+        if(e is AssertionError) throw e
         assertTrue(
             e is StatusRuntimeException,
             "Expected: StatusRuntimeException, Actual: ${e.javaClass.canonicalName}"

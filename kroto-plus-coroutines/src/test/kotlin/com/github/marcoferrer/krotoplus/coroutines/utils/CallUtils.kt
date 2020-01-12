@@ -58,6 +58,7 @@ object CancellingClientInterceptor : ClientInterceptor {
 class ClientState(
     val intercepted: CompletableDeferred<Unit> = CompletableDeferred(),
     val started: CompletableDeferred<Unit> = CompletableDeferred(),
+    val onReady: CompletableDeferred<Unit> = CompletableDeferred(),
     val halfClosed: CompletableDeferred<Unit> = CompletableDeferred(),
     val closed: CompletableDeferred<Unit> = CompletableDeferred(),
     val cancelled: CompletableDeferred<Unit> = CompletableDeferred()
@@ -67,6 +68,7 @@ class ClientState(
         return "\tClientState(\n" +
                 "\t\tintercepted=${intercepted.stateToString()}, \n" +
                 "\t\tstarted=${started.stateToString()},\n" +
+                "\t\tonReady=${started.stateToString()},\n" +
                 "\t\thalfClosed=${halfClosed.stateToString()},\n" +
                 "\t\tclosed=${closed.stateToString()},\n" +
                 "\t\tcancelled=${cancelled.stateToString()}\n" +
@@ -148,6 +150,12 @@ class ClientStateInterceptor(val state: ClientState) : ClientInterceptor {
             override fun start(responseListener: Listener<RespT>, headers: Metadata) {
                 log("Client: Call start()")
                 super.start(object : SimpleForwardingClientCallListener<RespT>(responseListener){
+
+                    override fun onReady() {
+                        log("Client: Call Listener onReady()")
+                        super.onReady()
+                        state.onReady.complete()
+                    }
 
                     override fun onClose(status: Status?, trailers: Metadata?) {
                         log("Client: Call Listener onClose(${status?.toDebugString()})")
@@ -246,7 +254,7 @@ fun newCancellingInterceptor(useNormalCancellation: Boolean) = object : ClientIn
 }
 
 var CALL_TRACE_ENABLED = true
-// Temporary log
+// Temporary log util
 fun log(message: String){
     if(CALL_TRACE_ENABLED) println(message)
 }

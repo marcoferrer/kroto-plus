@@ -159,27 +159,21 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
                 // in-memory buffer from being increased by 1
                 val iter = this.channel.iterator()
                 while(readyObserver.isReady() && iter.hasNext()){
-                    if(!isAborted.get()){
-                        callStreamObserver.onNext(iter.next())
-                    }
+                    callStreamObserver.onNext(iter.next())
                 }
             } catch (e: Throwable) {
                 error = e
             } finally {
-                println("Client: Request Actor finally, $error")
                 if(isActive) {
                     callStreamObserver.completeSafely(error, convertError = false)
                 }
             }
         }
 
-        // bindScopeCancellation here using the stream observer
-        // Use buffer UNLIMITED so that we dont drop any inbound messages
         responseChannel = flow<RespT> {
             try {
                 emitAll(inboundChannel)
             }catch (e: Throwable){
-                println("Client: Response Channel $e")
                 if(coroutineContext[Job]!!.isCancelled && isActive){
                     val status = Status.CANCELLED
                         .withDescription(MESSAGE_CLIENT_CANCELLED_CALL)
@@ -190,11 +184,7 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
                 }
                 throw e
             }
-        }.onEach {
-            if (isActive) {
-                callStreamObserver.request(1)
-            }
-        }
+        }.onEach { if (isActive) callStreamObserver.request(1) }
         // We use buffer RENDEZVOUS on the outer flow so that our
         // `onEach` operator is only invoked each time a message is
         // collected instead of each time a message is received from
@@ -205,26 +195,21 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
 
     fun beforeCallCancellation(message: String?, cause: Throwable?){
         if(!isAborted.getAndSet(true)) {
-
             val cancelWith = if(cause is CancellationException) cause else {
                 Status.CANCELLED
                     .withDescription(message)
                     .withCause(cause)
                     .asRuntimeException()
             }
-
             inboundChannel.close(cancelWith)
         }
     }
 
-    // TODO: Cleanup
     override fun onNext(value: RespT) {
-//        println("Client: onNext(${value.toString().trim()})")
         inboundChannel.offer(value)
     }
 
     override fun onError(t: Throwable) {
-//        println("Client: onError($t)")
         isAborted.set(true)
         inboundChannel.close(t)
         requestChannel.close(t)
@@ -232,7 +217,6 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
     }
 
     override fun onCompleted() {
-//        println("Client: onCompleted()")
         isCompleted.set(true)
         inboundChannel.close()
     }

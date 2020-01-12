@@ -22,8 +22,6 @@ import kotlinx.coroutines.channels.Channel
 internal fun CallStreamObserver<*>.newCallReadyObserver(): CallReadyObserver =
     CallReadyObserver(this)
 
-//Usage of this observer is what increases the buffer by 1 since we have to check this
-// after we have already polled from the channel
 internal class CallReadyObserver(
     callStreamObserver: CallStreamObserver<*>
 ) : Runnable {
@@ -54,7 +52,7 @@ internal class CallReadyObserver(
         // to `callStreamObserver.isReady` could return false
         // Here we will continue to poll notifications until
         // the call is ready. For more details reference the
-        // documentation for `setOnReadyHandler.setOnReadyHandler()`
+        // documentation for `callStreamObserver.setOnReadyHandler()`
         while(!callStreamObserver.isReady){
             notificationChannel.receive()
         }
