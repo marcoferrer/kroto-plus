@@ -111,8 +111,8 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
             }
         })
         lateinit var reqChanSpy: SendChannel<HelloRequest>
-        runTest(5000L) {
-            val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
+        runTest(30_000) {
+            val stub = GreeterCoroutineGrpc.newStub(grpcServerRule.channel)
                 .withInterceptors(callState)
                 .withCoroutineContext()
 
@@ -131,11 +131,6 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
             reqJob.join()
         }
 
-        runBlocking { serverJob.join() }
-
-        // 1 - Server requests and receives
-        // 2 - Message is loaded into outbound buffer
-        // 3 - Suspending invocation awaiting next onReady
         coVerify(exactly = 3) { reqChanSpy.send(any()) }
         assert(reqChanSpy.isClosedForSend) { "Request channel should be closed after response channel is closed" }
     }
@@ -162,7 +157,7 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
 
         val numMessages = 500000
         val receivedCount = AtomicInteger()
-        runTest(timeout = 60_000) {
+        runTest(timeout = 60_000 * 2) {
             val req = HelloRequest.newBuilder()
                 .setName("test").build()
 

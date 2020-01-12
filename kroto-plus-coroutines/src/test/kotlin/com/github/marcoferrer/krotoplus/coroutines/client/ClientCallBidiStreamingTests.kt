@@ -20,7 +20,6 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithCancellation
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
@@ -136,6 +135,8 @@ class ClientCallBidiStreamingTests :
             responseChannel.consumeAsFlow().map { it.message }.toList()
         }
 
+        callState.blockUntilClosed()
+
         assertEquals(3,result.size)
         result.forEachIndexed { index, message ->
             assertEquals("Req:#$index/Resp:#$index",message)
@@ -180,6 +181,8 @@ class ClientCallBidiStreamingTests :
             }
         }
 
+        callState.blockUntilClosed()
+
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
     }
@@ -221,6 +224,8 @@ class ClientCallBidiStreamingTests :
                 }
             }
         }
+
+        callState.blockUntilCancellation()
 
         verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
@@ -272,6 +277,8 @@ class ClientCallBidiStreamingTests :
             }
         }
 
+        callState.blockUntilCancellation()
+
         verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
@@ -286,7 +293,7 @@ class ClientCallBidiStreamingTests :
         lateinit var requestChannel: SendChannel<HelloRequest>
         lateinit var responseChannel: ReceiveChannel<HelloReply>
         assertFailsWith(IllegalStateException::class, "cancel") {
-            runBlocking {
+            runBlocking(Dispatchers.Default) {
                 val callChannel = stub
                     .withCoroutineContext()
                     .clientCallBidiStreaming(methodDescriptor)
@@ -317,6 +324,8 @@ class ClientCallBidiStreamingTests :
             }
         }
 
+        callState.blockUntilCancellation()
+
         verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
@@ -345,17 +354,14 @@ class ClientCallBidiStreamingTests :
                 requestChannel.close(expectedException)
             }
 
-            //TODO: Cleanup
-//            cause = Status.CANCELLED
-//                .withDescription("Cancelled by client with StreamObserver.onError()")
-//                .withCause(expectedException)
-//                .asRuntimeException()
             assertFailsWithStatus2(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
                 responseChannel.consumeAsFlow()
                     .map { it.message }
                     .collect { result.add(it) }
             }
         }
+
+        callState.blockUntilCancellation()
 
         assert(result.isNotEmpty())
         result.forEachIndexed { index, message ->
@@ -386,11 +392,6 @@ class ClientCallBidiStreamingTests :
             result.add(responseChannel.receive().message)
             requestChannel.close(expectedException)
 
-            //TODO clean up
-//            cause = Status.CANCELLED
-//                .withDescription("Cancelled by client with StreamObserver.onError()")
-//                .withCause(expectedException)
-//                .asRuntimeException()
             assertFailsWithStatus2(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
                 responseChannel.consumeAsFlow()
                     .collect { result.add(it.message) }
@@ -437,6 +438,7 @@ class ClientCallBidiStreamingTests :
             responseChannel.cancel()
         }
 
+        callState.blockUntilCancellation()
 
         verify(exactly = 1) { rpcSpy.call.cancel(MESSAGE_CLIENT_CANCELLED_CALL,matchStatus(Status.CANCELLED)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
