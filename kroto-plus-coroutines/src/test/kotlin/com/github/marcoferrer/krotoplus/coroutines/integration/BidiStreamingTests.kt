@@ -134,7 +134,7 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
             reqJob.join()
         }
 
-        coVerify(exactly = 3) { reqChanSpy.send(any()) }
+        coVerify(exactly = 2) { reqChanSpy.send(any()) }
         assert(reqChanSpy.isClosedForSend) { "Request channel should be closed after response channel is closed" }
     }
 

@@ -17,42 +17,33 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 import com.github.marcoferrer.krotoplus.coroutines.CALL_OPTION_COROUTINE_CONTEXT
-import com.github.marcoferrer.krotoplus.coroutines.call.CallReadyObserver
 import com.github.marcoferrer.krotoplus.coroutines.call.bindScopeCancellationToCall
 import com.github.marcoferrer.krotoplus.coroutines.call.completeSafely
-import com.github.marcoferrer.krotoplus.coroutines.call.newCallReadyObserver
 import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
 import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
-import io.grpc.Status
 import io.grpc.stub.AbstractStub
-import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientCalls.asyncBidiStreamingCall
 import io.grpc.stub.ClientCalls.asyncClientStreamingCall
 import io.grpc.stub.ClientCalls.asyncServerStreamingCall
 import io.grpc.stub.ClientCalls.asyncUnaryCall
 import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -164,12 +155,12 @@ public fun <ReqT, RespT> clientCallServerStreaming(
     }
 
     // Use buffer UNLIMITED so that we dont drop any inbound messages
-    return flow { emitAll(responseFlow.buffer(Channel.UNLIMITED)) }
-        .onEach {
-            if (responseObserver.isActive) {
-                responseObserver.callStreamObserver.request(1)
-            }
+    return flow {
+        responseFlow.buffer(Channel.UNLIMITED).collect{ message ->
+            emit(message)
+            responseObserver.callStreamObserver.request(1)
         }
+    }
         // We use buffer RENDEZVOUS on the outer flow so that our
         // `onEach` operator is only invoked each time a message is
         // collected instead of each time a message is received from
@@ -239,9 +230,9 @@ public fun <ReqT, RespT> clientCallClientStreaming(
 
         var error: Throwable? = null
         try {
-            for (message in this@actor.channel){
-                responseObserver.awaitReady()
-                requestObserver.onNext(message)
+            val iter = this@actor.channel.iterator()
+            while(responseObserver.isReady() && iter.hasNext()){
+                requestObserver.onNext(iter.next())
             }
         } catch (e: Throwable) {
             error = e

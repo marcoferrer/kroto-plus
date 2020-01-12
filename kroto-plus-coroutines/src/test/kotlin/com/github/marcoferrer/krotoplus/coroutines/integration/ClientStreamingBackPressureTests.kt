@@ -114,10 +114,7 @@ class ClientStreamingBackPressureTests :
                 val serverRequestChannel = deferredServerChannel.await()
                 repeat(3){
                     delay(10L)
-                    // Current usage of call ready observer for this
-                    // call type results in our internal buffer
-                    // being incremented by 1
-                    assertEquals(it + 2, requestCount.get())
+                    assertEquals(it + 1, requestCount.get())
                     serverRequestChannel.receive()
                 }
 
@@ -175,6 +172,7 @@ class ClientStreamingBackPressureTests :
             val job = coroutineContext[Job]!!
             job.invokeOnCompletion { serverJob.complete(job) }
             deferredServerChannel.complete(spyk(requestChannel))
+            requestChannel.receive()
             delay(Long.MAX_VALUE)
             HelloReply.getDefaultInstance()
         }

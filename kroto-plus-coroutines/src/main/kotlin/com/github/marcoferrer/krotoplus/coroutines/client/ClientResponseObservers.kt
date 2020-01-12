@@ -25,7 +25,6 @@ import io.grpc.stub.ClientResponseObserver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -33,10 +32,9 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.produceIn
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
@@ -122,9 +120,7 @@ internal class ClientStreamingResponseObserver<ReqT, RespT>(
         }
     }
 
-    suspend fun awaitReady(){
-        readyObserver.awaitReady()
-    }
+    suspend fun isReady() = readyObserver.isReady()
 
     override fun onNext(value: RespT) {
         response.complete(value)
@@ -187,7 +183,11 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
         responseChannel = flow<RespT> {
             var error: Throwable? = null
             try {
-                emitAll(inboundChannel)
+                inboundChannel.consumeEach { message ->
+                    emit(message)
+                    callStreamObserver.request(1)
+                }
+
             }catch (e: Throwable){
                 error = e
                 throw e
@@ -200,9 +200,8 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
                     requestChannel.close(status)
                     callStreamObserver.cancel(MESSAGE_CLIENT_CANCELLED_CALL, status)
                 }
-
             }
-        }.onEach { if (isActive) callStreamObserver.request(1) }
+        }
         // We use buffer RENDEZVOUS on the outer flow so that our
         // `onEach` operator is only invoked each time a message is
         // collected instead of each time a message is received from

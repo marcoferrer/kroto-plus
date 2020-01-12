@@ -384,7 +384,7 @@ class ClientCallServerStreamingTests :
         val result = runTest {
             delay(100)
             repeat(3) {
-                verify(exactly = it + 2) { rpcSpy.call.request(1) }
+                verify(exactly = it + 1) { rpcSpy.call.request(1) }
                 assertEquals("Request#$it:${expectedRequest.name}", responseChannel.receive().message)
                 delay(10)
             }
@@ -427,7 +427,7 @@ class ClientCallServerStreamingTests :
         val result = runTest {
             delay(300)
             repeat(4) {
-                verify(exactly = it + 2) { rpcSpy.call.request(1) }
+                verify(exactly = it + 1) { rpcSpy.call.request(1) }
                 consumedMessages += responseChannel.receive().message
                 delay(10)
             }

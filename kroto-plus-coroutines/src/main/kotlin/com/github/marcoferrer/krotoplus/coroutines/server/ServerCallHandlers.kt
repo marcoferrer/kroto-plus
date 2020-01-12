@@ -36,12 +36,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -111,21 +110,27 @@ internal class BidiStreamingServerCallHandler<ReqT, RespT>(
                 val responseChannel = channel
 
                 val requestChannel = flow<ReqT> requestFlow@{
+                    var error: Throwable? = null
                     try {
-                        emitAll(requestObserver.inboundChannel)
+                        requestObserver.inboundChannel.consumeEach { message ->
+                            emit(message)
+                            serverCallObserver.request(1)
+                        }
                     } catch (e: Throwable) {
+                        error = e
+                        throw e
+                    } finally {
+                        //TODO: Should we perform a null check on error just like the client variant of this call?
                         if (coroutineContext[Job]!!.isCancelled && requestObserver.isActive) {
                             val status = Status.CANCELLED
                                 .withDescription(MESSAGE_CLIENT_CANCELLED_CALL)
-                                .withCause(e)
+                                .withCause(error)
                                 .asRuntimeException()
                             requestObserver.inboundChannel.close(status)
                             responseChannel.close(status)
                         }
-                        throw e
                     }
                 }
-                    .onEach { if (requestObserver.isActive) serverCallObserver.request(1) }
                     .buffer(Channel.RENDEZVOUS)
                     .produceIn(rpcScope)
 
@@ -141,6 +146,7 @@ internal class BidiStreamingServerCallHandler<ReqT, RespT>(
             }
 
             rpcScope.launch(start = CoroutineStart.ATOMIC) {
+                var error: Throwable? = null
                 try {
                     readyObserver.awaitReady()
 
@@ -153,7 +159,9 @@ internal class BidiStreamingServerCallHandler<ReqT, RespT>(
                     }
                     serverCallObserver.onCompleted()
                 } catch (e: Throwable) {
-                    serverCallObserver.completeSafely(e)
+                    error = e
+                } finally {
+                    serverCallObserver.completeSafely(error)
                 }
             }
 
@@ -284,6 +292,7 @@ internal class ServerStreamingServerCallHandler<ReqT, RespT>(
             }.buffer(Channel.RENDEZVOUS)
 
             rpcScope.launch(start = CoroutineStart.ATOMIC) {
+                var error: Throwable? = null
                 try {
                     readyObserver.awaitReady()
                     responseFlow.collect { message ->
@@ -292,7 +301,9 @@ internal class ServerStreamingServerCallHandler<ReqT, RespT>(
                     }
                     serverCallObserver.onCompleted()
                 } catch (e: Throwable) {
-                    serverCallObserver.completeSafely(e)
+                    error = e
+                } finally {
+                    serverCallObserver.completeSafely(error)
                 }
             }
         }
