@@ -41,7 +41,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
@@ -169,7 +168,7 @@ class ClientCallClientStreamingTests :
             .clientCallClientStreaming(methodDescriptor)
 
         var requestsSent = 0
-        runBlocking {
+        runTest {
             launch {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     repeat(2) {
@@ -185,10 +184,10 @@ class ClientCallClientStreamingTests :
         }
 
         assertFailsWithStatus(Status.INVALID_ARGUMENT) {
-            runBlocking { response.await().message }
+            runTest { response.await().message }
         }
         assertFailsWithStatus(Status.INVALID_ARGUMENT) {
-            runBlocking {
+            runTest {
                 requestChannel.send(
                     HelloRequest.newBuilder()
                         .setName("request")
@@ -213,7 +212,7 @@ class ClientCallClientStreamingTests :
             .withCoroutineContext(externalJob)
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking {
+        runTest {
             launch(Dispatchers.Default) {
                 val job = launch {
                     launch(start = CoroutineStart.UNDISPATCHED){
@@ -256,7 +255,7 @@ class ClientCallClientStreamingTests :
         lateinit var response: Deferred<HelloReply>
 
         assertFailsWithCancellation {
-            runBlocking {
+            runTest {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     val callChannel = stub
                         .withCoroutineContext()
@@ -284,7 +283,7 @@ class ClientCallClientStreamingTests :
         callState.client.cancelled.assertBlocking { "Client must be cancelled" }
 
         assertFailsWithCancellation {
-            runBlocking { response.await().message }
+            runTest { response.await().message }
         }
 
         coVerify(exactly = 1) { requestChannel.send(any()) }
@@ -301,7 +300,7 @@ class ClientCallClientStreamingTests :
 
         lateinit var requestChannel: SendChannel<HelloRequest>
         assertFailsWith(IllegalStateException::class, "cancel") {
-            runBlocking {
+            runTest {
                 val callChannel = stub
                     .withCoroutineContext()
                     .clientCallClientStreaming(methodDescriptor)
@@ -382,7 +381,7 @@ class ClientCallClientStreamingTests :
         val (requestChannel, response) = stub
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runTest {
             requestChannel.send(
                 HelloRequest.newBuilder()
                     .setName(0.toString())
