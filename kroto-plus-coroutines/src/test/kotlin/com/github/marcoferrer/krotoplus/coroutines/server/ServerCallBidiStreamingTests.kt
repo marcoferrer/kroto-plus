@@ -21,6 +21,7 @@ import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
@@ -34,7 +35,6 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -47,7 +47,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.yield
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
@@ -343,7 +342,7 @@ class ServerCallBidiStreamingTests :
                 reqChannel = requestChannel
                 respChannel = responseChannel
                 serverSpy = serverRpcSpy(coroutineContext)
-                suspendCancellableCoroutine<Unit> {  }
+                suspendForever()
             }
         })
 
@@ -381,7 +380,7 @@ class ServerCallBidiStreamingTests :
                 reqChannel.consumeEach {
                     requestCount++
                 }
-                suspendCancellableCoroutine<Unit> {  }
+                suspendForever()
             }
         })
 

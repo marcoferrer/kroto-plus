@@ -23,6 +23,7 @@ import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import com.github.marcoferrer.krotoplus.coroutines.utils.toDebugString
 import io.grpc.CallOptions
 import io.grpc.ClientCall
@@ -227,7 +228,7 @@ class ServerCallServerStreamingTests :
             ) {
                 respChannel = responseChannel
                 serverSpy = serverRpcSpy(coroutineContext)
-                delay(300000L)
+                suspendForever()
             }
         })
 

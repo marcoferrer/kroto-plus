@@ -17,8 +17,11 @@
 package com.github.marcoferrer.krotoplus.coroutines.integration
 
 import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
+import com.github.marcoferrer.krotoplus.coroutines.server.MESSAGE_SERVER_CANCELLED_CALL
 import com.github.marcoferrer.krotoplus.coroutines.utils.CALL_TRACE_ENABLED
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithCancellation
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
@@ -27,6 +30,7 @@ import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.examples.helloworld.send
 import io.mockk.coVerify
 import io.mockk.spyk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,24 +38,26 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutineGrpc.sayHelloStreamingMethod){
 
     @Test
     fun `Bidi streaming rendezvous impl completes successfully`() {
 
+        val serverJob = Job()
         registerService(object : GreeterCoroutineGrpc.GreeterImplBase(){
-
             override val initialContext: CoroutineContext
-                get() = Dispatchers.Default
+                get() = serverJob + Dispatchers.Default
 
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -65,8 +71,7 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
                 responseChannel.close()
             }
         })
-        runTest {
-
+        val results = runTest {
             val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(callState)
                 .withCoroutineContext()
@@ -80,24 +85,24 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
                 requestChannel.close()
             }
 
-            val results = responseChannel.toList()
-            assertEquals(9, results.size)
-
-            val expected = "name 0|name 0|name 0" +
-                    "|name 1|name 1|name 1" +
-                    "|name 2|name 2|name 2"
-            assertEquals(
-                expected,
-                results.joinToString(separator = "|") { it.message }
-            )
+            responseChannel.toList()
         }
+
+        assertEquals(9, results.size)
+        assertEquals(
+            "name 0|name 0|name 0" +
+            "|name 1|name 1|name 1" +
+            "|name 2|name 2|name 2",
+            results.joinToString(separator = "|") { it.message }
+        )
+        assertFalse(serverJob.isCancelled, "Server job must not be cancelled")
     }
 
     @Test
     fun `Client cancellation cancels server rpc scope`() {
         val serverJob = Job()
+        val hasExecuted = CompletableDeferred<Unit>()
         registerService(object : GreeterCoroutineGrpc.GreeterImplBase(){
-
             override val initialContext: CoroutineContext
                 get() = serverJob + Dispatchers.Default
 
@@ -105,11 +110,12 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
                 requestChannel: ReceiveChannel<HelloRequest>,
                 responseChannel: SendChannel<HelloReply>
             ) {
-                suspendCancellableCoroutine<Unit> {  }
+                hasExecuted.complete(Unit)
+                suspendForever()
             }
         })
         lateinit var reqChanSpy: SendChannel<HelloRequest>
-        runTest(30_000) {
+        runTest(20_000) {
             val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
                 .withInterceptors(callState)
                 .withCoroutineContext()
@@ -124,10 +130,19 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
                     }
                 }
             }
-
+            callState.server.wasReady.await()
             responseChannel.cancel()
         }
 
+        callState.server.closed.assertBlocking { "Server must be closed" }
+
+        runTest { hasExecuted.await() }
+
+        assertFailsWithCancellation(message = "CANCELLED: $MESSAGE_SERVER_CANCELLED_CALL") {
+            runBlocking { serverJob.ensureActive() }
+        }
+        assert(serverJob.isCompleted){ "Server job must be completed" }
+        assert(serverJob.isCancelled){ "Server job must be cancelled" }
         coVerify(exactly = 2) { reqChanSpy.send(any()) }
         assert(reqChanSpy.isClosedForSend) { "Request channel should be closed after response channel is closed" }
     }

@@ -23,6 +23,7 @@ import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.invoke
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.ServerInterceptors
 import io.grpc.Status
@@ -38,7 +39,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -79,8 +79,7 @@ class ClientStreamingBackPressureTests :
 
         setupUpServerHandler { requestChannel ->
             deferredServerChannel.complete(spyk(requestChannel))
-            delay(Long.MAX_VALUE)
-            HelloReply.getDefaultInstance()
+            suspendForever()
         }
 
         val rpcSpy = RpcSpy()
@@ -106,10 +105,11 @@ class ClientStreamingBackPressureTests :
                 }
 
                 val serverRequestChannel = deferredServerChannel.await()
+                callState.server.wasReady.await()
+                callState.client.onReady.await()
                 repeat(3){
-                    delay(10L)
-                    assertEquals(it + 1, requestCount.get())
                     serverRequestChannel.receive()
+                    assertEquals(it + 1, requestCount.get())
                 }
 
                 cancel()
@@ -167,8 +167,7 @@ class ClientStreamingBackPressureTests :
             job.invokeOnCompletion { serverJob.complete(job) }
             deferredServerChannel.complete(spyk(requestChannel))
             requestChannel.receive()
-            delay(Long.MAX_VALUE)
-            HelloReply.getDefaultInstance()
+            suspendForever()
         }
 
         val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)

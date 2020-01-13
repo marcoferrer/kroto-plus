@@ -35,6 +35,7 @@ import io.mockk.spyk
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 object CancellingClientInterceptor : ClientInterceptor {
     override fun <ReqT : Any?, RespT : Any?> interceptCall(
@@ -252,6 +253,9 @@ fun newCancellingInterceptor(useNormalCancellation: Boolean) = object : ClientIn
         return next.newCall(method, callOptions)
     }
 }
+
+suspend fun suspendForever(): Nothing = suspendCancellableCoroutine<Nothing> {  }
+
 
 var CALL_TRACE_ENABLED = true
 // Temporary log util

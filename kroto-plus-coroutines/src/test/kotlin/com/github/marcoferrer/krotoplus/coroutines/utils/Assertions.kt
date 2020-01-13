@@ -23,7 +23,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-inline fun assertFailsWithCancellation(cause: Throwable? = null, block: () -> Unit){
+inline fun assertFailsWithCancellation(cause: Throwable? = null, message: String? = null, block: () -> Unit){
     try{
         block()
         fail("Cancellation exception was not thrown")
@@ -33,6 +33,7 @@ inline fun assertFailsWithCancellation(cause: Throwable? = null, block: () -> Un
             e is CancellationException,
             "Expected: CancellationException, Actual: ${e.javaClass.canonicalName}"
         )
+        message?.let { assertEquals(it, e.message) }
         cause?.let { assertExEquals(it, e.cause) }
         cause?.cause?.let { assertExEquals(it, e.cause?.cause) }
     }

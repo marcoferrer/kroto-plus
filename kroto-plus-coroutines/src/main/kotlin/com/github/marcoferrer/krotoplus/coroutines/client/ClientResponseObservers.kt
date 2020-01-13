@@ -191,7 +191,6 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
                     emit(message)
                     callStreamObserver.request(1)
                 }
-
             }catch (e: Throwable){
                 error = e
                 throw e
