@@ -88,7 +88,6 @@ class ClientStreamingBackPressureTests :
 
         assertFails<CancellationException> {
             runTest {
-
                 val (clientRequestChannel, _) = stub
                     .withCoroutineContext(coroutineContext + Dispatchers.Default)
                     .clientCallClientStreaming(methodDescriptor)
@@ -116,7 +115,7 @@ class ClientStreamingBackPressureTests :
             }
         }
 
-        verify(exactly = 4) { rpcSpy.call.sendMessage(any()) }
+        verify(atMost = 4) { rpcSpy.call.sendMessage(any()) }
     }
 
     @Test

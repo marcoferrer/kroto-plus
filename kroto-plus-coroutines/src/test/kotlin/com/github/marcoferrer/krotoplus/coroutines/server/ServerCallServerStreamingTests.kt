@@ -35,7 +35,6 @@ import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
-import io.mockk.coVerify
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
@@ -246,20 +245,9 @@ class ServerCallServerStreamingTests :
         val deferredCtx = CompletableDeferred<CoroutineContext>()
         val serverJob = Job()
         setupServerHandler(serverJob) { _, responseChannel ->
-            val respChan = spyk(responseChannel)
-            deferredCtx.complete(coroutineContext.apply {
-                get(Job)!!.invokeOnCompletion {
-                    deferredRespChannel.complete(respChan)
-                }
-            })
-            delay(10000)
-            yield()
-            repeat(3){
-                respChan.send(HelloReply
-                    .newBuilder()
-                    .setMessage("response")
-                    .build())
-            }
+            deferredRespChannel.complete(responseChannel)
+            deferredCtx.complete(coroutineContext)
+            suspendForever()
         }
 
         val stub = GreeterGrpc.newBlockingStub(grpcServerRule.channel)
@@ -272,14 +260,11 @@ class ServerCallServerStreamingTests :
 
         callState.blockUntilCancellation()
 
-        runBlocking {
+        runTest {
             serverJob.join()
-            val respChannel = deferredRespChannel.await()
-            assert(respChannel.isClosedForSend){ "Abandoned response channel should be closed" }
-            coVerify(exactly = 0) { respChannel.send(any()) }
-            val serverCtx = deferredCtx.await()
-            assert(serverCtx[Job]!!.isCompleted){ "Server job should be completed" }
-            assert(serverCtx[Job]!!.isCancelled){ "Server job should be cancelled" }
+            assert(deferredRespChannel.await().isClosedForSend){ "Abandoned response channel should be closed" }
+            assert(serverJob.isCompleted){ "Server job should be completed" }
+            assert(serverJob.isCancelled){ "Server job should be cancelled" }
         }
     }
 }
