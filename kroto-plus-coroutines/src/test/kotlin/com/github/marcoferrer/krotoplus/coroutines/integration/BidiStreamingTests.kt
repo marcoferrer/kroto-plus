@@ -31,7 +31,6 @@ import io.grpc.examples.helloworld.send
 import io.mockk.coVerify
 import io.mockk.spyk
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -42,7 +41,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
@@ -111,7 +109,7 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
                 responseChannel: SendChannel<HelloReply>
             ) {
                 hasExecuted.complete(Unit)
-                suspendForever()
+                suspendForever("Server")
             }
         })
         lateinit var reqChanSpy: SendChannel<HelloRequest>
@@ -123,13 +121,15 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
             val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
             reqChanSpy = spyk(requestChannel)
-            launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
+            launch(Dispatchers.Default) {
+                callState.server.wasReady.await()
                 assertFailsWithStatus(Status.CANCELLED) {
                     repeat(6) {
                         reqChanSpy.send { name = "name $it" }
                     }
                 }
             }
+
             callState.server.wasReady.await()
             responseChannel.cancel()
         }
@@ -139,11 +139,11 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
         runTest { hasExecuted.await() }
 
         assertFailsWithCancellation(message = "CANCELLED: $MESSAGE_SERVER_CANCELLED_CALL") {
-            runBlocking { serverJob.ensureActive() }
+            runTest { serverJob.ensureActive() }
         }
         assert(serverJob.isCompleted){ "Server job must be completed" }
         assert(serverJob.isCancelled){ "Server job must be cancelled" }
-        coVerify(exactly = 2) { reqChanSpy.send(any()) }
+        coVerify(atMost = 2) { reqChanSpy.send(any()) }
         assert(reqChanSpy.isClosedForSend) { "Request channel should be closed after response channel is closed" }
     }
 

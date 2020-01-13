@@ -152,6 +152,8 @@ class ClientCallClientStreamingTests :
             callState.client.closed.assert{ "Client call should be closed" }
         }
 
+        callState.blockUntilClosed()
+
         verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
 
@@ -196,6 +198,7 @@ class ClientCallClientStreamingTests :
             }
         }
 
+        callState.blockUntilClosed()
 
         assertEquals(2,requestsSent)
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
@@ -330,6 +333,8 @@ class ClientCallClientStreamingTests :
             }
         }
 
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
+
         verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
 
@@ -363,6 +368,8 @@ class ClientCallClientStreamingTests :
             }
         }
 
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
+
         verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
         assertExEquals(expectedException, response.getCompletionExceptionOrNull()?.cause)
@@ -393,6 +400,8 @@ class ClientCallClientStreamingTests :
                 response.await()
             }
         }
+
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
 
         verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
