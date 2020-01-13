@@ -22,7 +22,6 @@ import com.github.marcoferrer.krotoplus.coroutines.call.completeSafely
 import com.github.marcoferrer.krotoplus.coroutines.call.newRpcScope
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.CallOptions
-import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
 import io.grpc.stub.AbstractStub
 import io.grpc.stub.ClientCalls.asyncBidiStreamingCall
@@ -135,7 +134,7 @@ public fun <ReqT, RespT> clientCallServerStreaming(
         // Start the RPC Call
         asyncServerStreamingCall<ReqT, RespT>(call, request, responseObserver)
 
-        bindScopeCompletionToCall(call, responseObserver)
+        bindScopeCompletionToCall(responseObserver)
 
         suspendCancellableCoroutine<Unit> { cont ->
             // Here we need to handle not only parent job cancellation
@@ -222,7 +221,7 @@ public fun <ReqT, RespT> clientCallClientStreaming(
 
         val requestObserver = asyncClientStreamingCall<ReqT, RespT>(call, responseObserver)
 
-        bindScopeCompletionToCall(call, responseObserver)
+        bindScopeCompletionToCall(responseObserver)
 
         var error: Throwable? = null
         try {
@@ -248,7 +247,6 @@ public fun <ReqT, RespT> clientCallClientStreaming(
 }
 
 internal fun CoroutineScope.bindScopeCompletionToCall(
-    call: ClientCall<*, *>,
     observer: StatefulClientResponseObserver<*, *>
 ){
     val job = coroutineContext[Job]!!
@@ -262,7 +260,7 @@ internal fun CoroutineScope.bindScopeCompletionToCall(
         // Even if it doesnt encounter an exception it will cancel with null.
         // We will only invoke cancel on the call
         if (job.isCancelled && observer.isActive) {
-            call.cancel(MESSAGE_CLIENT_CANCELLED_CALL, error)
+            observer.callStreamObserver.cancel(MESSAGE_CLIENT_CANCELLED_CALL, error)
         }
     }
 }

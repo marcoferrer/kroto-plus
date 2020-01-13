@@ -124,6 +124,9 @@ abstract class RpcCallTest<ReqT, RespT>(
         val stub = GreeterGrpc.newStub(channel)
             .withInterceptors(ClientCallSpyInterceptor(_call), callState)!!
 
+        val blkStub = GreeterGrpc.newBlockingStub(channel)
+            .withInterceptors(ClientCallSpyInterceptor(_call), callState)!!
+
         val coStub = GreeterCoroutineGrpc.newStub(channel)
             .withInterceptors(ClientCallSpyInterceptor(_call), callState)!!
 
@@ -157,10 +160,10 @@ abstract class RpcCallTest<ReqT, RespT>(
     ) : T = try {
         withTimeout(timeout) { block() }
     } catch (e: TimeoutCancellationException) {
+        println(callState.toString())
         fail("""
             |$message 
             |Timeout after ${timeout}ms
-            |$callState
         """.trimMargin())
     }
 

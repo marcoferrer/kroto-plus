@@ -51,6 +51,11 @@ internal abstract class StatefulClientResponseObserver<ReqT, RespT> : ClientResp
     lateinit var callStreamObserver: ClientCallStreamObserver<ReqT>
         protected set
 
+    fun cancel(message: String?, cause: Throwable?) {
+        if(isAborted.compareAndSet(false, true)){
+            callStreamObserver.cancel(message, cause)
+        }
+    }
 }
 
 internal class ServerStreamingResponseObserver<ReqT, RespT>: StatefulClientResponseObserver<ReqT, RespT>() {

@@ -242,23 +242,19 @@ class ServerCallServerStreamingTests :
     @Test
     fun `Server method is at least invoked before being cancelled`(){
         val deferredRespChannel = CompletableDeferred<SendChannel<HelloReply>>()
-        val deferredCtx = CompletableDeferred<CoroutineContext>()
         val serverJob = Job()
         setupServerHandler(serverJob) { _, responseChannel ->
             deferredRespChannel.complete(responseChannel)
-            deferredCtx.complete(coroutineContext)
-            suspendForever()
+            suspendForever("Server")
         }
 
-        val stub = GreeterGrpc.newBlockingStub(grpcServerRule.channel)
-            .withInterceptors(callState, CancellingClientInterceptor)
+        val rpcSpy = RpcSpy(useDirectExecutor = false)
+        val stub = rpcSpy.blkStub.withInterceptors(CancellingClientInterceptor)
 
         assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
             val iter = stub.sayHelloServerStreaming(HelloRequest.getDefaultInstance())
             while(iter.hasNext()){}
         }
-
-        callState.blockUntilCancellation()
 
         runTest {
             serverJob.join()

@@ -137,7 +137,6 @@ internal class BidiStreamingServerCallHandler<ReqT, RespT>(
                 try {
                     cancellationHandler.onMethodHandlerStart()
                     methodHandler(requestChannel, responseChannel)
-                    responseChannel.close()
                 } finally {
                     if (!requestChannel.isClosedForReceive) {
                         requestChannel.cancel()
@@ -148,8 +147,6 @@ internal class BidiStreamingServerCallHandler<ReqT, RespT>(
             rpcScope.launch(start = CoroutineStart.ATOMIC) {
                 var error: Throwable? = null
                 try {
-                    readyObserver.awaitReady()
-
                     // Must request at least 1 message to start the call
                     serverCallObserver.request(1)
 
@@ -294,7 +291,6 @@ internal class ServerStreamingServerCallHandler<ReqT, RespT>(
             rpcScope.launch(start = CoroutineStart.ATOMIC) {
                 var error: Throwable? = null
                 try {
-                    readyObserver.awaitReady()
                     responseFlow.collect { message ->
                         serverCallObserver.onNext(message)
                         readyObserver.awaitReady()

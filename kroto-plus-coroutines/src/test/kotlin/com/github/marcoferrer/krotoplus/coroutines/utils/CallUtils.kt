@@ -254,7 +254,9 @@ fun newCancellingInterceptor(useNormalCancellation: Boolean) = object : ClientIn
     }
 }
 
-suspend fun suspendForever(): Nothing = suspendCancellableCoroutine<Nothing> {  }
+suspend fun suspendForever(target: String=""): Nothing = suspendCancellableCoroutine<Nothing> {
+    it.invokeOnCancellation { log("$target was cancelled") }
+}
 
 
 var CALL_TRACE_ENABLED = true
