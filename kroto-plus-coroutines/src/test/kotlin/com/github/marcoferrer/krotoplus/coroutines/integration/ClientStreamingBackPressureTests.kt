@@ -20,19 +20,13 @@ import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.client.clientCallClientStreaming
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.invoke
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
-import io.grpc.CallOptions
-import io.grpc.Channel
-import io.grpc.ClientCall
-import io.grpc.ClientInterceptor
-import io.grpc.MethodDescriptor
 import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
-import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.mockk.spyk
@@ -193,7 +187,7 @@ class ClientStreamingBackPressureTests :
             )
             requestChannel.close(expectedException)
 
-            assertFailsWithStatus2(Status.CANCELLED){
+            assertFailsWithStatus(Status.CANCELLED){
                 response.await()
             }
         }

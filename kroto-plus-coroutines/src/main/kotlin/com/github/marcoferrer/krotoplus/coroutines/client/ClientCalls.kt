@@ -34,7 +34,6 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -210,12 +209,9 @@ public fun <ReqT, RespT> clientCallClientStreaming(
 
     val rpcScope = newRpcScope(callOptions, method)
     val response = CompletableDeferred<RespT>(parent = rpcScope.coroutineContext[Job])
-    val requestChannel = rpcScope.actor<ReqT>(
-        capacity = Channel.RENDEZVOUS,
-        context = Dispatchers.Unconfined
-    ) {
+    val requestChannel = rpcScope.actor<ReqT>(capacity = Channel.RENDEZVOUS) {
         val responseObserver = ClientStreamingResponseObserver(
-            this, this@actor.channel, response
+            this@actor.channel, response
         )
 
         val call = channel

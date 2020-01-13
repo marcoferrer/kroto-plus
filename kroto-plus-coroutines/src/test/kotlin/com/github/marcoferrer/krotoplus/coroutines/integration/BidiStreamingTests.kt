@@ -18,23 +18,18 @@ package com.github.marcoferrer.krotoplus.coroutines.integration
 
 import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.CALL_TRACE_ENABLED
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
-import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.examples.helloworld.send
-import io.grpc.stub.ClientCallStreamObserver
-import io.grpc.stub.ClientResponseObserver
-import io.grpc.stub.StreamObserver
 import io.mockk.coVerify
 import io.mockk.spyk
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -122,8 +117,8 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
             val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
             reqChanSpy = spyk(requestChannel)
-            val reqJob = launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
-                assertFailsWithStatus2(Status.CANCELLED) {
+            launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
+                assertFailsWithStatus(Status.CANCELLED) {
                     repeat(6) {
                         reqChanSpy.send { name = "name $it" }
                     }
@@ -131,7 +126,6 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
             }
 
             responseChannel.cancel()
-            reqJob.join()
         }
 
         coVerify(exactly = 2) { reqChanSpy.send(any()) }
@@ -158,7 +152,7 @@ class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutin
 
         val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
-        val numMessages = 500000
+        val numMessages = 100000
         val receivedCount = AtomicInteger()
         runTest(timeout = 60_000 * 2) {
             val req = HelloRequest.newBuilder()

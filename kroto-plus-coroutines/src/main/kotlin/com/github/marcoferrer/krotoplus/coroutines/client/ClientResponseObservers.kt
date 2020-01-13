@@ -93,7 +93,6 @@ internal class ServerStreamingResponseObserver<ReqT, RespT>: StatefulClientRespo
 }
 
 internal class ClientStreamingResponseObserver<ReqT, RespT>(
-    private val rpcScope: CoroutineScope,
     private val requestChannel: Channel<ReqT>,
     private val response: CompletableDeferred<RespT>
 ) : StatefulClientResponseObserver<ReqT, RespT>() {
@@ -128,8 +127,13 @@ internal class ClientStreamingResponseObserver<ReqT, RespT>(
 
     override fun onError(t: Throwable) {
         isAborted.set(true)
-        response.completeExceptionally(t)
-        requestChannel.close(t)
+        if(t is CancellationException){
+            requestChannel.cancel(t)
+            response.cancel(t)
+        }else{
+            requestChannel.close(t)
+            response.completeExceptionally(t)
+        }
         readyObserver.cancel(t)
     }
 
@@ -180,7 +184,7 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
             }
         }
 
-        responseChannel = flow<RespT> {
+        responseChannel = flow {
             var error: Throwable? = null
             try {
                 inboundChannel.consumeEach { message ->
@@ -232,8 +236,12 @@ internal class BidiStreamingResponseObserver<ReqT, RespT>(
 
     override fun onError(t: Throwable) {
         isAborted.set(true)
-        inboundChannel.close(t)
         requestChannel.close(t)
+        if(t is CancellationException){
+            inboundChannel.cancel(t)
+        }else{
+            inboundChannel.close(t)
+        }
         readyObserver.cancel(t)
     }
 

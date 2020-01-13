@@ -20,7 +20,7 @@ package com.github.marcoferrer.krotoplus.coroutines.server
 import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.toDebugString
@@ -264,7 +264,7 @@ class ServerCallServerStreamingTests :
         val stub = GreeterGrpc.newBlockingStub(grpcServerRule.channel)
             .withInterceptors(callState, CancellingClientInterceptor)
 
-        assertFailsWithStatus2(Status.CANCELLED,"CANCELLED: test"){
+        assertFailsWithStatus(Status.CANCELLED,"CANCELLED: test"){
             val iter = stub.sayHelloServerStreaming(HelloRequest.getDefaultInstance())
             while(iter.hasNext()){}
         }

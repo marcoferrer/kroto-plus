@@ -20,7 +20,7 @@ package com.github.marcoferrer.krotoplus.coroutines.client
 import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithCancellation
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
@@ -163,7 +163,7 @@ class ClientCallBidiStreamingTests :
                             .setName(it.toString())
                             .build())
                     }
-                    assertFailsWithStatus2(Status.INVALID_ARGUMENT) {
+                    assertFailsWithStatus(Status.INVALID_ARGUMENT) {
                         send(HelloRequest.newBuilder()
                             .setName("fails")
                             .build()
@@ -175,7 +175,7 @@ class ClientCallBidiStreamingTests :
                 repeat(3) {
                     assertEquals("Req:#$it/Resp:#$it", responseChannel.receive().message)
                 }
-                assertFailsWithStatus2(Status.INVALID_ARGUMENT) {
+                assertFailsWithStatus(Status.INVALID_ARGUMENT) {
                     responseChannel.receive().message
                 }
             }
@@ -303,7 +303,7 @@ class ClientCallBidiStreamingTests :
 
                 launch(Dispatchers.Default) {
                     launch(start = CoroutineStart.UNDISPATCHED) {
-                        assertFailsWithStatus2(Status.CANCELLED) {
+                        assertFailsWithStatus(Status.CANCELLED) {
                             repeat(3) {
                                 requestChannel.send(
                                     HelloRequest.newBuilder()
@@ -317,7 +317,7 @@ class ClientCallBidiStreamingTests :
                     launch {
                         error("cancel")
                     }
-                    assertFailsWithStatus2(Status.CANCELLED) {
+                    assertFailsWithStatus(Status.CANCELLED) {
                         callChannel.responseChannel.receive().message
                     }
                 }
@@ -354,7 +354,7 @@ class ClientCallBidiStreamingTests :
                 requestChannel.close(expectedException)
             }
 
-            assertFailsWithStatus2(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
+            assertFailsWithStatus(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
                 responseChannel.consumeAsFlow()
                     .map { it.message }
                     .collect { result.add(it) }
@@ -392,12 +392,13 @@ class ClientCallBidiStreamingTests :
             result.add(responseChannel.receive().message)
             requestChannel.close(expectedException)
 
-            assertFailsWithStatus2(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
+            assertFailsWithStatus(Status.CANCELLED, "CANCELLED: $expectedCancelMessage") {
                 responseChannel.consumeAsFlow()
                     .collect { result.add(it.message) }
             }
         }
 
+        callState.client.cancelled.assertBlocking{ "Client must be cancelled" }
 
         assertEquals(1, result.size)
         result.forEachIndexed { index, message ->
@@ -419,7 +420,7 @@ class ClientCallBidiStreamingTests :
 
         runTest {
             launch {
-                assertFailsWithStatus2(Status.CANCELLED) {
+                assertFailsWithStatus(Status.CANCELLED) {
                     repeat(10) {
                         requestChannel.send(
                             HelloRequest.newBuilder()

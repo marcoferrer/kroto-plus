@@ -61,6 +61,50 @@ abstract class RpcCallTest<ReqT, RespT>(
     fun setupCall() {
         callState = RpcStateInterceptor()
         CALL_TRACE_ENABLED = true
+//        mockkObject(Testing)
+//
+//        every { Testing.asyncClientStreamingCallK<ReqT, RespT>(any(), any()) } answers answer@ {
+//            val call = firstArg<ClientCall<ReqT, RespT>>()
+//            val responseObserver = secondArg<ClientResponseObserver<ReqT, RespT>>()
+//
+//            val reqObserver = ClientCalls.asyncClientStreamingCall(call, object:  ClientResponseObserver<ReqT, RespT>{
+//                override fun onNext(value: RespT) {
+//                    responseObserver.onNext(value)
+//                }
+//
+//                override fun onError(t: Throwable) {
+//                    println("Client: Response observer onError(${t.toDebugString()})")
+//                    responseObserver.onError(t)
+//                }
+//
+//                override fun onCompleted() {
+//                    println("Client: Response observer onComplete()")
+//                    responseObserver.onCompleted()
+//                }
+//
+//                override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
+//                    responseObserver.beforeStart(requestStream)
+//                }
+//
+//            } as StreamObserver<RespT>)
+//
+//            return@answer object : StreamObserver<ReqT> {
+//                override fun onNext(value: ReqT) {
+//                    reqObserver.onNext(value)
+//                }
+//
+//                override fun onError(t: Throwable) {
+//                    println("Client: Request observer onError(${t.toDebugString()})")
+//                    reqObserver.onError(t)
+//                }
+//
+//                override fun onCompleted() {
+//                    println("Client: Request observer onComplete()")
+//                    reqObserver.onCompleted()
+//                }
+//
+//            }
+//        }
     }
 
     fun registerService(service: BindableService){

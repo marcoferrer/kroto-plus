@@ -20,7 +20,6 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import kotlinx.coroutines.CancellationException
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -29,7 +28,7 @@ inline fun assertFailsWithCancellation(cause: Throwable? = null, block: () -> Un
         block()
         fail("Cancellation exception was not thrown")
     }catch (e: Throwable){
-        e.printStackTrace()
+        if(e is AssertionError) throw e
         assertTrue(
             e is CancellationException,
             "Expected: CancellationException, Actual: ${e.javaClass.canonicalName}"
@@ -39,7 +38,7 @@ inline fun assertFailsWithCancellation(cause: Throwable? = null, block: () -> Un
     }
 }
 
-inline fun assertFailsWithStatus2(
+inline fun assertFailsWithStatus(
     status: Status,
     message: String? = null,
     block: () -> Unit
@@ -51,33 +50,14 @@ inline fun assertFailsWithStatus2(
         if(e is AssertionError) throw e
         assertTrue(
             e is StatusRuntimeException,
-            "Expected: StatusRuntimeException, Actual: ${e.javaClass.canonicalName}"
+            "Expected: StatusRuntimeException, Actual: ${e.javaClass.canonicalName}, with Cause: ${e.cause?.javaClass}"
         )
         message?.let { assertEquals(it,e.message) }
         assertEquals(status.code, e.status.code)
     }
 }
 
-inline fun assertFailsWithStatus(
-    status: Status,
-    message: String? = null,
-    block: () -> Unit
-){
-    try{
-        block()
-        fail("Block did not fail")
-    }catch (e: StatusRuntimeException){
-//   TODO: Fix this in separate PR
-//    }catch (e: Throwable){
-//        assertEquals(StatusRuntimeException::class.java.canonicalName, e.javaClass.canonicalName)
-//        require(e is StatusRuntimeException)
-//        println("assertFailsWithStatus(${e.javaClass}, message: ${e.message})")
-        message?.let { assertEquals(it,e.message) }
-        assertEquals(status.code, e.status.code)
-    }
-}
-
-//Default `assertFailsWith` isn't inline and doesnt support coroutines
+// Default `assertFailsWith` isn't inline and doesnt support coroutines
 inline fun <reified T : Throwable> assertFails(message: String? = null, block: ()-> Unit){
     try {
         block()
