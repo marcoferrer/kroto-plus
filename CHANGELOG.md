@@ -4,6 +4,9 @@ _2020-02-03_
 #### Proto Builders (DSL)
 * Fix: Dsl marker interfaces are properly omitted from generated code when disabled [PR-106](https://github.com/marcoferrer/kroto-plus/pull/106) 
 
+#### Gradle Plugin 
+* New: Automatically configure artifact version for project kroto dependencies with missing version [PR-107](https://github.com/marcoferrer/kroto-plus/pull/107) Thanks to @Fleshgrinder
+
 ## Version 0.6.0
 _2019-12-26_
 * New: Update to Kotlin `1.3.61` [PR-97](https://github.com/marcoferrer/kroto-plus/pull/97)
