@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package message;
+
+option java_package = "test.message.nodslmarker";
+option java_multiple_files = true;
+option java_outer_classname = "NoDslOuterName";
+
+message NoDslMarker {
+    int32 the_field = 1;
+}

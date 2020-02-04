@@ -2,9 +2,17 @@ grpc_coroutines {
     filter { exclude_path: "google/*" }
 }
 proto_builders {
-    filter { exclude_path: "google/*" }
+    filter {
+        exclude_path: "google/*"
+        exclude_path: "message/no_dsl_markers.proto*"
+    }
     unwrap_builders: true
     use_dsl_markers: true
+}
+proto_builders {
+    filter { include_path: "message/no_dsl_markers.proto*" }
+    unwrap_builders: true
+    use_dsl_markers: false
 }
 grpc_stub_exts {
     support_coroutines: true
