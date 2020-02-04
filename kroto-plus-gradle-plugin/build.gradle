@@ -64,10 +64,16 @@ protobuf {
     generateProtoTasks {
         def krotoConfig = file("krotoPlusConfig.asciipb")
 
-        all().each{ task ->
+        all().each { task ->
             task.dependsOn ':kroto-plus-gradle-plugin:gen-config-dsl:jar'
             configProtoTaskWithKroto(task, krotoConfig)
         }
     }
 
+}
+
+tasks.withType(Jar).each { task ->
+    task.manifest {
+        attributes 'Implementation-Version': project.version
+    }
 }

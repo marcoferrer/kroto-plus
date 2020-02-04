@@ -35,7 +35,7 @@ subprojects{ subproject ->
     apply plugin: 'idea'
 
     group = 'com.github.marcoferrer.krotoplus'
-    version = '0.6.1'
+    version = '0.6.1-SNAPSHOT'
 
     if(!subproject.path.contains("test-api")){
         apply plugin: 'kotlin'

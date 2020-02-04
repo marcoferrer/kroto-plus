@@ -39,9 +39,23 @@ class KrotoPlusGradlePlugin : Plugin<Project> {
                 }
             }
         }
+
+        project.configurations.all { config ->
+            config.resolutionStrategy.eachDependency { details ->
+                if(details.requested.group == "com.github.marcoferrer.krotoplus" &&
+                    details.requested.version.isNullOrBlank()) {
+
+                    details.useVersion(Manifest.implVersion)
+                }
+            }
+        }
     }
 
     companion object {
         private const val PROTOBUF_PLUGIN_ID = "com.google.protobuf"
     }
+}
+
+object Manifest {
+    val implVersion = this::class.java.`package`.implementationVersion.orEmpty()
 }
