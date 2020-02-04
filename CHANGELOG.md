@@ -2,7 +2,7 @@
 _2020-02-03_
 
 #### Proto Builders (DSL)
-* Fix: Dsl marker interfaces are properly omitted from generated code when disabled
+* Fix: Dsl marker interfaces are properly omitted from generated code when disabled [PR-106](https://github.com/marcoferrer/kroto-plus/pull/106) 
 
 ## Version 0.6.0
 _2019-12-26_
