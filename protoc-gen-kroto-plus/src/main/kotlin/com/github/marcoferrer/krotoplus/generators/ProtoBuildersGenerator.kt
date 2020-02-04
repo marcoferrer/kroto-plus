@@ -22,11 +22,22 @@ import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGener
 import com.github.marcoferrer.krotoplus.proto.ProtoFile
 import com.github.marcoferrer.krotoplus.proto.ProtoMessage
 import com.github.marcoferrer.krotoplus.proto.getGeneratedAnnotationSpec
-import com.github.marcoferrer.krotoplus.utils.*
+import com.github.marcoferrer.krotoplus.utils.addFunctions
+import com.github.marcoferrer.krotoplus.utils.addTypes
+import com.github.marcoferrer.krotoplus.utils.key
+import com.github.marcoferrer.krotoplus.utils.toUpperCamelCase
 import com.google.protobuf.DescriptorProtos
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED
 import com.google.protobuf.compiler.PluginProtos
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.LambdaTypeName
+import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.UNIT
+import com.squareup.kotlinpoet.asClassName
 
 object ProtoBuildersGenerator : Generator {
 
@@ -52,7 +63,7 @@ object ProtoBuildersGenerator : Generator {
             .filterNot { it.isMapEntry }
             .forEach { protoMessage ->
                 for (options in context.config.protoBuildersList) {
-                    if (isFileToGenerate(protoMessage.protoFile.name,options.filter))
+                    if (options.useDslMarkers && isFileToGenerate(protoMessage.protoFile.name,options.filter))
                         responseBuilder.addFile(protoMessage.buildDslInsertion())
                 }
             }

@@ -21,8 +21,17 @@ import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.examples.helloworld.HelloWorldProtoDslBuilder
 import io.grpc.examples.helloworld.orDefault
 import org.junit.Test
-import test.message.*
+import test.message.ClassNameCollisionProtoBuilders
+import test.message.L1Message2
+import test.message.SomeProtoMessage1
+import test.message.TestMessages
+import test.message.TestMessagesDslBuilder
+import test.message.anotherNestedMessage
+import test.message.copy
 import test.message.multi.MappedMessage
+import test.message.nestedMessage
+import test.message.nodslmarker.NoDslMarker
+import test.message.plus
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
@@ -36,6 +45,15 @@ class ProtoBuildersGeneratorTests {
             TestMessages.L1Message2.L2Nested2.L3Nested2.L4Nested1.L5Nested1
             .newBuilder() is TestMessagesDslBuilder
         )
+    }
+
+    @Test
+    fun `Test No DSL marker insertion`(){
+        val expectedValue = 42
+        assertEquals(expectedValue,NoDslMarker { theField = expectedValue }.theField)
+        assert(NoDslMarker.Builder::class.java.interfaces.none { "DslBuilder" in it.name }) {
+            "Builder should not implement any dsl builder interfaces"
+        }
     }
 
     @Test
