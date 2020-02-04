@@ -20,16 +20,6 @@ cd kotlin-coroutines-gRPC-template && \
 ./gradlew run 
 ```
 
-## Version 0.5.0
-* [CHANGELOG](https://github.com/marcoferrer/kroto-plus/blob/master/CHANGELOG.md)
-* Most notable changes
-  * Support for [(google.api.method_signature)](https://github.com/googleapis/api-common-protos/blob/2769b82d4993ccbe66a3d886aa5466fdbd050ea2/google/api/client.proto#L79) method option in gRPC clients and stub extension code generators. More info available [here](#method-signature-options-support)
-  * Bug fixes and performance improvements for streaming APIs in gRPC coroutines
-  * Improvements to stub extension generator output
-  * Tests are now executed against `JDK8`, `JDK10`, `JDK11`, `JDK12`
-
-* **In Progress:** Multiplatform Protobuf Messages w/ [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
-
 ## Getting Started
 * **[Gradle](https://github.com/marcoferrer/kroto-plus#getting-started-with-gradle)**
 * **[Maven](https://github.com/marcoferrer/kroto-plus#getting-started-with-maven)**
