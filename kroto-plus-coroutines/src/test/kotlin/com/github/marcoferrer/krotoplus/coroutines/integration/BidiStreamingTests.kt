@@ -16,45 +16,46 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.integration
 
+import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
+import com.github.marcoferrer.krotoplus.coroutines.server.MESSAGE_SERVER_CANCELLED_CALL
+import com.github.marcoferrer.krotoplus.coroutines.utils.CALL_TRACE_ENABLED
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithCancellation
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.examples.helloworld.send
-import io.grpc.testing.GrpcServerRule
 import io.mockk.coVerify
 import io.mockk.spyk
-import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.toList
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
-class BidiStreamingTests {
-
-    @[Rule JvmField]
-    var grpcServerRule = GrpcServerRule().directExecutor()
-
-    @[Rule JvmField]
-    var nonDirectGrpcServerRule = GrpcServerRule()
+class BidiStreamingTests : RpcCallTest<HelloRequest, HelloReply>(GreeterCoroutineGrpc.sayHelloStreamingMethod){
 
     @Test
     fun `Bidi streaming rendezvous impl completes successfully`() {
-        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
 
+        val serverJob = Job()
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override val initialContext: CoroutineContext
-                get() = Dispatchers.Default
+                get() = serverJob + Dispatchers.Default
 
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
@@ -68,9 +69,9 @@ class BidiStreamingTests {
                 responseChannel.close()
             }
         })
-        runBlocking {
-
+        val results = runTest {
             val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
+                .withInterceptors(callState)
                 .withCoroutineContext()
 
             val (requestChannel, responseChannel) = stub.sayHelloStreaming()
@@ -82,55 +83,117 @@ class BidiStreamingTests {
                 requestChannel.close()
             }
 
-            val results = responseChannel.toList()
-            assertEquals(9, results.size)
-
-            val expected = "name 0|name 0|name 0" +
-                    "|name 1|name 1|name 1" +
-                    "|name 2|name 2|name 2"
-            assertEquals(
-                expected,
-                results.joinToString(separator = "|") { it.message }
-            )
+            responseChannel.toList()
         }
+
+        assertEquals(9, results.size)
+        assertEquals(
+            "name 0|name 0|name 0" +
+            "|name 1|name 1|name 1" +
+            "|name 2|name 2|name 2",
+            results.joinToString(separator = "|") { it.message }
+        )
+        assertFalse(serverJob.isCancelled, "Server job must not be cancelled")
     }
 
     @Test
     fun `Client cancellation cancels server rpc scope`() {
-        nonDirectGrpcServerRule.serviceRegistry.addService(object : GreeterCoroutineGrpc.GreeterImplBase(){
-
+        val serverJob = Job()
+        val hasExecuted = CompletableDeferred<Unit>()
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase(){
             override val initialContext: CoroutineContext
-                get() = Dispatchers.Default
+                get() = serverJob + Dispatchers.Default
 
             override suspend fun sayHelloStreaming(
                 requestChannel: ReceiveChannel<HelloRequest>,
                 responseChannel: SendChannel<HelloReply>
             ) {
-                delay(10000L)
+                hasExecuted.complete(Unit)
+                suspendForever("Server")
             }
         })
-        runBlocking(Dispatchers.Default) {
-            withTimeout(5000L) {
-                val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
-                    .withCoroutineContext()
+        lateinit var reqChanSpy: SendChannel<HelloRequest>
+        runTest(20_000) {
+            val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
+                .withInterceptors(callState)
+                .withCoroutineContext()
 
-                val (requestChannel, responseChannel) = stub.sayHelloStreaming()
+            val (requestChannel, responseChannel) = stub.sayHelloStreaming()
 
-                val reqChanSpy = spyk(requestChannel)
-                val reqJob = launch(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
-                    assertFailsWithStatus(Status.CANCELLED) {
-                        repeat(6) {
-                            reqChanSpy.send { name = "name $it" }
-                        }
+            reqChanSpy = spyk(requestChannel)
+            launch(Dispatchers.Default) {
+                callState.server.wasReady.await()
+                assertFailsWithStatus(Status.CANCELLED) {
+                    repeat(6) {
+                        reqChanSpy.send { name = "name $it" }
                     }
                 }
-
-                responseChannel.cancel()
-                reqJob.join()
-
-                coVerify(exactly = 2) { reqChanSpy.send(any()) }
-                assert(reqChanSpy.isClosedForSend) { "Request channel should be closed after response channel is closed" }
             }
+
+            callState.server.wasReady.await()
+            responseChannel.cancel()
         }
+
+        callState.server.closed.assertBlocking { "Server must be closed" }
+
+        runTest { hasExecuted.await() }
+
+        assertFailsWithCancellation(message = "CANCELLED: $MESSAGE_SERVER_CANCELLED_CALL") {
+            runTest { serverJob.ensureActive() }
+        }
+        assert(serverJob.isCompleted){ "Server job must be completed" }
+        assert(serverJob.isCancelled){ "Server job must be cancelled" }
+        coVerify(atMost = 2) { reqChanSpy.send(any()) }
+        assert(reqChanSpy.isClosedForSend) { "Request channel should be closed after response channel is closed" }
+    }
+
+    @Test
+    fun `High volume call succeeds`() {
+        CALL_TRACE_ENABLED = false
+        registerService(object : GreeterCoroutineGrpc.GreeterImplBase() {
+            override val initialContext: CoroutineContext = Dispatchers.Default
+            override suspend fun sayHelloStreaming(
+                requestChannel: ReceiveChannel<HelloRequest>,
+                responseChannel: SendChannel<HelloReply>
+            ) {
+                requestChannel.consumeAsFlow().collectIndexed { index, value ->
+                    responseChannel.send(HelloReply.newBuilder().setMessage(value.name).build())
+                }
+                responseChannel.close()
+            }
+        })
+        val stub = GreeterCoroutineGrpc.newStub(nonDirectGrpcServerRule.channel)
+            .withInterceptors(callState)
+
+        val (requestChannel, responseChannel) = stub.sayHelloStreaming()
+
+        val numMessages = 100000
+        val receivedCount = AtomicInteger()
+        runTest(timeout = 60_000 * 2) {
+            val req = HelloRequest.newBuilder()
+                .setName("test").build()
+
+            launch {
+                repeat(numMessages) {
+//                    if(it % 10_000 == 0) println("Sent: $it")
+                    requestChannel.send(req)
+                }
+                requestChannel.close()
+            }
+
+            launch {
+                repeat(numMessages) {
+//                    if(it % 10_000 == 0) println("Received: $it")
+                    responseChannel.receive()
+                    receivedCount.incrementAndGet()
+                }
+            }
+
+            callState.awaitClose(timeout = 60_000)
+        }
+
+        assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
+        assert(responseChannel.isClosedForReceive) { "Response channel should be closed for receive" }
+        assertEquals(numMessages, receivedCount.get(), "Must response count must equal request count")
     }
 }

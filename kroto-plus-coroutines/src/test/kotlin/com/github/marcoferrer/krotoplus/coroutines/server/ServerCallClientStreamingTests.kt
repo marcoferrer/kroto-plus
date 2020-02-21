@@ -16,11 +16,11 @@
 
 package com.github.marcoferrer.krotoplus.coroutines.server
 
-import com.github.marcoferrer.krotoplus.coroutines.utils.COROUTINE_TEST_TIMEOUT
 import com.github.marcoferrer.krotoplus.coroutines.utils.CancellingClientInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import io.grpc.CallOptions
 import io.grpc.ClientCall
 import io.grpc.Status
@@ -210,8 +210,7 @@ class ServerCallClientStreamingTests {
             override suspend fun sayHelloClientStreaming(requestChannel: ReceiveChannel<HelloRequest>): HelloReply {
                 reqChannel = requestChannel
                 serverSpy = serverRpcSpy(coroutineContext)
-                delay(300000L)
-                return expectedResponse
+                suspendForever()
             }
         })
 
@@ -239,8 +238,7 @@ class ServerCallClientStreamingTests {
                     requestCount++
                 }
 
-                delay(300000L)
-                return expectedResponse
+                suspendForever()
             }
         })
 

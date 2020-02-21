@@ -20,19 +20,14 @@ import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.client.clientCallClientStreaming
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.invoke
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
-import io.grpc.CallOptions
-import io.grpc.Channel
-import io.grpc.ClientCall
-import io.grpc.ClientInterceptor
-import io.grpc.MethodDescriptor
 import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
-import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.mockk.spyk
@@ -44,7 +39,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -85,8 +79,7 @@ class ClientStreamingBackPressureTests :
 
         setupUpServerHandler { requestChannel ->
             deferredServerChannel.complete(spyk(requestChannel))
-            delay(Long.MAX_VALUE)
-            HelloReply.getDefaultInstance()
+            suspendForever()
         }
 
         val rpcSpy = RpcSpy()
@@ -94,8 +87,7 @@ class ClientStreamingBackPressureTests :
         val requestCount = AtomicInteger()
 
         assertFails<CancellationException> {
-            runBlocking {
-
+            runTest {
                 val (clientRequestChannel, _) = stub
                     .withCoroutineContext(coroutineContext + Dispatchers.Default)
                     .clientCallClientStreaming(methodDescriptor)
@@ -112,17 +104,18 @@ class ClientStreamingBackPressureTests :
                 }
 
                 val serverRequestChannel = deferredServerChannel.await()
+                callState.server.wasReady.await()
+                callState.client.onReady.await()
                 repeat(3){
-                    delay(10L)
-                    assertEquals(it + 1, requestCount.get())
                     serverRequestChannel.receive()
+                    assertEquals(it + 1, requestCount.get())
                 }
 
                 cancel()
             }
         }
 
-        verify(exactly = 4) { rpcSpy.call.sendMessage(any()) }
+        verify(atMost = 4) { rpcSpy.call.sendMessage(any()) }
     }
 
     @Test
@@ -172,8 +165,8 @@ class ClientStreamingBackPressureTests :
             val job = coroutineContext[Job]!!
             job.invokeOnCompletion { serverJob.complete(job) }
             deferredServerChannel.complete(spyk(requestChannel))
-            delay(Long.MAX_VALUE)
-            HelloReply.getDefaultInstance()
+            requestChannel.receive()
+            suspendForever()
         }
 
         val rpcSpy = RpcSpy(nonDirectGrpcServerRule.channel)
@@ -192,13 +185,12 @@ class ClientStreamingBackPressureTests :
             )
             requestChannel.close(expectedException)
 
-            assertFailsWithStatus2(Status.CANCELLED){
+            assertFailsWithStatus(Status.CANCELLED){
                 response.await()
             }
         }
 
         callState {
-            blockUntilCancellation()
             client.closed.assertBlocking { "Client must be closed" }
         }
 

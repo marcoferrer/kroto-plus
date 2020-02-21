@@ -25,6 +25,7 @@ import io.grpc.MethodDescriptor
 
 class ProtoMethod(
     override val descriptorProto: DescriptorProtos.MethodDescriptorProto,
+    val index: Int,
     val sourceLocation: Location,
     val protoService: ProtoService
 ) : Schema.DescriptorWrapper {

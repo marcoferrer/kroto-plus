@@ -35,6 +35,7 @@ import io.mockk.spyk
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 object CancellingClientInterceptor : ClientInterceptor {
     override fun <ReqT : Any?, RespT : Any?> interceptCall(
@@ -42,8 +43,8 @@ object CancellingClientInterceptor : ClientInterceptor {
         callOptions: CallOptions?,
         next: Channel
     ): ClientCall<ReqT, RespT> {
-        val _call = next.newCall(method,callOptions)
-        return object : SimpleForwardingClientCall<ReqT,RespT>(_call){
+        val call = next.newCall(method,callOptions)
+        return object : SimpleForwardingClientCall<ReqT,RespT>(call){
             override fun halfClose() {
                 super.halfClose()
                 // Cancel call after we've verified
@@ -51,7 +52,6 @@ object CancellingClientInterceptor : ClientInterceptor {
                 cancel("test",null)
             }
         }
-
     }
 }
 
@@ -59,6 +59,7 @@ object CancellingClientInterceptor : ClientInterceptor {
 class ClientState(
     val intercepted: CompletableDeferred<Unit> = CompletableDeferred(),
     val started: CompletableDeferred<Unit> = CompletableDeferred(),
+    val onReady: CompletableDeferred<Unit> = CompletableDeferred(),
     val halfClosed: CompletableDeferred<Unit> = CompletableDeferred(),
     val closed: CompletableDeferred<Unit> = CompletableDeferred(),
     val cancelled: CompletableDeferred<Unit> = CompletableDeferred()
@@ -68,6 +69,7 @@ class ClientState(
         return "\tClientState(\n" +
                 "\t\tintercepted=${intercepted.stateToString()}, \n" +
                 "\t\tstarted=${started.stateToString()},\n" +
+                "\t\tonReady=${started.stateToString()},\n" +
                 "\t\thalfClosed=${halfClosed.stateToString()},\n" +
                 "\t\tclosed=${closed.stateToString()},\n" +
                 "\t\tcancelled=${cancelled.stateToString()}\n" +
@@ -147,11 +149,17 @@ class ClientStateInterceptor(val state: ClientState) : ClientInterceptor {
             }
 
             override fun start(responseListener: Listener<RespT>, headers: Metadata) {
-                println("Client: Call start()")
+                log("Client: Call start()")
                 super.start(object : SimpleForwardingClientCallListener<RespT>(responseListener){
 
+                    override fun onReady() {
+                        log("Client: Call Listener onReady()")
+                        super.onReady()
+                        state.onReady.complete()
+                    }
+
                     override fun onClose(status: Status?, trailers: Metadata?) {
-                        println("Client: Call Listener onClose(${status?.toDebugString()})")
+                        log("Client: Call Listener onClose(${status?.toDebugString()})")
                         super.onClose(status, trailers)
                         state.closed.complete()
                     }
@@ -161,13 +169,13 @@ class ClientStateInterceptor(val state: ClientState) : ClientInterceptor {
             }
 
             override fun halfClose() {
-                println("Client: Call halfClose()")
+                log("Client: Call halfClose()")
                 super.halfClose()
                 state.halfClosed.complete()
             }
 
             override fun cancel(message: String?, cause: Throwable?) {
-                println("Client: Call cancel(message=$message, cause=${cause?.toDebugString()})")
+                log("Client: Call cancel(message=$message, cause=${cause?.toDebugString()})")
                 super.cancel(message, cause)
                 state.cancelled.complete()
             }
@@ -185,7 +193,7 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
         val interceptedCall = object : SimpleForwardingServerCall<ReqT, RespT>(call){
 
             override fun close(status: Status?, trailers: Metadata?) {
-                println("Server: Call Close, ${status?.toDebugString()}")
+                log("Server: Call Close, ${status?.toDebugString()}")
                 super.close(status, trailers)
                 state.closed.complete()
             }
@@ -197,25 +205,25 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
             }
 
             override fun onReady() {
-                println("Server: Call Listener onReady()")
+                log("Server: Call Listener onReady()")
                 super.onReady()
                 state.wasReady.complete()
             }
 
             override fun onHalfClose() {
-                println("Server: Call Listener onHalfClose()")
+                log("Server: Call Listener onHalfClose()")
                 super.onHalfClose()
                 state.halfClosed.complete()
             }
 
             override fun onComplete() {
-                println("Server: Call Listener onComplete()")
+                log("Server: Call Listener onComplete()")
                 super.onComplete()
                 state.completed.complete()
             }
 
             override fun onCancel() {
-                println("Server: Call Listener onCancel()")
+                log("Server: Call Listener onCancel()")
                 super.onCancel()
                 state.cancelled.complete()
             }
@@ -223,10 +231,10 @@ class ServerStateInterceptor(val state: ServerState) : ServerInterceptor {
     }
 }
 
-private fun Throwable.toDebugString(): String =
+fun Throwable.toDebugString(): String =
     "(${this.javaClass.canonicalName}, ${this.message})"
 
-private fun Status.toDebugString(): String =
+fun Status.toDebugString(): String =
     "Status{code=$code, description=$description, cause=${cause?.toDebugString()}}"
 
 
@@ -246,3 +254,13 @@ fun newCancellingInterceptor(useNormalCancellation: Boolean) = object : ClientIn
     }
 }
 
+suspend fun suspendForever(target: String=""): Nothing = suspendCancellableCoroutine<Nothing> {
+    it.invokeOnCancellation { log("$target was cancelled") }
+}
+
+
+var CALL_TRACE_ENABLED = true
+// Temporary log util
+fun log(message: String){
+    if(CALL_TRACE_ENABLED) println(message)
+}

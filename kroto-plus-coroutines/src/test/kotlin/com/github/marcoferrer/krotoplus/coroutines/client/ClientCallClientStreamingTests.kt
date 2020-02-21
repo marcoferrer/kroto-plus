@@ -17,68 +17,43 @@
 package com.github.marcoferrer.krotoplus.coroutines.client
 
 
+import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertExEquals
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFails
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithCancellation
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchThrowable
+import com.github.marcoferrer.krotoplus.coroutines.utils.toDebugString
 import com.github.marcoferrer.krotoplus.coroutines.withCoroutineContext
-import io.grpc.CallOptions
-import io.grpc.ClientCall
+import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterGrpc
 import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.stub.StreamObserver
-import io.grpc.testing.GrpcServerRule
-import io.mockk.every
+import io.mockk.coVerify
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.junit.Rule
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 
-class ClientCallClientStreamingTests {
+class ClientCallClientStreamingTests :
+    RpcCallTest<HelloRequest, HelloReply>(GreeterGrpc.getSayHelloClientStreamingMethod()) {
 
-    @[Rule JvmField]
-    var grpcServerRule = GrpcServerRule().directExecutor()
-
-    // @[Rule JvmField]
-    // public val timeout = CoroutinesTimeout.seconds(COROUTINE_TEST_TIMEOUT)
-
-    private val methodDescriptor = GreeterGrpc.getSayHelloClientStreamingMethod()
     private val service = spyk(object : GreeterGrpc.GreeterImplBase() {})
 
-    inner class RpcSpy{
-        val stub: GreeterGrpc.GreeterStub
-        lateinit var call: ClientCall<HelloRequest,HelloReply>
-
-        init {
-            val channelSpy = spyk(grpcServerRule.channel)
-            stub = GreeterGrpc.newStub(channelSpy)
-
-            every { channelSpy.newCall(methodDescriptor, any()) } answers {
-                spyk(grpcServerRule.channel.newCall(methodDescriptor, secondArg<CallOptions>())).also {
-                    this@RpcSpy.call = it
-                }
-            }
-        }
-    }
-
     private fun setupServerHandlerError(){
-        every { service.sayHelloClientStreaming(any()) } answers {
-            val responseObserver = firstArg<StreamObserver<HelloReply>>()
+        setupServerHandler { responseObserver ->
             object : StreamObserver<HelloRequest>{
                 var reqQty = 0
                 var responseString = ""
@@ -100,16 +75,19 @@ class ClientCallClientStreamingTests {
     }
 
     private fun setupServerHandlerSuccess(){
-        every { service.sayHelloClientStreaming(any()) } answers {
-            val responseObserver = firstArg<StreamObserver<HelloReply>>()
+        setupServerHandler { responseObserver ->
             object : StreamObserver<HelloRequest>{
                 var reqQty = 0
                 var responseString = ""
                 override fun onNext(value: HelloRequest) {
+                    println("Server: onNext(${value.name})")
                     responseString += "Req:#${value.name}/Resp:#${reqQty++}|"
                 }
-                override fun onError(t: Throwable?) {}
+                override fun onError(t: Throwable) {
+                    println("Server: onError(${t.toDebugString()})")
+                }
                 override fun onCompleted() {
+                    println("Server: onCompleted()")
                     responseObserver.onNext(HelloReply.newBuilder()
                         .setMessage(responseString)
                         .build())
@@ -119,8 +97,18 @@ class ClientCallClientStreamingTests {
         }
     }
 
+    private inline fun setupServerHandler(
+        crossinline block: (responseObserver: StreamObserver<HelloReply>) -> StreamObserver<HelloRequest>
+    ){
+        registerService(object : GreeterGrpc.GreeterImplBase(){
+            override fun sayHelloClientStreaming(
+                responseObserver: StreamObserver<HelloReply>
+            ): StreamObserver<HelloRequest> = block(responseObserver)
+        })
+    }
+
     private fun setupServerHandlerNoop(){
-        every { service.sayHelloClientStreaming(any()) } answers {
+        setupServerHandler {
             object : StreamObserver<HelloRequest>{
                 override fun onNext(value: HelloRequest) {}
                 override fun onError(t: Throwable?) {}
@@ -131,7 +119,8 @@ class ClientCallClientStreamingTests {
 
     @BeforeTest
     fun setupService() {
-        grpcServerRule.serviceRegistry.addService(service)
+        grpcServerRule.serviceRegistry.addService(
+            ServerInterceptors.intercept(service, callState))
     }
 
     @Test
@@ -142,7 +131,7 @@ class ClientCallClientStreamingTests {
         setupServerHandlerSuccess()
 
         lateinit var requestChannel: SendChannel<HelloRequest>
-        runBlocking {
+        runTest {
             val (sendChannel, response) = stub
                 .withCoroutineContext()
                 .clientCallClientStreaming(methodDescriptor)
@@ -159,7 +148,11 @@ class ClientCallClientStreamingTests {
             launch{
                 assertEquals("Req:#0/Resp:#0|Req:#1/Resp:#1|Req:#2/Resp:#2|", response.await().message)
             }
+
+            callState.client.closed.assert{ "Client call should be closed" }
         }
+
+        callState.blockUntilClosed()
 
         verify(exactly = 0) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
@@ -177,30 +170,35 @@ class ClientCallClientStreamingTests {
             .clientCallClientStreaming(methodDescriptor)
 
         var requestsSent = 0
-        runBlocking {
+        runTest {
             launch {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     repeat(2) {
                         requestsSent++
                         requestChannel.send(
                             HelloRequest.newBuilder()
-                                .setName(it.toString())
+                                .setName(0.toString())
                                 .build()
                         )
                     }
-                    assertFailsWithStatus(Status.INVALID_ARGUMENT) {
-                        requestChannel.send(
-                            HelloRequest.newBuilder()
-                                .setName("request")
-                                .build()
-                        )
-                    }
-                }
-                assertFailsWithStatus(Status.INVALID_ARGUMENT) {
-                    response.await().message
                 }
             }
         }
+
+        assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+            runTest { response.await().message }
+        }
+        assertFailsWithStatus(Status.INVALID_ARGUMENT) {
+            runTest {
+                requestChannel.send(
+                    HelloRequest.newBuilder()
+                        .setName("request")
+                        .build()
+                )
+            }
+        }
+
+        callState.blockUntilClosed()
 
         assertEquals(2,requestsSent)
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
@@ -217,15 +215,15 @@ class ClientCallClientStreamingTests {
             .withCoroutineContext(externalJob)
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking {
+        runTest {
             launch(Dispatchers.Default) {
                 val job = launch {
                     launch(start = CoroutineStart.UNDISPATCHED){
-                        assertFailsWithStatus(Status.CANCELLED) {
+                        assertFailsWithCancellation {
                             response.await().message
                         }
                     }
-                    assertFailsWithStatus(Status.CANCELLED) {
+                    assertFailsWithCancellation {
                         repeat(3) {
                             delay(5)
                             requestChannel.send(
@@ -244,6 +242,8 @@ class ClientCallClientStreamingTests {
             }
         }
 
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
+
         verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
     }
@@ -255,37 +255,42 @@ class ClientCallClientStreamingTests {
         setupServerHandlerNoop()
 
         lateinit var requestChannel: SendChannel<HelloRequest>
-        assertFails<CancellationException> {
-            runBlocking {
+        lateinit var response: Deferred<HelloReply>
+
+        assertFailsWithCancellation {
+            runTest {
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     val callChannel = stub
                         .withCoroutineContext()
                         .clientCallClientStreaming(methodDescriptor)
 
-                    requestChannel = callChannel.requestChannel
+                    requestChannel = spyk(callChannel.requestChannel)
+                    response = callChannel.response
 
-                    val job = launch {
-                        callChannel.response.await().message
-                    }
-                    assertFailsWithStatus(Status.CANCELLED) {
+                    assertFailsWithCancellation {
                         repeat(3) {
                             requestChannel.send(
                                 HelloRequest.newBuilder()
                                     .setName(it.toString())
                                     .build()
                             )
-                            delay(5)
+                            callState.client.cancelled.await()
                         }
                     }
-                    assertFailsWithStatus(Status.CANCELLED) {
-                        job.join()
-                    }
                 }
+                callState.client.onReady.await()
                 cancel()
             }
         }
 
-        verify { rpcSpy.call.cancel(any(), any()) }
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
+
+        assertFailsWithCancellation {
+            runTest { response.await().message }
+        }
+
+        coVerify(exactly = 1) { requestChannel.send(any()) }
+        verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
 
     }
@@ -298,7 +303,7 @@ class ClientCallClientStreamingTests {
 
         lateinit var requestChannel: SendChannel<HelloRequest>
         assertFailsWith(IllegalStateException::class, "cancel") {
-            runBlocking {
+            runTest {
                 val callChannel = stub
                     .withCoroutineContext()
                     .clientCallClientStreaming(methodDescriptor)
@@ -307,7 +312,7 @@ class ClientCallClientStreamingTests {
 
                 launch(Dispatchers.Default) {
                     launch(start = CoroutineStart.UNDISPATCHED) {
-                        assertFailsWithStatus(Status.CANCELLED) {
+                        assertFailsWithCancellation {
                             repeat(3) {
                                 requestChannel.send(
                                     HelloRequest.newBuilder()
@@ -321,14 +326,16 @@ class ClientCallClientStreamingTests {
                     launch {
                         error("cancel")
                     }
-                    assertFailsWithStatus(Status.CANCELLED) {
+                    assertFailsWithCancellation {
                         callChannel.response.await().message
                     }
                 }
             }
         }
 
-        verify { rpcSpy.call.cancel(any(), any()) }
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
+
+        verify(exactly = 1) { rpcSpy.call.cancel(any(), any()) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
 
     }
@@ -344,24 +351,24 @@ class ClientCallClientStreamingTests {
         val (requestChannel, response) = stub
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runTest {
             launch {
-                kotlin.runCatching {
-                    repeat(3) {
-                        requestChannel.send(
-                            HelloRequest.newBuilder()
-                                .setName(it.toString())
-                                .build()
-                        )
-                    }
-                    requestChannel.close(expectedException)
+                repeat(3) {
+                    requestChannel.send(
+                        HelloRequest.newBuilder()
+                            .setName(it.toString())
+                            .build()
+                    )
                 }
+                requestChannel.close(expectedException)
             }
 
             assertFailsWithStatus(Status.CANCELLED,"CANCELLED: $expectedCancelMessage"){
                 response.await()
             }
         }
+
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
 
         verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }
@@ -381,7 +388,7 @@ class ClientCallClientStreamingTests {
         val (requestChannel, response) = stub
             .clientCallClientStreaming(methodDescriptor)
 
-        runBlocking(Dispatchers.Default) {
+        runTest {
             requestChannel.send(
                 HelloRequest.newBuilder()
                     .setName(0.toString())
@@ -393,6 +400,8 @@ class ClientCallClientStreamingTests {
                 response.await()
             }
         }
+
+        callState.client.cancelled.assertBlocking { "Client must be cancelled" }
 
         verify { rpcSpy.call.cancel(expectedCancelMessage, matchThrowable(expectedException)) }
         assert(requestChannel.isClosedForSend) { "Request channel should be closed for send" }

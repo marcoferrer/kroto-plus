@@ -52,6 +52,9 @@ internal val ProtoService.stubClassName: ClassName
 internal val ProtoMethod.idPropertyName: String
     get() = "METHODID_${name.toUpperSnakeCase()}"
 
+internal val ProtoMethod.methodDefinitionPropName: String
+    get() = "${descriptorProto.name.toUpperCamelCase().decapitalize()}Method"
+
 internal fun FunSpec.Builder.addResponseObserverParameter(responseClassName: ClassName): FunSpec.Builder = apply {
     addParameter("responseObserver", CommonClassNames.streamObserver.parameterizedBy(responseClassName))
 }

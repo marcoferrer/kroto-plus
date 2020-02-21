@@ -17,7 +17,7 @@
 package com.github.marcoferrer.krotoplus.coroutines.integration
 
 import com.github.marcoferrer.krotoplus.coroutines.RpcCallTest
-import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus2
+import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import io.grpc.ServerInterceptors
 import io.grpc.Status
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
@@ -94,7 +94,7 @@ class ServerStreamingTests :
                 result += responseChannel.receive()
             }
             phaser.arrive()
-            assertFailsWithStatus2(Status.INVALID_ARGUMENT) {
+            assertFailsWithStatus(Status.INVALID_ARGUMENT) {
                 responseChannel.receive()
             }
         }

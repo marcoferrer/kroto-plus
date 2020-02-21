@@ -39,7 +39,13 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
+internal const val MESSAGE_SERVER_CANCELLED_CALL = "Server has cancelled the call"
 
+private const val DEPRECATION_MESSAGE =
+    "Delegate based server implementations are deprecated and replaced with ServerCallHandler instances. " +
+    "This is resolved by re-generating source stubs with Kroto+ v0.7.0 and up"
+
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallUnary(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -58,6 +64,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallUnary(
     }
 }
 
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -92,6 +99,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallServerStreaming(
 }
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -141,6 +149,7 @@ public fun <ReqT, RespT> ServiceScope.serverCallClientStreaming(
 
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
+@Deprecated(message = DEPRECATION_MESSAGE, level = DeprecationLevel.WARNING)
 public fun <ReqT, RespT> ServiceScope.serverCallBidiStreaming(
     methodDescriptor: MethodDescriptor<ReqT, RespT>,
     responseObserver: StreamObserver<RespT>,
@@ -218,7 +227,7 @@ private fun MethodDescriptor<*, *>.getUnimplementedException(): StatusRuntimeExc
  * before invoking `onComplete` and closing the call stream.
  *
  */
-private fun CoroutineScope.bindScopeCompletionToObserver(streamObserver: StreamObserver<*>) {
+internal fun CoroutineScope.bindScopeCompletionToObserver(streamObserver: StreamObserver<*>) {
 
     coroutineContext[Job]?.invokeOnCompletion {
         streamObserver.completeSafely(it)

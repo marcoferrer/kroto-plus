@@ -21,8 +21,10 @@ import com.github.marcoferrer.krotoplus.generators.GeneratorContext
 import com.github.marcoferrer.krotoplus.proto.ProtoMethod
 import com.github.marcoferrer.krotoplus.proto.ProtoService
 import com.github.marcoferrer.krotoplus.utils.CommonClassNames
+import com.github.marcoferrer.krotoplus.utils.CommonPackages
 import com.github.marcoferrer.krotoplus.utils.messageBuilderValueCodeBlock
 import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -33,32 +35,18 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.UNIT
 import com.squareup.kotlinpoet.asClassName
 import io.grpc.MethodDescriptor
+import io.grpc.ServerServiceDefinition
 
 class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
 
     fun build(protoService: ProtoService): TypeSpec = with(protoService){
-
-        val delegateValName = "delegate"
 
         TypeSpec.classBuilder(baseImplName)
             .addKdoc(attachedComments)
             .addModifiers(KModifier.ABSTRACT)
             .addSuperinterface(CommonClassNames.bindableService)
             .addSuperinterface(CommonClassNames.serviceScope)
-            .addProperty(
-                PropertySpec
-                    .builder(delegateValName, serviceDelegateClassName)
-                    .addModifiers(KModifier.PRIVATE)
-                    .initializer("%T()", serviceDelegateClassName)
-                    .build()
-            )
-            .addFunction(
-                FunSpec.builder("bindService")
-                    .addModifiers(KModifier.OVERRIDE)
-                    .returns(CommonClassNames.grpcServerServiceDefinition)
-                    .addCode("return %N.bindService()", delegateValName)
-                    .build()
-            )
+            .addFunction(buildBindServiceFunSpec(protoService))
             .apply {
                 for(method in methodDefinitions) when(method.type){
                     MethodDescriptor.MethodType.UNARY -> addFunction(buildUnaryBaseImpl(method))
@@ -69,7 +57,6 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
                 }
             }
             .addFunctions(buildResponseLambdaOverloads())
-            .addType(buildServiceBaseImplDelegate(protoService))
             .build()
     }
 
@@ -208,137 +195,47 @@ class GrpcServiceBaseImplBuilder(val context: GeneratorContext){
             .build()
     }
 
-    // Service impl delegate
+    private fun buildBindServiceFunSpec(protoService: ProtoService): FunSpec =
+        FunSpec.builder("bindService")
+            .addModifiers(KModifier.OVERRIDE)
+            .returns(CommonClassNames.grpcServerServiceDefinition)
+            .addCode(addMethodsToServiceCodeBlock(protoService))
+            .build()
 
-    private fun buildServiceBaseImplDelegate(protoService: ProtoService): TypeSpec = with(protoService) {
-        TypeSpec.classBuilder(serviceDelegateName)
-            .addModifiers(KModifier.PRIVATE, KModifier.INNER)
-            .superclass(serviceJavaBaseImplClassName)
-            .apply {
-                for(method in methodDefinitions) when(method.type){
-                    MethodDescriptor.MethodType.UNARY -> addFunction(buildUnaryDelegate(method))
-                    MethodDescriptor.MethodType.SERVER_STREAMING -> addFunction(buildServerStreamingDelegate(method))
-                    MethodDescriptor.MethodType.CLIENT_STREAMING -> addFunction(buildClientStreamingDelegate(method))
-                    MethodDescriptor.MethodType.BIDI_STREAMING -> addFunction(buildBidiStreamingDelegate(method))
-                    MethodDescriptor.MethodType.UNKNOWN -> throw IllegalStateException("Unknown method type")
-                }
+    private fun addMethodsToServiceCodeBlock(protoService: ProtoService): CodeBlock {
+        val builder = CodeBlock.builder()
+            .addStatement("val builder = %T", CommonClassNames.grpcServerServiceDefinition)
+            .indent()
+            .addStatement(".builder(%T.getServiceDescriptor())", protoService.enclosingServiceClassName)
+
+        protoService.methodDefinitions.forEach { method ->
+            val handlerClassName = when(method.type){
+                MethodDescriptor.MethodType.UNARY -> CallHandlerClassNames.unary
+                MethodDescriptor.MethodType.CLIENT_STREAMING -> CallHandlerClassNames.clientStreaming
+                MethodDescriptor.MethodType.SERVER_STREAMING -> CallHandlerClassNames.serverStreaming
+                MethodDescriptor.MethodType.BIDI_STREAMING -> CallHandlerClassNames.bidiStreaming
+                MethodDescriptor.MethodType.UNKNOWN -> throw IllegalStateException("Unknown method type")
             }
-            .build()
+
+            builder
+                .addStatement(".addMethod(")
+                .indent()
+                .addStatement("${method.methodDefinitionPropName},")
+                .addStatement("%T(MethodHandlers(this, %N))",
+                    handlerClassName,
+                    method.idPropertyName)
+                .unindent()
+                .addStatement(")")
+        }
+
+        return builder.unindent().addStatement("return builder.build()").build()
     }
 
-    private fun buildUnaryDelegate(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter("request", requestClassName)
-            .addParameter(
-                name = "responseObserver",
-                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement(
-                        "%T(%T.%N(),responseObserver) {",
-                        CommonClassNames.ServerCalls.serverCallUnary,
-                        protoService.enclosingServiceClassName,
-                        methodDefinitionGetterName
-                    )
-                    .indent()
-                    .addStatement("%N(request)", functionName)
-                    .unindent()
-                    .addStatement("}")
-                    .build()
-            )
-            .build()
-    }
-
-    private fun buildServerStreamingDelegate(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter("request", requestClassName)
-            .addParameter(
-                name = "responseObserver",
-                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
-            )
-            .addCode(
-                CodeBlock.builder()
-                    .addStatement(
-                        "%T(%T.%N(),responseObserver) { responseChannel: %T ->",
-                        CommonClassNames.ServerCalls.serverCallServerStreaming,
-                        protoService.enclosingServiceClassName,
-                        methodDefinitionGetterName,
-                        CommonClassNames.sendChannel.parameterizedBy(responseClassName)
-                    )
-                    .indent()
-                    .addStatement("%N(request, responseChannel)", functionName)
-                    .unindent()
-                    .addStatement("}")
-                    .build()
-            )
-            .build()
-    }
-
-    private fun buildClientStreamingDelegate(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.OVERRIDE)
-            .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
-            .addParameter(
-                name ="responseObserver",
-                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
-            )
-            .addCode(
-                CodeBlock.of(
-                    """
-                    val requestObserver = %T(
-                        %T.%N(),
-                        responseObserver
-                    ) { requestChannel: %T ->
-                        
-                        %N(requestChannel)
-                    }
-                    return requestObserver %L
-                    """.trimIndent(),
-                    CommonClassNames.ServerCalls.serverCallClientStreaming,
-                    protoService.enclosingServiceClassName,
-                    methodDefinitionGetterName,
-                    CommonClassNames.receiveChannel.parameterizedBy(requestClassName),
-                    functionName,
-                    "\n"
-                )
-            )
-            .build()
-    }
-
-    private fun buildBidiStreamingDelegate(protoMethod: ProtoMethod): FunSpec = with(protoMethod){
-        FunSpec.builder(functionName)
-            .addModifiers(KModifier.OVERRIDE)
-            .returns(CommonClassNames.streamObserver.parameterizedBy(requestClassName))
-            .addParameter(
-                name = "responseObserver",
-                type = CommonClassNames.streamObserver.parameterizedBy(responseClassName)
-            )
-            .addCode(
-                CodeBlock.of(
-                    """
-                    val requestChannel = %T(
-                        %T.%N(),
-                        responseObserver
-                    ) { requestChannel: %T,
-                        responseChannel: %T ->
-                        
-                        %N(requestChannel, responseChannel)
-                    }
-                    return requestChannel %L
-                    """.trimIndent(),
-                    CommonClassNames.ServerCalls.serverCallBidiStreaming,
-                    protoService.enclosingServiceClassName,
-                    methodDefinitionGetterName,
-                    CommonClassNames.receiveChannel.parameterizedBy(requestClassName),
-                    CommonClassNames.sendChannel.parameterizedBy(responseClassName),
-                    functionName,
-                    "\n"
-                )
-            )
-            .build()
+    object CallHandlerClassNames {
+        val unary = ClassName(CommonPackages.krotoCoroutineLib+".server","unaryServerCallHandler")
+        val serverStreaming = ClassName(CommonPackages.krotoCoroutineLib+".server","serverStreamingServerCallHandler")
+        val clientStreaming = ClassName(CommonPackages.krotoCoroutineLib+".server","clientStreamingServerCallHandler")
+        val bidiStreaming = ClassName(CommonPackages.krotoCoroutineLib+".server","bidiStreamingServerCallHandler")
     }
 
 }

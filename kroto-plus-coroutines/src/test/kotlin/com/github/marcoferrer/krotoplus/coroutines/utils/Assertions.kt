@@ -18,23 +18,24 @@ package com.github.marcoferrer.krotoplus.coroutines.utils
 
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import kotlinx.coroutines.CancellationException
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
-inline fun assertFailsWithStatus2(
-    status: Status,
-    message: String? = null,
-    block: () -> Unit
-){
+inline fun assertFailsWithCancellation(cause: Throwable? = null, message: String? = null, block: () -> Unit){
     try{
         block()
-        fail("Block did not fail")
+        fail("Cancellation exception was not thrown")
     }catch (e: Throwable){
-        println("assertFailsWithStatus(${e.javaClass}, message: ${e.message})")
-        assertEquals(StatusRuntimeException::class.java.canonicalName, e.javaClass.canonicalName)
-        require(e is StatusRuntimeException)
-        message?.let { assertEquals(it,e.message) }
-        assertEquals(status.code, e.status.code)
+        if(e is AssertionError) throw e
+        assertTrue(
+            e is CancellationException,
+            "Expected: CancellationException, Actual: ${e.javaClass.canonicalName}"
+        )
+        message?.let { assertEquals(it, e.message) }
+        cause?.let { assertExEquals(it, e.cause) }
+        cause?.cause?.let { assertExEquals(it, e.cause?.cause) }
     }
 }
 
@@ -45,19 +46,19 @@ inline fun assertFailsWithStatus(
 ){
     try{
         block()
-        fail("Block did not fail")
-    }catch (e: StatusRuntimeException){
-//   TODO: Fix this in separate PR
-//    }catch (e: Throwable){
-//        assertEquals(StatusRuntimeException::class.java.canonicalName, e.javaClass.canonicalName)
-//        require(e is StatusRuntimeException)
-//        println("assertFailsWithStatus(${e.javaClass}, message: ${e.message})")
+        fail("Expected StatusRuntimeException: $status, but none was thrown")
+    }catch (e: Throwable){
+        if(e is AssertionError) throw e
+        assertTrue(
+            e is StatusRuntimeException,
+            "Expected: StatusRuntimeException, Actual: ${e.javaClass.canonicalName}, with Cause: ${e.cause?.javaClass}"
+        )
         message?.let { assertEquals(it,e.message) }
         assertEquals(status.code, e.status.code)
     }
 }
 
-//Default `assertFailsWith` isn't inline and doesnt support coroutines
+// Default `assertFailsWith` isn't inline and doesnt support coroutines
 inline fun <reified T : Throwable> assertFails(message: String? = null, block: ()-> Unit){
     try {
         block()

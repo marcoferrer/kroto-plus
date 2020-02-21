@@ -20,6 +20,7 @@ import com.github.marcoferrer.krotoplus.coroutines.utils.ServerSpy
 import com.github.marcoferrer.krotoplus.coroutines.utils.assertFailsWithStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.matchStatus
 import com.github.marcoferrer.krotoplus.coroutines.utils.serverRpcSpy
+import com.github.marcoferrer.krotoplus.coroutines.utils.suspendForever
 import io.grpc.CallOptions
 import io.grpc.Channel
 import io.grpc.ClientCall
@@ -149,13 +150,13 @@ class ServerCallUnaryTests {
             override val initialContext: CoroutineContext = Dispatchers.Default
             override suspend fun sayHello(request: HelloRequest): HelloReply {
                 serverSpy = serverRpcSpy(coroutineContext)
-                delay(300000L)
-                return expectedResponse
+                suspendForever()
             }
         })
 
         val call = newCall()
         call.cancel("test",null)
+
         assert(serverSpy.job!!.isCancelled){ "Server job must be cancelled" }
         verify(exactly = 1) {
             responseObserver.onError(matchStatus(Status.CANCELLED))

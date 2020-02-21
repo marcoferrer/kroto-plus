@@ -16,14 +16,16 @@
 
 package com.github.marcoferrer.krotoplus.coroutines
 
+import com.github.marcoferrer.krotoplus.coroutines.utils.CALL_TRACE_ENABLED
 import com.github.marcoferrer.krotoplus.coroutines.utils.ClientCallSpyInterceptor
 import com.github.marcoferrer.krotoplus.coroutines.utils.RpcStateInterceptor
+import io.grpc.BindableService
 import io.grpc.Channel
 import io.grpc.ClientCall
 import io.grpc.MethodDescriptor
+import io.grpc.ServerInterceptors
 import io.grpc.examples.helloworld.GreeterCoroutineGrpc
 import io.grpc.examples.helloworld.GreeterGrpc
-import io.grpc.examples.helloworld.HelloReply
 import io.grpc.examples.helloworld.HelloRequest
 import io.grpc.testing.GrpcServerRule
 import kotlinx.coroutines.CompletableDeferred
@@ -58,6 +60,57 @@ abstract class RpcCallTest<ReqT, RespT>(
     @BeforeTest
     fun setupCall() {
         callState = RpcStateInterceptor()
+        CALL_TRACE_ENABLED = true
+//        mockkObject(Testing)
+//
+//        every { Testing.asyncClientStreamingCallK<ReqT, RespT>(any(), any()) } answers answer@ {
+//            val call = firstArg<ClientCall<ReqT, RespT>>()
+//            val responseObserver = secondArg<ClientResponseObserver<ReqT, RespT>>()
+//
+//            val reqObserver = ClientCalls.asyncClientStreamingCall(call, object:  ClientResponseObserver<ReqT, RespT>{
+//                override fun onNext(value: RespT) {
+//                    responseObserver.onNext(value)
+//                }
+//
+//                override fun onError(t: Throwable) {
+//                    println("Client: Response observer onError(${t.toDebugString()})")
+//                    responseObserver.onError(t)
+//                }
+//
+//                override fun onCompleted() {
+//                    println("Client: Response observer onComplete()")
+//                    responseObserver.onCompleted()
+//                }
+//
+//                override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
+//                    responseObserver.beforeStart(requestStream)
+//                }
+//
+//            } as StreamObserver<RespT>)
+//
+//            return@answer object : StreamObserver<ReqT> {
+//                override fun onNext(value: ReqT) {
+//                    reqObserver.onNext(value)
+//                }
+//
+//                override fun onError(t: Throwable) {
+//                    println("Client: Request observer onError(${t.toDebugString()})")
+//                    reqObserver.onError(t)
+//                }
+//
+//                override fun onCompleted() {
+//                    println("Client: Request observer onComplete()")
+//                    reqObserver.onCompleted()
+//                }
+//
+//            }
+//        }
+    }
+
+    fun registerService(service: BindableService){
+        val interceptedService = ServerInterceptors.intercept(service, callState)
+        nonDirectGrpcServerRule.serviceRegistry.addService(interceptedService)
+        grpcServerRule.serviceRegistry.addService(interceptedService)
     }
 
     inner class RpcSpy(channel: Channel) {
@@ -69,6 +122,9 @@ abstract class RpcCallTest<ReqT, RespT>(
         private val _call = CompletableDeferred<ClientCall<*, *>>()
 
         val stub = GreeterGrpc.newStub(channel)
+            .withInterceptors(ClientCallSpyInterceptor(_call), callState)!!
+
+        val blkStub = GreeterGrpc.newBlockingStub(channel)
             .withInterceptors(ClientCallSpyInterceptor(_call), callState)!!
 
         val coStub = GreeterCoroutineGrpc.newStub(channel)
@@ -104,10 +160,10 @@ abstract class RpcCallTest<ReqT, RespT>(
     ) : T = try {
         withTimeout(timeout) { block() }
     } catch (e: TimeoutCancellationException) {
+        println(callState.toString())
         fail("""
             |$message 
             |Timeout after ${timeout}ms
-            |$callState
         """.trimMargin())
     }
 

@@ -17,8 +17,10 @@
 package com.github.marcoferrer.krotoplus.generators
 
 import com.github.marcoferrer.krotoplus.generators.Generator.Companion.AutoGenerationDisclaimer
+import com.github.marcoferrer.krotoplus.generators.builders.GrpcMethodHandlerBuilder
 import com.github.marcoferrer.krotoplus.generators.builders.GrpcServiceBaseImplBuilder
 import com.github.marcoferrer.krotoplus.generators.builders.GrpcStubBuilder
+import com.github.marcoferrer.krotoplus.generators.builders.methodDefinitionPropName
 import com.github.marcoferrer.krotoplus.generators.builders.outerObjectName
 import com.github.marcoferrer.krotoplus.generators.builders.stubClassName
 import com.github.marcoferrer.krotoplus.proto.ProtoMessage
@@ -48,7 +50,7 @@ object GrpcCoroutinesGenerator : Generator {
         get() = context.config.grpcCoroutinesList.isNotEmpty()
 
     private val stubBuilder = GrpcStubBuilder(context)
-
+    private val methodHandlerBuilder = GrpcMethodHandlerBuilder(context)
     private val serviceBaseImplBuilder = GrpcServiceBaseImplBuilder(context)
 
     override fun invoke(): PluginProtos.CodeGeneratorResponse {
@@ -111,6 +113,8 @@ object GrpcCoroutinesGenerator : Generator {
             )
             .addType(stubBuilder.buildStub(this))
             .addType(serviceBaseImplBuilder.build(this))
+            .addProperties(methodHandlerBuilder.buildMethodIdConsts(this))
+            .addType(methodHandlerBuilder.buildMethodHandlersTypeSpec(this))
             .addProperty(
                 PropertySpec.builder("SERVICE_NAME", String::class.asClassName())
                     .addModifiers(KModifier.CONST)
@@ -120,9 +124,10 @@ object GrpcCoroutinesGenerator : Generator {
             .addProperties(buildMethodDefinitionProps())
             .build()
 
+
     private fun ProtoService.buildMethodDefinitionProps(): List<PropertySpec> =
         methodDefinitions.map { method ->
-            val propName = "${method.descriptorProto.name.toUpperCamelCase().decapitalize()}Method"
+            val propName = method.methodDefinitionPropName
             val propTypeName = CommonClassNames.grpcMethodDescriptor
                 .parameterizedBy(method.requestClassName, method.responseClassName)
             val propGetter = FunSpec.getterBuilder()
